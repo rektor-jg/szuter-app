@@ -202,7 +202,7 @@ body.touch .tile svg{width:50px;height:50px}
 body.touch .tile b{font-size:13px}
 body.touch .tile.next{width:60px}
 body.touch .tile.next svg{width:34px;height:34px}
-body.touch #tacho{width:112px;height:112px;right:auto;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 6px)}
+body.touch #tacho{width:98px;height:98px;left:calc(env(safe-area-inset-left,0px) + 24px);right:auto;top:calc(env(safe-area-inset-top,0px) + 102px);bottom:auto;transform:none}
 body.touch .rail{bottom:calc(env(safe-area-inset-bottom,0px) + 36px);left:calc(env(safe-area-inset-left,0px) + 12px)}
 body.touch .hudbtn{width:40px;height:40px;top:calc(env(safe-area-inset-top,0px) + 70px)}
 body.touch #btnPause{right:calc(env(safe-area-inset-right,0px) + 16px)}
@@ -215,30 +215,41 @@ body.touch #banner{top:34%}
 #rotate p{margin:0;font:500 13px/1.45 var(--mono);color:var(--paper-muted)}
 #rotate svg{width:74px;height:74px;margin:0 auto 10px;display:block}
 @media (orientation:landscape) and (max-height:520px){
-  /* menu: roadbook na cały ekran w dwóch kolumnach, start zawsze widoczny */
-  #menu{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);background:rgba(9,12,10,.55);
+  /* menu: wąski roadbook z lewej, auto i start w prawym dolnym rogu, pośrodku widać auto w 3D */
+  #menu{grid-template-columns:minmax(0,min(44%,380px)) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;column-gap:14px;
+    background:linear-gradient(90deg,rgba(9,12,10,.55) 0,rgba(9,12,10,.12) 50%,rgba(9,12,10,0) 100%);
     padding:max(8px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
-  .brand,.badge,.legend{display:none}
-  .book{grid-column:1;grid-row:1;height:100%;max-height:100%;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);overflow:hidden}
-  .book-main{overflow:auto;min-height:0;border-right:2px solid var(--paper-ink);overscroll-behavior:contain;touch-action:pan-y}
-  .book-side{display:flex;flex-direction:column;min-height:0;overflow:auto;touch-action:pan-y}
-  .side-brand{display:block;padding:9px 14px 0;font:900 italic 30px/.9 var(--display);font-stretch:66%;color:var(--paper-ink);letter-spacing:-.01em}
-  .side-h{padding:8px 14px 5px}
-  .tabs button{padding:9px 6px 8px;font-size:15px}
-  .sec h2{padding:9px 12px 5px}
-  .row{grid-template-columns:56px minmax(0,1fr) auto;gap:10px;padding:6px 12px 6px 8px}
-  .row canvas{width:56px;height:44px}
-  .row .nm b{font-size:18px}
-  .row .nm span{font-size:11px}
-  .seedline{padding:7px 12px}
-  .cars{grid-template-columns:1fr;border-bottom:0}
-  .car{padding:7px 14px;gap:2px}
-  .car+.car{border-left:0;border-top:1.5px solid var(--paper-ink)}
+  .book{display:contents}
+  .book-main{grid-column:1;grid-row:1/-1;min-height:0;overflow:auto;background:var(--paper);color:var(--paper-ink);border-radius:2px;
+    box-shadow:0 14px 40px rgba(0,0,0,.45);overscroll-behavior:contain;touch-action:pan-y}
+  .book-side{grid-column:2;grid-row:3;justify-self:end;width:min(100%,360px);background:var(--paper);color:var(--paper-ink);border-radius:2px;
+    box-shadow:0 14px 40px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden}
+  .brand{grid-column:2;grid-row:1;justify-self:end;margin:0}
+  .brand h1{font-size:30px}
+  .brand p,.badge,.legend,.side-brand,.side-h{display:none}
+  .tabs button{padding:7px 4px 6px;font-size:13.5px}
+  .sec h2{padding:7px 10px 4px;font-size:9.5px}
+  .row{grid-template-columns:44px minmax(0,1fr) auto;gap:8px;padding:5px 10px 5px 6px}
+  .row canvas{width:44px;height:34px;padding-right:4px}
+  .row .nm b{font-size:15.5px}
+  .row .nm span{font-size:10.5px}
+  .row .bt{font-size:9px}
+  .row .bt strong{font-size:12px}
+  .seedline{padding:6px 10px;font-size:10.5px}
+  .seedline button{padding:4px 7px;font-size:11.5px}
+  .cars{grid-template-columns:repeat(3,minmax(0,1fr));border-top:0}
+  .car{padding:7px 8px 6px;gap:2px}
+  .car b{font-size:14px}
+  .car small{font-size:8.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .car i{height:4px}
   .car .meter{display:none}
-  .car b{font-size:17px}
-  .go{margin-top:auto;padding:12px 14px;font-size:22px;border-top:2px solid var(--paper-ink)}
-  .opt{padding:8px 12px}
-  .opt label{font-size:15px}
+  .go{padding:10px 12px;font-size:19px;border-top:1.5px solid var(--paper-ink)}
+  .go span{font-size:9.5px}
+  .opt{padding:6px 10px}
+  .opt label{font-size:14px}
+  .opt small{font-size:10.5px}
+  .seg button{padding:5px 6px;font-size:10px}
+  .note-p{font-size:12px;padding:8px 10px}
   /* nakładki: wyniki w dwóch kolumnach, bez przewijania całej karty */
   .overlay{padding:max(8px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
   #results .card{width:min(860px,100%);max-height:100%;height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
@@ -332,7 +343,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Skrzynia<small>Ręczna: Q / E albo LB / RB</small></label><div class="seg" id="optGear"><button data-v="auto">AUTO</button><button data-v="manual">RĘCZNA</button></div></div>
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
-        <div class="opt"><label>Grafika<small>Niska: mniej drzew, bez bloom i cieni lasu</small></label><div class="seg" id="optQuality"><button data-v="high">WYSOKA</button><button data-v="low">NISKA</button></div></div>
+        <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button></div></div>
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
@@ -1806,8 +1817,25 @@ const bests = store.get('bests', {});
 const bestKey = (st, carId) => `${st.def.id}:${st.seed}:${carId}`;
 
 const col = (h) => new THREE.Color(h);
-const HIGH = () => settings.quality === 'high';
-const LOW = () => settings.quality === 'low';
+// profile grafiki: niski (telefon), średni, wysoki (komputer)
+const QUALITY = {
+  low: {
+    dprTouch: 1.5, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 1024, softShadows: false,
+    treeShadows: false, rockShadows: false, block: 2, lodNear: 28, lodFar: 110, treeNear: 2, treeFar: 5, treeMax: 150, rockMax: 120, bucket: 512,
+    smoke: 300, glow: 120, skids: 700, litDust: false, emit: 0.38, snow: 350, mist: 20, fogK: 0.8, bakeSky: true, beams: 1, ripple: false,
+  },
+  medium: {
+    dprTouch: 2, dpr: 1.35, minScale: 0.7, pipeline: false, bloom: false, samples: 0, shadowMap: 2048, softShadows: true,
+    treeShadows: false, rockShadows: true, block: 2, lodNear: 45, lodFar: 150, treeNear: 1, treeFar: 3, treeMax: 190, rockMax: 170, bucket: 512,
+    smoke: 650, glow: 200, skids: 1400, litDust: true, emit: 0.7, snow: 800, mist: 40, fogK: 0.92, bakeSky: IS_TOUCH, beams: 2, ripple: true,
+  },
+  high: {
+    dprTouch: 2.5, dpr: 1.75, minScale: 0.8, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true,
+    treeShadows: true, rockShadows: true, block: 1, lodNear: 75, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
+    smoke: 1100, glow: 260, skids: 2400, litDust: true, emit: 1, snow: 1400, mist: 70, fogK: 1, bakeSky: false, beams: 3, ripple: true,
+  },
+};
+const Q = () => QUALITY[settings.quality] || QUALITY.low;
 
 function canvasTex(w, h, draw, { srgb = true, repeat = true, aniso = 8 } = {}) {
   const c = document.createElement('canvas');
@@ -2080,12 +2108,12 @@ function buildTerrain(st, group) {
   const nx = st.nx, nz = st.nz, h = st.h, CC = CHUNK / GRID;
   const colorFn = terrainColorFn(st), c3 = [0, 0, 0];
   const mat = terrainMaterial(true);
-  const lowR = st.def.halfW + 0.9, low = LOW();
-  // na telefonie 2×2 kawałki w jednym meshu (mniej wywołań rysowania) i mocniejszy LOD
-  const block = low ? 2 : 1;
+  const lowR = st.def.halfW + 0.9, q = Q();
+  // niższe profile: 2×2 kawałki w jednym meshu (mniej wywołań rysowania) i mocniejszy LOD
+  const block = q.block;
   const groups = new Map();
   for (const ch of st.chunks) {
-    const step = low ? (ch.minDist > 110 ? 4 : ch.minDist > 28 ? 2 : 1) : (ch.minDist > 75 ? 2 : 1);
+    const step = ch.minDist > q.lodFar ? 4 : ch.minDist > q.lodNear ? 2 : 1;
     const n = CC / step, V = n + 1;
     const pos = new Float32Array(V * V * 3), nor = new Float32Array(V * V * 3), clr = new Float32Array(V * V * 3);
     let p = 0;
@@ -2222,7 +2250,7 @@ function buildWater(st, group) {
   geo.rotateX(-Math.PI / 2);
   const mat = new THREE.MeshBasicNodeMaterial();
   const vd = T.normalize(T.positionWorld.sub(T.cameraPosition));
-  const rip = LOW() ? T.float(0) : T.mx_noise_float(T.vec3(T.positionWorld.x.mul(0.18), T.positionWorld.z.mul(0.18), T.time.mul(0.3))).mul(0.05);
+  const rip = !Q().ripple ? T.float(0) : T.mx_noise_float(T.vec3(T.positionWorld.x.mul(0.18), T.positionWorld.z.mul(0.18), T.time.mul(0.3))).mul(0.05);
   const fres = T.clamp(T.pow(T.float(1).sub(T.abs(vd.y)), 4.0).add(rip).add(0.1), 0.0, 1.0);
   const refl = T.vec3(vd.x, T.abs(vd.y), vd.z);
   const glint = T.pow(T.max(T.dot(refl, ATM.sunDir), 0.0), 180.0).mul(4.0);
@@ -2273,19 +2301,19 @@ function bucketInstances(arr, stride, bucket, keep) {
 }
 
 function buildTrees(st, group) {
-  const high = HIGH();
+  const qp = Q();
   const mat = vcMaterial({ rough: 0.92, sway: 0.0016 });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   for (const type in st.trees) {
     const arr = st.trees[type];
     const geo = treeGeo(type);
-    // telefon: pełny las przy drodze tylko co drugie drzewo, dalej rzadko, za 150 m nic (i tak w mgle)
+    // niższe profile: przerzedzony las, im dalej od drogi tym rzadszy, za granicą nic (i tak w mgle)
     const keep = (i) => {
-      if (high) return true;
+      if (qp.treeNear === 1 && qp.treeFar === 1 && qp.treeMax > 1e8) return true;
       const d = st.coarseDist(arr[i * 5], arr[i * 5 + 2]);
-      return d < 45 ? i % 2 === 0 : d < 150 ? i % 5 === 0 : false;
+      return d < 45 ? i % qp.treeNear === 0 : d < qp.treeMax ? i % qp.treeFar === 0 : false;
     };
-    const buckets = bucketInstances(arr, 5, high ? 256 : 512, keep);
+    const buckets = bucketInstances(arr, 5, qp.bucket, keep);
     for (const list of buckets.values()) {
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
       list.forEach((i, k) => {
@@ -2297,7 +2325,7 @@ function buildTrees(st, group) {
       });
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
-      mesh.castShadow = high; mesh.receiveShadow = true;
+      mesh.castShadow = qp.treeShadows; mesh.receiveShadow = true;
       group.add(mesh);
     }
   }
@@ -2328,7 +2356,8 @@ function buildRocks(st, group) {
   geo.computeBoundingSphere();
   const mat = vcMaterial({ rough: 0.95 });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), e = new THREE.Euler();
-  const buckets = bucketInstances(arr, 5, HIGH() ? 256 : 512, (i) => HIGH() || st.coarseDist(arr[i * 5], arr[i * 5 + 2]) < 120);
+  const qp = Q();
+  const buckets = bucketInstances(arr, 5, qp.bucket, (i) => qp.rockMax > 1e8 || st.coarseDist(arr[i * 5], arr[i * 5 + 2]) < qp.rockMax);
   for (const list of buckets.values()) {
     const mesh = new THREE.InstancedMesh(geo, mat, list.length);
     list.forEach((i, k) => {
@@ -2339,7 +2368,7 @@ function buildRocks(st, group) {
       mesh.setMatrixAt(k, m4.compose(p, q, s));
     });
     mesh.computeBoundingSphere();
-    mesh.castShadow = HIGH(); mesh.receiveShadow = true;
+    mesh.castShadow = qp.rockShadows; mesh.receiveShadow = true;
     group.add(mesh);
   }
 }
@@ -2709,9 +2738,12 @@ class CarModel {
         }
       }
       const tgt = new THREE.Object3D(); tgt.position.set(0, -1.2, -24); this.group.add(tgt);
-      const beams = LOW()
+      const nb = Q().beams;
+      const beams = nb === 1
         ? (this.night ? [[0, 0.62, 300]] : [[0, 0.5, 120]])
-        : (this.night ? [[-0.5, 0.42, 170], [0.5, 0.42, 170], [0, 0.95, 60]] : [[-0.5, 0.45, 70], [0.5, 0.45, 70]]);
+        : nb === 2
+          ? (this.night ? [[-0.5, 0.5, 200], [0.5, 0.5, 200]] : [[0, 0.5, 120]])
+          : (this.night ? [[-0.5, 0.42, 170], [0.5, 0.42, 170], [0, 0.95, 60]] : [[-0.5, 0.45, 70], [0.5, 0.45, 70]]);
       for (const [x, ang, I] of beams) {
         const sp = new THREE.SpotLight(0xfff3e0, I, 170, ang, 0.55, 1.15);
         sp.position.set(x, 0.2, -2.0);
@@ -2917,9 +2949,10 @@ class Skids {
 class FX {
   constructor(scene, st) {
     this.scene = scene;
-    this.smoke = new Particles(HIGH() ? 1100 : 300, { lit: HIGH() });
-    this.glow = new Particles(HIGH() ? 260 : 120, { lit: false, additive: true });
-    this.skids = new Skids(HIGH() ? 2400 : 700);
+    const q = Q();
+    this.smoke = new Particles(q.smoke, { lit: q.litDust });
+    this.glow = new Particles(q.glow, { lit: false, additive: true });
+    this.skids = new Skids(q.skids);
     scene.add(this.smoke.mesh, this.glow.mesh, this.skids.mesh);
     this.weather = null;
     this.setStage(st);
@@ -2934,7 +2967,7 @@ class FX {
     FXLIGHT.value = L.time === 'night' ? 0.22 : L.time === 'dusk' ? 0.8 : 1;
     if (this.weather) { this.scene.remove(this.weather.mesh); this.weather.mesh.geometry.dispose(); this.weather.mesh.material.dispose(); this.weather = null; }
     if (L.weather) {
-      this.weather = new Weather(L.weather, L.weather === 'mist' ? (HIGH() ? 70 : 20) : (HIGH() ? 1400 : 350));
+      this.weather = new Weather(L.weather, L.weather === 'mist' ? Q().mist : Q().snow);
       this.scene.add(this.weather.mesh);
     }
     this.clear();
@@ -2947,7 +2980,7 @@ class FX {
   }
   wheels(car, dt, night) {
     const sp = car.speed;
-    const hi = HIGH() ? 1 : 0.38;
+    const hi = Q().emit;
     for (let i = 0; i < 4; i++) {
       const wh = car.wheels[i];
       if (!wh.contact || !wh.surf) { this.skids.track(i, false); continue; }
@@ -3595,7 +3628,10 @@ const UI = {
     seg('optLang', 'lang', id, nop);
     seg('optGear', 'gearbox', id, () => this.h.applySettings());
     seg('optAssist', 'assist', (v) => v === '1', () => this.h.applySettings());
-    seg('optQuality', 'quality', id, () => this.h.qualityChanged());
+    const qNote = { low: 'Niska: najpłynniej na telefonie', medium: 'Średnia: gęstszy las, oświetlony kurz, ostrzejszy obraz', high: 'Wysoka: pełny las, bloom, cienie drzew — na komputer' };
+    const setQNote = () => { $('optQualityNote').textContent = qNote[settings.quality] || qNote.low; };
+    setQNote();
+    seg('optQuality', 'quality', id, () => { setQNote(); this.h.qualityChanged(); });
     seg('optPerf', 'perf', (v) => v === '1', () => { $('perf').hidden = !settings.perf; });
     $('perf').hidden = !settings.perf;
     if (IS_TOUCH) {
@@ -3756,7 +3792,7 @@ const prevPos = new THREE.Vector3(), prevQuat = new THREE.Quaternion(), curPos =
 const renderPos = new THREE.Vector3(), renderQuat = new THREE.Quaternion();
 let physAcc = 0, alpha = 0;
 
-const pixelRatio = () => Math.min(devicePixelRatio || 1, HIGH() ? 1.75 : IS_TOUCH ? 1.5 : 1);
+const pixelRatio = () => Math.min(devicePixelRatio || 1, IS_TOUCH ? Q().dprTouch : Q().dpr);
 const PORTRAIT = typeof matchMedia !== 'undefined' ? matchMedia('(orientation: portrait)') : null;
 let wakeLock = null;
 async function keepAwake(on) {
@@ -3770,13 +3806,13 @@ function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
   pipeline = null; bloomNode = null;
   // telefon: bez post-processingu — render prosto na ekran (MSAA z renderera jest na GPU Apple prawie darmowe)
-  if (LOW()) return;
+  if (!Q().pipeline) return;
   pipeline = new THREE.RenderPipeline(renderer);
-  const scenePass = T.pass(scene, camera, { samples: HIGH() ? 4 : 0 });
+  const scenePass = T.pass(scene, camera, { samples: Q().samples });
   const color = scenePass.getTextureNode('output');
   let out = color;
   bloomNode = null;
-  if (HIGH()) { bloomNode = bloom(color, 0.25, 0.45, 0.92); out = color.add(bloomNode); }
+  if (Q().bloom) { bloomNode = bloom(color, 0.25, 0.45, 0.92); out = color.add(bloomNode); }
   const d = T.length(T.screenUV.sub(0.5).mul(T.vec2(1.2, 1.0)));
   const vig = T.float(1).sub(T.smoothstep(0.42, 1.05, d).mul(0.38));
   pipeline.outputNode = T.vec4(out.rgb.mul(vig), 1.0);
@@ -3784,7 +3820,7 @@ function setupPipeline() {
 
 function applyLook(def) {
   const L = def.look;
-  const fk = LOW() ? 0.8 : 1;
+  const fk = Q().fogK;
   scene.fog = new THREE.Fog(L.fog, L.fogNear * fk, L.fogFar * fk);
   scene.background = new THREE.Color(L.fog);
   ATM.fog.value.set(L.fog); ATM.zenith.value.set(L.zenith); ATM.horizon.value.set(L.horizon);
@@ -3820,7 +3856,7 @@ function updateEnv(st) {
     scene.fog = fog; scene.background = bg;
     hide.forEach(o => o.visible = true);
     // telefon: niebo z chmurami raz wypalone do cube mapy zamiast liczenia szumu co piksel
-    if (LOW()) { sky.visible = false; scene.background = envRT.texture; }
+    if (Q().bakeSky) { sky.visible = false; scene.background = envRT.texture; }
   } catch (e) { console.warn('env', e); envRT = null; sky.visible = true; }
 }
 
@@ -4361,7 +4397,7 @@ function adaptResolution(dt, now) {
   if (perf.t < 1.2) return;
   perf.t = 0;
   if (game.state === 'paused' || game.state === 'results') return;
-  const cap = pixelRatio(), min = LOW() ? 0.6 : 0.85;
+  const cap = pixelRatio(), min = Q().minScale;
   if (perf.ema > 1 / 48 && perf.scale > min) {
     perf.scale = Math.max(min, +(perf.scale - 0.15).toFixed(2)); renderer.setPixelRatio(perf.scale);
     perf.lastDown = now; perf.good = 0;
@@ -4434,7 +4470,9 @@ const handlers = {
   },
   qualityChanged: async () => {
     perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale);
-    renderer.shadowMap.type = LOW() ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = Q().softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+    sun.shadow.mapSize.set(Q().shadowMap, Q().shadowMap);
+    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
     sky.visible = true;
     if (game.fx) { for (const m of [game.fx.smoke.mesh, game.fx.glow.mesh, game.fx.skids.mesh, game.fx.weather && game.fx.weather.mesh]) if (m) scene.remove(m); game.fx = null; }
     setupPipeline();
@@ -4473,7 +4511,7 @@ async function boot() {
     await Promise.race([Promise.all([document.fonts.load('italic 900 64px Saira'), document.fonts.load('600 20px "Martian Mono"')]), sleep(2500)]);
   } catch { /* fonty opcjonalne */ }
   try {
-    renderer = new THREE.WebGPURenderer({ antialias: LOW(), powerPreference: 'high-performance' });
+    renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
     await renderer.init();
   } catch (e) {
     console.error(e);
@@ -4485,7 +4523,7 @@ async function boot() {
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = LOW() ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = Q().softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
   $('view').appendChild(renderer.domElement);
   const gpu = !!(renderer.backend && renderer.backend.isWebGPUBackend);
   $('backendBadge').textContent = gpu ? 'WebGPU' : 'WebGL 2 · tryb zgodności';
@@ -4497,7 +4535,7 @@ async function boot() {
   hemi = new THREE.HemisphereLight('#ffffff', '#444444', 1); scene.add(hemi);
   sun = new THREE.DirectionalLight('#ffffff', 3);
   sun.castShadow = true;
-  const sm = HIGH() ? 2048 : 1024;
+  const sm = Q().shadowMap;
   sun.shadow.mapSize.set(sm, sm);
   Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 5, far: 320 });
   sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.04;

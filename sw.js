@@ -1,5 +1,5 @@
 // Service worker Szuter Rally: gra działa offline po pierwszym uruchomieniu.
-const VERSION = 'szuter-215fac42a8';
+const VERSION = 'szuter-df006aec33';
 const FILES = ["./", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./index.html", "./manifest.webmanifest", "./vendor/addons/tsl/display/BloomNode.js", "./vendor/three.core.js", "./vendor/three.tsl.min.js", "./vendor/three.webgpu.min.js"];
 const FONTS = 'szuter-fonts';
 
