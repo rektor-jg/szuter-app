@@ -100,6 +100,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--signal);outline
 .seg button+button{border-left:1.5px solid var(--paper-ink)}
 .seg button[aria-pressed="true"]{background:var(--paper-ink);color:var(--paper)}
 .opt input[type=range]{width:130px;accent-color:#17130d}
+.slide{display:flex;align-items:center;gap:6px;font:700 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--paper-muted)}
+.slide input[type=range]{width:110px}
 .note-p{padding:12px 14px;font:400 13.5px/1.45 var(--display);color:var(--paper-ink);max-width:62ch}
 .note-p b{font-weight:700}
 .side-h{margin:0;padding:12px 14px 6px;font:600 10.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--paper-muted)}
@@ -244,7 +246,7 @@ body.touch #banner{top:34%}
   .car i{height:4px}
   .car .meter{display:none}
   .go{padding:10px 12px;font-size:19px;border-top:1.5px solid var(--paper-ink)}
-  .go span{font-size:9.5px}
+      .go span{font-size:9.5px}
   .opt{padding:6px 10px}
   .opt label{font-size:14px}
   .opt small{font-size:10.5px}
@@ -339,6 +341,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
     <div class="sec" id="secOpts" hidden>
       <h2>Ustawienia</h2>
       <div class="opts">
+        <div class="opt"><label for="optArcade">Prowadzenie<small id="optArcadeNote">Arcade</small></label><div class="slide"><span>SYM</span><input type="range" id="optArcade" min="0" max="1" step="0.05"><span>ARCADE</span></div></div>
         <div class="opt"><label>Pilot<small>Czyta notatki głosem przeglądarki</small></label><div class="seg" id="optLang"><button data-v="pl">PL</button><button data-v="en">EN</button><button data-v="off">WYŁ</button></div></div>
         <div class="opt"><label>Skrzynia<small>Ręczna: Q / E albo LB / RB</small></label><div class="seg" id="optGear"><button data-v="auto">AUTO</button><button data-v="manual">RĘCZNA</button></div></div>
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
@@ -1460,6 +1463,7 @@ class Car {
     this.k = k; this.c = 2 * 0.62 * Math.sqrt(k * cfg.mass / 4);
     this.arbF = 21000 * cfg.mass / 1230; this.arbR = 13000 * cfg.mass / 1230;
     this.auto = true; this.assist = true;
+    this.arcade = 0.7; // 0 = symulacja, 1 = arcade
     this.reset();
   }
   reset() {
@@ -1516,7 +1520,7 @@ class Car {
     this.invIWorld(ry * Jz - rz * Jy, rz * Jx - rx * Jz, rx * Jy - ry * Jx, _b);
     w[0] += _b[0]; w[1] += _b[1]; w[2] += _b[2];
     const dv = j / this.m;
-    if (dv > 3) this.damage = Math.min(1, this.damage + (dv - 3) * 0.008);
+    if (dv > 3) this.damage = Math.min(1, this.damage + (dv - 3) * 0.008 * (1 - 0.7 * this.arcade));
     return dv;
   }
 
@@ -1550,15 +1554,17 @@ class Car {
 
     // --- kierownica
     const vAbs = Math.abs(speedF);
-    let target = inp.steer * steerLimit(cfg, vAbs);
+    const A = this.arcade;
+    let target = inp.steer * steerLimit(cfg, vAbs) * (1 + 0.45 * A);
     if (this.assist && vAbs > 4 && this.gear !== -1) {
       // kontra tylko przy wyraźnym poślizgu tyłu (β > ~7°)
       const beta = Math.atan2(speedR, Math.max(vAbs, 4));
-      const ex = Math.sign(beta) * Math.max(0, Math.abs(beta) - 0.12);
-      target += clamp(ex, -0.5, 0.5) * 0.75 * smoothstep(4, 12, vAbs);
+      const ex = Math.sign(beta) * Math.max(0, Math.abs(beta) - lerp(0.12, 0.05, A));
+      target += clamp(ex, -0.5, 0.5) * lerp(0.75, 1.0, A) * smoothstep(4, 12, vAbs);
     }
     target = clamp(target + this.damage * 0.025, -cfg.steer, cfg.steer);
-    this.steerAngle += clamp(target - this.steerAngle, -3.2 * dt, 3.2 * dt);
+    const sRate = 3.2 * (1 + A);
+    this.steerAngle += clamp(target - this.steerAngle, -sRate * dt, sRate * dt);
 
     // --- silnik
     const ratio = this.gear === -1 ? -3.4 : cfg.gears[this.gear - 1];
@@ -1638,13 +1644,15 @@ class Car {
       const vl = vcx * ffx + vcy * ffy + vcz * ffz, vs = vcx * sx + vcy * sy + vcz * sz;
 
       const loadK = 1 - 0.07 * (Fz / (m * G / 4) - 1);
-      const mu = surf.mu * cfg.grip * clamp(loadK, 0.8, 1.1);
+      // arcade: pobocze mniej karze, ogólnie więcej trzymania
+      const surfMu = surf.zone === 'road' ? surf.mu : lerp(surf.mu, Math.max(surf.mu, st.def.grip.road * 0.92), 0.55 * A);
+      const mu = surfMu * cfg.grip * clamp(loadK, 0.8, 1.1) * (1 + 0.3 * A);
       const Fmax = mu * Fz;
       const mq = m / 4;
       // boczna
       const avl = Math.abs(vl);
       const alpha = Math.atan2(vs, Math.max(avl, 1.0));
-      let latF = -Math.sign(alpha) * Fmax * latCurve(Math.abs(alpha), surf.peak, surf.fall);
+      let latF = -Math.sign(alpha) * Fmax * latCurve(Math.abs(alpha), surf.peak, lerp(surf.fall, 0.97, A));
       if (avl < 4) {
         const bl = 1 - avl / 4;
         latF = latF * (1 - bl) + clamp(-vs * mq / dt * 0.5, -Fmax, Fmax) * bl;
@@ -1652,9 +1660,10 @@ class Car {
       // wzdłużna
       const share = this.share(wh, hb);
       let driveF = driveTotal * share;
-      const brakeMax = brk * cfg.brake * (wh.front ? cfg.bias : 1 - cfg.bias) * 0.5;
+      const brakeMax = brk * cfg.brake * (wh.front ? cfg.bias : 1 - cfg.bias) * 0.5 * (1 + 0.35 * A);
       let longF = driveF - Math.sign(vl) * Math.min(brakeMax, avl * mq / dt * 0.9);
-      longF -= Math.sign(vl) * Math.min(surf.crr * Fz * (1 + avl / 25), avl * mq / dt * 0.5);
+      const crr = surf.crr * (surf.zone === 'road' ? 1 : 1 - 0.55 * A);
+      longF -= Math.sign(vl) * Math.min(crr * Fz * (1 + avl / 25), avl * mq / dt * 0.5);
       let locked = false;
       if (hb && !wh.front) {
         locked = avl > 0.8;
@@ -1706,27 +1715,51 @@ class Car {
       let Ft = 0; if (tl > 1e-3) { Ft = Math.min(0.5 * Fn, tl * m / dt * 0.1); tvx /= tl; tvy /= tl; tvz /= tl; }
       addF(_m[0], _m[1], _m[2], _n[0] * Fn - tvx * Ft, _n[1] * Fn - tvy * Ft, _n[2] * Fn - tvz * Ft);
       scrape = Math.max(scrape, tl);
-      if (vn < -7) this.damage = Math.min(1, this.damage + (-vn - 7) * 0.004 * dt * 60);
+      if (vn < -7) this.damage = Math.min(1, this.damage + (-vn - 7) * 0.004 * dt * 60 * (1 - 0.7 * A));
     }
     this.events.scrape = scrape;
 
     // --- aerodynamika
     const sp = this.speed;
     fx -= 0.42 * sp * vel[0]; fy -= 0.42 * sp * vel[1]; fz -= 0.42 * sp * vel[2];
-    const down = 0.3 * sp * sp; fx -= U[0] * down; fy -= U[1] * down; fz -= U[2] * down;
+    const down = (0.3 + 0.5 * A) * sp * sp; fx -= U[0] * down; fy -= U[1] * down; fz -= U[2] * down;
 
     // --- woda
     this.inWater = st.water != null && pos[1] < st.water + 0.2;
     if (this.inWater) { const k = Math.min(1, 2.5 * dt); vel[0] *= 1 - k; vel[2] *= 1 - k; fy += m * G * 0.5; }
 
     // --- asysta stabilności odchylenia
-    const anyContact = this.wheels.some(wh => wh.contact);
-    if (this.assist && anyContact && !hb) {
+    let nContact = 0; for (const wh of this.wheels) if (wh.contact) nContact++;
+    const anyContact = nContact > 0;
+    if (A > 0 && nContact >= 2 && vAbs > 1.5) {
+      // arcade: auto obraca się tak, jak każe kierownica (w granicy przyczepności), a bez skrętu samo się prostuje
+      const yawRate = w[0] * U[0] + w[1] * U[1] + w[2] * U[2];
+      const aLat = G * st.def.grip.road * cfg.grip * (1 + 0.3 * A) * 1.15;
+      const kin = speedF * Math.tan(this.steerAngle) / 2.53;
+      const lim = aLat / Math.max(vAbs, 3) * (hb ? 1.9 : 1.15);
+      const err = -clamp(kin, -lim, lim) - yawRate;
+      const tq = err * this.I[1] * 3.5 * A * (hb ? 0.6 : 1);
+      tx += U[0] * tq; ty += U[1] * tq; tz += U[2] * tq;
+      // auto jedzie tam, gdzie patrzy: zbijamy nadmiar poślizgu bocznego (poza lekkim driftem)
+      if (!hb && vAbs > 2) {
+        const vLat = vel[0] * R[0] + vel[1] * R[1] + vel[2] * R[2];
+        const exL = Math.sign(vLat) * Math.max(0, Math.abs(vLat) - 0.07 * vAbs);
+        const k = exL * Math.min(1, dt * 1.8 * A);
+        vel[0] -= R[0] * k; vel[1] -= R[1] * k; vel[2] -= R[2] * k;
+      }
+    }
+    if (A > 0) {
+      // stabilizacja przechyłu (mniej dachowań), w locie auto poziomuje się do lądowania
+      const rollK = 9000 * A, rt = R[1] * rollK;
+      tx += F[0] * rt; ty += F[1] * rt; tz += F[2] * rt;
+      if (!anyContact) { const pt = -F[1] * 5000 * A; tx += R[0] * pt; ty += R[1] * pt; tz += R[2] * pt; }
+    }
+    if (this.assist && anyContact && !hb && A < 1) {
       const yawRate = w[0] * U[0] + w[1] * U[1] + w[2] * U[2];
       const natural = speedF * Math.tan(this.steerAngle) / 2.53;
       const e0 = yawRate + natural; // znak: skręt w prawo = ujemny yaw wokół Y
       const excess = Math.sign(e0) * Math.max(0, Math.abs(e0) - 0.3);
-      const tq = -excess * 1400 * smoothstep(5, 15, vAbs);
+      const tq = -excess * 1400 * smoothstep(5, 15, vAbs) * (1 - A);
       tx += U[0] * tq; ty += U[1] * tq; tz += U[2] * tq;
     }
     this.airT = anyContact ? 0 : this.airT + dt;
@@ -1737,7 +1770,7 @@ class Car {
     qRotInv(q, tx, ty, tz, _t);
     qRotInv(q, w[0], w[1], w[2], _u);
     _u[0] += _t[0] / this.I[0] * dt; _u[1] += _t[1] / this.I[1] * dt; _u[2] += _t[2] / this.I[2] * dt;
-    const damp = 1 - (anyContact ? 0.05 : 0.25) * dt;
+    const damp = 1 - (anyContact ? 0.05 : 0.25 + 1.5 * A) * dt;
     qRot(q, _u[0] * damp, _u[1] * damp, _u[2] * damp, w);
     const h = 0.5 * dt, qx = q[0], qy = q[1], qz = q[2], qw = q[3];
     q[0] = qx + h * (w[0] * qw + w[1] * qz - w[2] * qy);
@@ -1814,7 +1847,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7 },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -3814,6 +3847,16 @@ const UI = {
       if (settings.touchSteer === 'tilt') settings.touchSteer = 'stick'; // pozwolenie trzeba dać ponownie w geście
       sync();
     }
+    const arc = $('optArcade'); arc.value = settings.arcade;
+    const arcNote = () => {
+      const a = settings.arcade, pct = Math.round(a * 100);
+      $('optArcadeNote').textContent = a < 0.05 ? 'Symulacja: czysta fizyka, pełne poślizgi i dachowania'
+        : a < 0.45 ? `Bliżej symulacji (${pct}%): lekka pomoc w poślizgu`
+        : a < 0.85 ? `Arcade ${pct}%: auto słucha kierownicy, pobocze wybacza`
+        : `Pełny arcade (${pct}%): przyczepność jak na szynach, prawie bez uszkodzeń`;
+    };
+    arcNote();
+    arc.addEventListener('input', () => { settings.arcade = +arc.value; saveSettings(); arcNote(); this.h.applySettings(); });
     const vol = $('optVol'); vol.value = settings.volume;
     vol.addEventListener('input', () => { settings.volume = +vol.value; saveSettings(); this.h.applySettings(); });
     // HUD i nakładki
@@ -4077,6 +4120,7 @@ function setupCar(idx) {
   game.car.damage = 0;
   game.car.auto = settings.gearbox === 'auto';
   game.car.assist = settings.assist;
+  game.car.arcade = settings.arcade;
   game.model = new CarModel(cfg, game.stage.def.look);
   game.model.setLights(game.stage.def.look.time !== 'day');
   if (envRT) for (const m of game.model.materials) if (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial || m.isMeshStandardNodeMaterial || m.isMeshPhysicalNodeMaterial) { m.envMap = envRT.texture; m.envMapIntensity = game.stage.def.look.time === 'night' ? 0.15 : 0.9; }
@@ -4164,7 +4208,7 @@ function beginIntro() {
   game.state = 'intro'; game.introT = 0; game.beeps = 0;
   game.time = 0; game.penalty = 0; game.splitDone = [false, false]; game.finishTime = null; game.finishT = 0;
   game.car.damage = 0; game.model.uDirt.value = 0;
-  game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist;
+  game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade;
   placeCar(st.startS - 3.2);
   game.hold = [game.car.pos[0], game.car.pos[2]];
   game.fx.clear();
@@ -4207,6 +4251,9 @@ function introUpdate(dt, inp) {
   }
 }
 
+// arcade ułatwia jazdę, więc rywale jadą proporcjonalnie szybciej
+const rivalK = () => 1 - 0.06 * settings.arcade;
+
 function currentS() {
   const st = game.stage, car = game.car, i = car.idx, h = st.hd[i];
   return i + (car.pos[0] - st.x[i]) * Math.cos(h) + (car.pos[2] - st.z[i]) * Math.sin(h);
@@ -4232,7 +4279,7 @@ function raceRules(inp) {
     if (!game.splitDone[k] && s >= st.splits[k]) {
       game.splitDone[k] = true;
       const tt = game.time + game.penalty;
-      const lead = st.rivals[0], lt = st.rivalTimeAt(lead.factor, st.splits[k]);
+      const lead = st.rivals[0], lt = st.rivalTimeAt(lead.factor * rivalK(), st.splits[k]);
       UI.split(`M${k + 1} ${fmtTime(tt)}`, tt - lt);
       UI.toast(`Międzyczas ${k + 1}`, false, 1.6);
     }
@@ -4333,10 +4380,10 @@ function showResults() {
       const R = game.rally;
       R.times[R.idx] = total;
       R.totals['Ty'] = (R.totals['Ty'] || 0) + total;
-      for (const r of st.rivals) R.totals[r.name] = (R.totals[r.name] || 0) + st.T0 * r.factor;
+      for (const r of st.rivals) R.totals[r.name] = (R.totals[r.name] || 0) + st.T0 * r.factor * rivalK();
     }
   }
-  const rows = st.rivals.map(r => ({ name: r.name, code: r.code, time: st.T0 * r.factor }));
+  const rows = st.rivals.map(r => ({ name: r.name, code: r.code, time: st.T0 * r.factor * rivalK() }));
   rows.push({ name: 'Ty', code: 'POL', time: total, me: true });
   rows.sort((a, b) => a.time - b.time);
   const lead = rows[0].time;
@@ -4573,7 +4620,7 @@ function frame() {
       UI.setNotes(a, b, a ? a.link : null, lang);
     } else if (game.state !== 'intro') UI.setNotes(null, null, null, lang);
     const prog = (s - st.startS) / st.length;
-    const leadS = game.state === 'race' ? st.rivalPosAt(st.rivals[0].factor, game.time) : st.startS;
+    const leadS = game.state === 'race' ? st.rivalPosAt(st.rivals[0].factor * rivalK(), game.time) : st.startS;
     const tShown = game.state === 'finish' ? game.finishTime : game.state === 'replay' ? game.time : game.time;
     UI.hud({ time: tShown, remain: st.finishS - s, damage: car.damage, prog, lead: (leadS - st.startS) / st.length,
       rpm: car.rpm, redline: car.cfg.redline, kmh: car.speed * 3.6, gear: car.gear, limiter: car.limiter });
@@ -4696,7 +4743,7 @@ const handlers = {
   },
   go: (mode) => startGo(mode),
   applySettings: () => {
-    if (game.car) { game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; }
+    if (game.car) { game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade; }
     UI.touchMode();
     sound.setVolume(settings.volume);
   },
@@ -4787,6 +4834,7 @@ async function boot() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
   last = performance.now();
   renderer.setAnimationLoop(frame);
+  globalThis.__szuter = { game, sound, settings }; // uchwyt do diagnostyki z konsoli
 }
 
 boot();
