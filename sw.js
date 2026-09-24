@@ -1,6 +1,6 @@
 // Service worker Szuter Rally: gra działa offline po pierwszym uruchomieniu.
-const VERSION = 'szuter-df006aec33';
-const FILES = ["./", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./index.html", "./manifest.webmanifest", "./vendor/addons/tsl/display/BloomNode.js", "./vendor/three.core.js", "./vendor/three.tsl.min.js", "./vendor/three.webgpu.min.js"];
+const VERSION = 'szuter-d479d648bc';
+const FILES = ["./", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./index.html", "./manifest.webmanifest", "./vendor/addons/csm/CSMFrustum.js", "./vendor/addons/csm/CSMShadowNode.js", "./vendor/addons/tsl/display/BloomNode.js", "./vendor/addons/tsl/display/ChromaticAberrationNode.js", "./vendor/addons/tsl/display/FilmNode.js", "./vendor/addons/tsl/display/MotionBlur.js", "./vendor/addons/tsl/display/SSAONode.js", "./vendor/addons/tsl/display/depthAwareBlur.js", "./vendor/three.core.js", "./vendor/three.tsl.min.js", "./vendor/three.webgpu.min.js"];
 const FONTS = 'szuter-fonts';
 
 self.addEventListener('install', (e) => {

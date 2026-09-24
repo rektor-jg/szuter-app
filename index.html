@@ -343,7 +343,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Skrzynia<small>Ręczna: Q / E albo LB / RB</small></label><div class="seg" id="optGear"><button data-v="auto">AUTO</button><button data-v="manual">RĘCZNA</button></div></div>
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
-        <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button></div></div>
+        <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button><button data-v="supreme">SUPREME</button></div></div>
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
@@ -449,6 +449,11 @@ table.cls tr.me td:last-child{color:var(--signal)}
 import * as THREE from 'three/webgpu';
 import * as T from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
+import { ssao } from 'three/addons/tsl/display/SSAONode.js';
+import { motionBlur } from 'three/addons/tsl/display/MotionBlur.js';
+import { chromaticAberration } from 'three/addons/tsl/display/ChromaticAberrationNode.js';
+import { film } from 'three/addons/tsl/display/FilmNode.js';
+import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 
 // ============================================================
 // SZUTER — symulacja: trasa, teren, notatki pilota, fizyka auta.
@@ -1834,6 +1839,13 @@ const QUALITY = {
     treeShadows: true, rockShadows: true, block: 1, lodNear: 75, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
     smoke: 1100, glow: 260, skids: 2400, litDust: true, emit: 1, snow: 1400, mist: 70, fogK: 1, bakeSky: false, beams: 3, ripple: true,
   },
+  // wszystko na maksa + efekty tylko dla tego poziomu (komputer z mocną kartą)
+  supreme: {
+    dprTouch: 3, dpr: 2, minScale: 0.9, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true,
+    treeShadows: true, rockShadows: true, block: 1, lodNear: 120, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
+    smoke: 2200, glow: 420, skids: 4000, litDust: true, emit: 1.35, snow: 2600, mist: 110, fogK: 1.15, bakeSky: false, beams: 3, ripple: true,
+    supreme: true, csm: true, grass: true, heightFog: true, cones: true, flare: true,
+  },
 };
 const Q = () => QUALITY[settings.quality] || QUALITY.low;
 
@@ -2331,6 +2343,64 @@ function buildTrees(st, group) {
   }
 }
 
+// ---------- trawa przy drodze (supreme): kępki z kołysaniem na wietrze ----------
+function grassGeo(L, seed) {
+  const rng = makeRng(seed), pos = [], cl = [], nor = [];
+  const base = col(L.grass).multiplyScalar(0.55), tip = col(L.grass2).multiplyScalar(1.2), dry = col(L.verge);
+  for (let b = 0; b < 6; b++) {
+    const a = rng() * Math.PI * 2, r = rng() * 0.2, h = 0.3 + rng() * 0.5, w = 0.03 + rng() * 0.03, lean = (rng() - 0.5) * 0.3;
+    const cx = Math.cos(a) * r, cz = Math.sin(a) * r, px = -Math.sin(a) * w, pz = Math.cos(a) * w;
+    const tx = cx + Math.cos(a) * lean, tz = cz + Math.sin(a) * lean;
+    pos.push(cx - px, 0, cz - pz, cx + px, 0, cz + pz, tx, h, tz);
+    const t = tip.clone().lerp(dry, rng() * 0.35);
+    cl.push(base.r, base.g, base.b, base.r, base.g, base.b, t.r, t.g, t.b);
+    nor.push(0, 1, 0, 0, 1, 0, 0, 1, 0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cl, 3));
+  g.computeBoundingSphere();
+  return g;
+}
+
+function buildGrass(st, group) {
+  if (!Q().grass || st.def.surface === 'snow') return;
+  const def = st.def, hw = def.halfW, rng = makeRng((st.seed ^ 0x6a55) >>> 0), nrm = [0, 0, 0];
+  const pts = [];
+  for (let s = LEAD - 30; s < st.N - 12; s += 0.9) {
+    for (const side of [-1, 1]) for (let k = 0; k < 3; k++) {
+      const ss = s + rng() * 0.9, i = Math.floor(ss), f = ss - i;
+      const lat = side * (hw + 1.25 + Math.pow(rng(), 1.6) * 18);
+      const hd = st.hd[i];
+      const x = st.x[i] + (st.x[i + 1] - st.x[i]) * f - Math.sin(hd) * lat, z = st.z[i] + (st.z[i + 1] - st.z[i]) * f + Math.cos(hd) * lat;
+      if (st.roadDist(x, z) < hw + 1.15) continue;
+      const y = st.heightAt(x, z);
+      if (st.water != null && y < st.water + 0.3) continue;
+      st.normalAt(x, z, nrm); if (nrm[1] < 0.78) continue;
+      pts.push(x, y - 0.02, z, 0.7 + rng() * 0.6, rng() * 6.283);
+    }
+  }
+  const geo = grassGeo(def.look, st.seed);
+  const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
+  mat.colorNode = T.attribute('color', 'vec3');
+  const y = T.positionGeometry.y, ph = T.positionLocal.x.mul(0.31).add(T.positionLocal.z.mul(0.23));
+  mat.positionNode = T.positionLocal.add(T.vec3(T.sin(T.time.mul(2.1).add(ph)).mul(y).mul(0.16), 0, T.sin(T.time.mul(1.7).add(ph.mul(1.3))).mul(y).mul(0.1)));
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+  for (const list of bucketInstances(pts, 5, 128, () => true).values()) {
+    const mesh = new THREE.InstancedMesh(geo, mat, list.length);
+    list.forEach((i, k) => {
+      p.set(pts[i * 5], pts[i * 5 + 1], pts[i * 5 + 2]);
+      q.setFromAxisAngle(up, pts[i * 5 + 4]);
+      const v = pts[i * 5 + 3]; sc.set(v, v * (0.8 + (i % 7) * 0.06), v);
+      mesh.setMatrixAt(k, m4.compose(p, q, sc));
+    });
+    mesh.computeBoundingSphere();
+    mesh.castShadow = false; mesh.receiveShadow = true;
+    group.add(mesh);
+  }
+}
+
 function rockGeo() {
   const g = new THREE.IcosahedronGeometry(1, 1);
   const n = makeNoiseLite(7);
@@ -2522,6 +2592,7 @@ class World {
     buildRoad(st, this.group, this.roadTex);
     buildWater(st, this.group);
     buildTrees(st, this.group);
+    buildGrass(st, this.group);
     buildRocks(st, this.group);
     buildProps(st, this.group);
     this.gantry = buildGantries(st, this.group, labels);
@@ -2753,6 +2824,27 @@ class CarModel {
       }
     }
 
+    // --- snopy światła w mgle/kurzu (supreme, zmierzch i noc)
+    this.uCone = T.uniform(1);
+    if (Q().cones && look.time !== 'day') {
+      const Lc = 24;
+      const coneMat = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+      const t = T.clamp(T.positionGeometry.z.negate().div(Lc), 0.0, 1.0);
+      const fall = T.pow(T.float(1).sub(t), 2.0);
+      const edge = T.abs(T.dot(T.normalize(T.normalView), T.vec3(0, 0, 1)));
+      coneMat.colorNode = T.vec3(1.0, 0.92, 0.78);
+      coneMat.opacityNode = fall.mul(edge).mul(this.night ? 0.085 : 0.04).mul(this.uCone);
+      const coneGeo = new THREE.CylinderGeometry(3.6, 0.1, Lc, 24, 1, true).rotateX(-Math.PI / 2).translate(0, 0, -Lc / 2);
+      for (const x of [-0.52, 0.52]) {
+        const cone = new THREE.Mesh(coneGeo, coneMat);
+        cone.position.set(x, P.head[1] - COM_H, P.head[0] - COM_FROM_FRONT - 0.06);
+        cone.rotation.x = -0.05;
+        cone.renderOrder = 4;
+        this.group.add(cone);
+      }
+      this.coneMat = coneMat;
+    }
+
     // --- koła
     const tireMat = new THREE.MeshStandardNodeMaterial({ color: '#141414', roughness: 0.92 });
     const rimMat = new THREE.MeshStandardNodeMaterial({ color: cfg.rim, roughness: 0.3, metalness: 0.85 });
@@ -2771,8 +2863,9 @@ class CarModel {
       return { pivot, spin, front: i < 2 };
     });
     this.materials = [paint, liv, glass, roofMat, black, numMat, headMat, tailMat, tireMat, rimMat];
+    if (this.coneMat) this.materials.push(this.coneMat);
   }
-  setLights(on) { for (const s of this.spots) s.visible = on; this.uHead.value = on ? 3.2 : 1.1; }
+  setLights(on) { for (const s of this.spots) s.visible = on; this.uHead.value = on ? 3.2 : 1.1; this.uCone.value = on ? 1 : 0; }
   sync(pos, quat, car, dt) {
     this.group.position.copy(pos);
     this.group.quaternion.copy(quat);
@@ -3068,6 +3161,76 @@ class FX {
     this.glow.update(dt, cam.quaternion);
     if (this.weather) this.weather.update(dt, cam, this.st);
   }
+}
+
+// ============================================================
+// Post-processing: łańcuch „wysoka" i „supreme"
+// ============================================================
+const POST = {
+  blur: T.uniform(0),          // rozmycie ruchu (rośnie z prędkością)
+  ca: T.uniform(0.35),         // aberracja chromatyczna
+  grain: T.uniform(0.14),      // ziarno filmu
+  sunUV: T.uniform(new THREE.Vector2(0.5, 0.5)),
+  sunVis: T.uniform(0),
+  aspect: T.uniform(1.7),
+  sat: T.uniform(1.1),
+  contrast: T.uniform(1.06),
+};
+
+function vignette(rgb, k = 0.38) {
+  const d = T.length(T.screenUV.sub(0.5).mul(T.vec2(1.2, 1.0)));
+  return rgb.mul(T.float(1).sub(T.smoothstep(0.42, 1.05, d).mul(k)));
+}
+
+function makeHighChain(scene, camera, q) {
+  const scenePass = T.pass(scene, camera, { samples: q.samples });
+  const color = scenePass.getTextureNode('output');
+  let out = color, bloomNode = null;
+  if (q.bloom) { bloomNode = bloom(color, 0.25, 0.45, 0.92); out = color.add(bloomNode); }
+  return { output: T.vec4(vignette(out.rgb), 1.0), bloomNode, colorTransform: true };
+}
+
+// flara słońca: poświata + „duchy" na linii słońce–środek ekranu (widoczność liczona na CPU)
+function sunFlare() {
+  const rel = (p) => T.screenUV.sub(p).mul(T.vec2(POST.aspect, 1.0));
+  const d = T.length(rel(POST.sunUV));
+  let f = ATM.sunCol.mul(T.exp(d.mul(-7.0)).mul(0.3).add(T.exp(d.mul(-40.0)).mul(1.2)));
+  const ghosts = [[0.35, 0.05, [1.0, 0.62, 0.3]], [0.62, 0.09, [0.45, 0.9, 0.6]], [1.12, 0.05, [0.5, 0.62, 1.0]], [1.45, 0.13, [0.9, 0.52, 0.85]]];
+  for (const [k, r, c] of ghosts) {
+    const pos = T.mix(POST.sunUV, T.vec2(1.0, 1.0).sub(POST.sunUV), k);
+    const ring = T.float(1).sub(T.smoothstep(r * 0.55, r, T.length(rel(pos)))).mul(0.06);
+    f = f.add(T.vec3(c[0], c[1], c[2]).mul(ring));
+  }
+  return f.mul(POST.sunVis);
+}
+
+function makeSupremeChain(scene, camera) {
+  // przebieg wstępny: normalne + prędkości (SSAO i rozmycie ruchu)
+  const prePass = T.pass(scene, camera);
+  prePass.name = 'Pre-Pass';
+  prePass.transparent = false;
+  prePass.setMRT(T.mrt({ output: T.packNormalToRGB(T.normalView), velocity: T.velocity }));
+  prePass.getTexture('output').type = THREE.UnsignedByteType;
+  const preNormal = T.sample((uv) => T.unpackRGBToNormal(prePass.getTextureNode().sample(uv)));
+  const preDepth = prePass.getTextureNode('depth');
+  const preVel = prePass.getTextureNode('velocity');
+  // SSAO przyciemnia światło otoczenia w zakamarkach (pod drzewami, wokół kół, w rowach)
+  const aoPass = ssao(preDepth, preNormal, camera);
+  aoPass.radius.value = 1.4; aoPass.intensity.value = 1.15; aoPass.samples.value = 16;
+  const scenePass = T.pass(scene, camera, { samples: 4 });
+  scenePass.contextNode = T.builtinAOContext(aoPass.getTextureNode().sample(T.screenUV).r);
+  const color = scenePass.getTextureNode('output');
+  const bloomNode = bloom(color, 0.3, 0.5, 0.88);
+  const blurred = motionBlur(color, preVel.mul(POST.blur));
+  let c = blurred.rgb.add(bloomNode.rgb).add(sunFlare());
+  // gradacja kolorów (liniowo): nasycenie i kontrast wokół szarości 18%
+  const lum = T.dot(c, T.vec3(0.2126, 0.7152, 0.0722));
+  c = T.mix(T.vec3(lum, lum, lum), c, POST.sat);
+  c = T.max(c.sub(0.18).mul(POST.contrast).add(0.18), T.vec3(0, 0, 0));
+  const toned = T.renderOutput(T.vec4(c, 1.0), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
+  const ca = chromaticAberration(toned, POST.ca, null, 1.1);
+  const grain = film(ca, POST.grain);
+  return { output: T.vec4(vignette(grain.rgb, 0.45), 1.0), bloomNode, colorTransform: false, aoPass };
 }
 
 // ============================================================
@@ -3628,7 +3791,7 @@ const UI = {
     seg('optLang', 'lang', id, nop);
     seg('optGear', 'gearbox', id, () => this.h.applySettings());
     seg('optAssist', 'assist', (v) => v === '1', () => this.h.applySettings());
-    const qNote = { low: 'Niska: najpłynniej na telefonie', medium: 'Średnia: gęstszy las, oświetlony kurz, ostrzejszy obraz', high: 'Wysoka: pełny las, bloom, cienie drzew — na komputer' };
+    const qNote = { low: 'Niska: najpłynniej na telefonie', medium: 'Średnia: gęstszy las, oświetlony kurz, ostrzejszy obraz', high: 'Wysoka: pełny las, bloom, cienie drzew — na komputer', supreme: 'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna' };
     const setQNote = () => { $('optQualityNote').textContent = qNote[settings.quality] || qNote.low; };
     setQNote();
     seg('optQuality', 'quality', id, () => { setQNote(); this.h.qualityChanged(); });
@@ -3805,17 +3968,57 @@ async function keepAwake(on) {
 function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
   pipeline = null; bloomNode = null;
-  // telefon: bez post-processingu — render prosto na ekran (MSAA z renderera jest na GPU Apple prawie darmowe)
-  if (!Q().pipeline) return;
+  const q = Q();
+  // niższe profile: bez post-processingu — render prosto na ekran (MSAA z renderera jest na GPU Apple prawie darmowe)
+  if (!q.pipeline) return;
   pipeline = new THREE.RenderPipeline(renderer);
-  const scenePass = T.pass(scene, camera, { samples: Q().samples });
-  const color = scenePass.getTextureNode('output');
-  let out = color;
-  bloomNode = null;
-  if (Q().bloom) { bloomNode = bloom(color, 0.25, 0.45, 0.92); out = color.add(bloomNode); }
-  const d = T.length(T.screenUV.sub(0.5).mul(T.vec2(1.2, 1.0)));
-  const vig = T.float(1).sub(T.smoothstep(0.42, 1.05, d).mul(0.38));
-  pipeline.outputNode = T.vec4(out.rgb.mul(vig), 1.0);
+  let chain;
+  try { chain = q.supreme ? makeSupremeChain(scene, camera) : makeHighChain(scene, camera, q); }
+  catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high); }
+  pipeline.outputNode = chain.output;
+  pipeline.outputColorTransform = chain.colorTransform;
+  bloomNode = chain.bloomNode;
+}
+
+// słońce: przy zmianie jakości tworzone od nowa (CSM i zwykły cień nie przełączają się na tym samym świetle)
+let csm = null, csmFov = 0;
+function makeSun() {
+  const q = Q();
+  if (sun) { scene.remove(sun, sun.target); sun.dispose?.(); }
+  if (csm) { csm.dispose?.(); csm = null; }
+  sun = new THREE.DirectionalLight('#ffffff', 3);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(q.shadowMap, q.shadowMap);
+  sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.04;
+  if (q.csm) {
+    try {
+      Object.assign(sun.shadow.camera, { left: -400, right: 400, top: 400, bottom: -400, near: 1, far: 1500 });
+      csm = new CSMShadowNode(sun, { cascades: 4, maxFar: 340, mode: 'practical', lightMargin: 160 });
+      csm.fade = true;
+      sun.shadow.shadowNode = csm;
+    } catch (e) { console.warn('csm', e); csm = null; sun.shadow.shadowNode = null; }
+  }
+  if (!csm) Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 5, far: 320 });
+  sun.shadow.camera.updateProjectionMatrix();
+  renderer.shadowMap.type = q.softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  scene.add(sun, sun.target);
+  if (game.stage) applyLook(game.stage.def);
+}
+function refreshCSM() { if (csm && csm.camera) { try { csm.updateFrustums(); csmFov = camera.fov; } catch { /* */ } } }
+
+// mgła wysokościowa + rozpraszanie światła w stronę słońca (supreme)
+function setupFog(def) {
+  const L = def.look, fk = Q().fogK;
+  scene.fogNode = null;
+  if (!Q().heightFog) return;
+  const st = game.stage;
+  let minY = Infinity; for (let i = 0; i < st.N; i += 8) minY = Math.min(minY, st.y[i]);
+  const vd = T.normalize(T.positionWorld.sub(T.cameraPosition));
+  const scatter = T.pow(T.max(T.dot(vd, ATM.sunDir), 0.0), 8.0).mul(L.time === 'night' ? 0.12 : 0.5);
+  const fogCol = T.mix(ATM.fog, ATM.sunCol, scatter);
+  const range = T.rangeFogFactor(L.fogNear * fk, L.fogFar * fk);
+  const valley = T.exponentialHeightFogFactor(L.time === 'night' ? 0.0032 : 0.0019, minY + (st.def.water != null ? 7 : 5));
+  scene.fogNode = T.fog(fogCol, T.max(range, valley.mul(0.85)));
 }
 
 function applyLook(def) {
@@ -3837,6 +4040,9 @@ function applyLook(def) {
   // za końcem mgły wszystko jest w kolorze mgły — dalej nie ma sensu rysować
   camera.far = L.fogFar * fk * 1.05;
   camera.updateProjectionMatrix();
+  refreshCSM();
+  POST.sat.value = L.time === 'night' ? 1.0 : 1.1;
+  POST.contrast.value = L.time === 'night' ? 1.02 : 1.07;
 }
 
 function updateEnv(st) {
@@ -3850,10 +4056,10 @@ function updateEnv(st) {
     const i = st.startS;
     cubeCam.position.set(st.x[i], st.y[i] + 4, st.z[i]);
     sky.position.copy(cubeCam.position); sky.scale.setScalar(3000);
-    const fog = scene.fog, bg = scene.background; scene.fog = null; scene.background = null; sky.visible = true;
+    const fog = scene.fog, fogNode = scene.fogNode, bg = scene.background; scene.fog = null; scene.fogNode = null; scene.background = null; sky.visible = true;
     cubeCam.update(renderer, scene);
     envRT.texture.needsPMREMUpdate = true;
-    scene.fog = fog; scene.background = bg;
+    scene.fog = fog; scene.fogNode = fogNode; scene.background = bg;
     hide.forEach(o => o.visible = true);
     // telefon: niebo z chmurami raz wypalone do cube mapy zamiast liczenia szumu co piksel
     if (Q().bakeSky) { sky.visible = false; scene.background = envRT.texture; }
@@ -3904,6 +4110,7 @@ async function loadStage(sel, force = false) {
   game.world = new World(st, stageLabels(st));
   scene.add(game.world.group);
   applyLook(def);
+  setupFog(def);
   if (!game.fx) game.fx = new FX(scene, st); else game.fx.setStage(st);
   updateEnv(st);
   setupCar(game.sel.car);
@@ -4282,7 +4489,7 @@ function updateCamera(dt) {
   const sh = camState.shake + (s === 'race' ? rough : 0);
   if (sh > 0.001) camera.position.add(_t1.set((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh));
   camState.fov += (fov - camState.fov) * (1 - Math.exp(-dt * 4));
-  if (Math.abs(camera.fov - camState.fov) > 0.01) { camera.fov = camState.fov; camera.updateProjectionMatrix(); }
+  if (Math.abs(camera.fov - camState.fov) > 0.01) { camera.fov = camState.fov; camera.updateProjectionMatrix(); if (Math.abs(camera.fov - csmFov) > 1.5) refreshCSM(); }
 }
 function camFor(dt) {
   switch (game.camMode) {
@@ -4379,8 +4586,33 @@ function frame() {
   const fx = Math.round(renderPos.x * 2) / 2, fz = Math.round(renderPos.z * 2) / 2;
   sun.target.position.set(fx, renderPos.y, fz);
   sun.position.set(fx + sunDir.x * 150, renderPos.y + sunDir.y * 150, fz + sunDir.z * 150);
+  if (Q().supreme) updatePost(dt, car, st);
   if (pipeline) pipeline.render(); else renderer.render(scene, camera);
   adaptResolution(dt, now);
+}
+
+// ---------- supreme: parametry efektów zależne od prędkości i słońca ----------
+const _sunP = new THREE.Vector3();
+function updatePost(dt, car, st) {
+  const sp = game.state === 'race' || game.state === 'finish' || game.state === 'replay' ? car.speed : car.speed * 0.5;
+  POST.blur.value += (clamp((sp - 10) / 38, 0, 1) * 0.85 - POST.blur.value) * Math.min(1, dt * 4);
+  POST.ca.value = 0.3 + clamp(sp / 45, 0, 1) * 0.55 + camState.shake * 1.5;
+  POST.aspect.value = camera.aspect;
+  // słońce na ekranie + zasłonięcie terenem (promień w stronę słońca)
+  let vis = 0;
+  if (st.def.look.time !== 'night' && sunDir.y > -0.02) {
+    _sunP.copy(camera.position).addScaledVector(sunDir, 800).project(camera);
+    if (_sunP.z < 1 && Math.abs(_sunP.x) < 1.25 && Math.abs(_sunP.y) < 1.25) {
+      POST.sunUV.value.set((_sunP.x + 1) / 2, (1 - _sunP.y) / 2);
+      vis = 1 - smoothstep(0.85, 1.25, Math.max(Math.abs(_sunP.x), Math.abs(_sunP.y)));
+      const c = camera.position;
+      for (let k = 1; k <= 24 && vis > 0; k++) {
+        const d = k * k * 1.2;
+        if (st.heightAt(c.x + sunDir.x * d, c.z + sunDir.z * d) > c.y + sunDir.y * d) vis = 0;
+      }
+    }
+  }
+  POST.sunVis.value += (vis * (st.def.look.time === 'dusk' ? 1.2 : 0.8) - POST.sunVis.value) * Math.min(1, dt * 6);
 }
 
 // ---------- dynamiczna rozdzielczość + licznik ----------
@@ -4470,9 +4702,7 @@ const handlers = {
   },
   qualityChanged: async () => {
     perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale);
-    renderer.shadowMap.type = Q().softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
-    sun.shadow.mapSize.set(Q().shadowMap, Q().shadowMap);
-    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+    makeSun();
     sky.visible = true;
     if (game.fx) { for (const m of [game.fx.smoke.mesh, game.fx.glow.mesh, game.fx.skids.mesh, game.fx.weather && game.fx.weather.mesh]) if (m) scene.remove(m); game.fx = null; }
     setupPipeline();
@@ -4523,7 +4753,6 @@ async function boot() {
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = Q().softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
   $('view').appendChild(renderer.domElement);
   const gpu = !!(renderer.backend && renderer.backend.isWebGPUBackend);
   $('backendBadge').textContent = gpu ? 'WebGPU' : 'WebGL 2 · tryb zgodności';
@@ -4533,14 +4762,7 @@ async function boot() {
   camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.25, 1500);
   sky = makeSky(); scene.add(sky);
   hemi = new THREE.HemisphereLight('#ffffff', '#444444', 1); scene.add(hemi);
-  sun = new THREE.DirectionalLight('#ffffff', 3);
-  sun.castShadow = true;
-  const sm = Q().shadowMap;
-  sun.shadow.mapSize.set(sm, sm);
-  Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 5, far: 320 });
-  sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.04;
-  sun.shadow.camera.updateProjectionMatrix();
-  scene.add(sun, sun.target);
+  makeSun();
   setupPipeline();
   input = new Input();
   UI.init(handlers);
