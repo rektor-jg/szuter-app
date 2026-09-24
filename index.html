@@ -142,6 +142,9 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--signal);outline
 #banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font:900 italic clamp(56px,11vw,150px)/.9 var(--display);font-stretch:66%;
   color:var(--signal);text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 40px rgba(0,0,0,.35);text-align:center;white-space:nowrap;text-transform:uppercase}
 #banner small{display:block;font:600 14px/1.4 var(--mono);letter-spacing:.14em;color:var(--paper);font-style:normal;margin-top:10px}
+#perf{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);transform:translateX(-50%);font:600 10.5px/1.3 var(--mono);color:#fff;
+  background:rgba(10,13,11,.6);padding:3px 7px;border-radius:2px;white-space:nowrap;z-index:6}
+body.touch #perf{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 122px)}
 #toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 132px);transform:translateX(-50%);font:800 italic 22px/1.1 var(--display);font-stretch:72%;
   text-transform:uppercase;letter-spacing:.03em;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);text-align:center;white-space:nowrap}
 #toast.warn{color:var(--red)}
@@ -292,6 +295,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
         <div class="opt"><label>Grafika<small>Niska: mniej drzew, bez bloom i cieni lasu</small></label><div class="seg" id="optQuality"><button data-v="high">WYSOKA</button><button data-v="low">NISKA</button></div></div>
+        <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
     </div>
@@ -333,6 +337,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
   <button class="hudbtn" id="btnReset" type="button" aria-label="Powrót na trasę">↺</button>
   <canvas id="tacho" width="420" height="420"></canvas>
   <div id="banner"></div>
+  <div id="perf" hidden></div>
   <div id="toast"></div>
   <div class="rp" id="replayBar" hidden><b>● Powtórka</b><button id="rpSlow" type="button">½×</button><button id="rpPlay" type="button">1×</button><button id="rpExit" type="button">Wyjdź</button></div>
 </div>
@@ -1751,7 +1756,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick' },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -1760,6 +1765,7 @@ const bestKey = (st, carId) => `${st.def.id}:${st.seed}:${carId}`;
 
 const col = (h) => new THREE.Color(h);
 const HIGH = () => settings.quality === 'high';
+const LOW = () => settings.quality === 'low';
 
 function canvasTex(w, h, draw, { srgb = true, repeat = true, aniso = 8 } = {}) {
   const c = document.createElement('canvas');
@@ -2031,23 +2037,14 @@ function terrainColorFn(st) {
 function buildTerrain(st, group) {
   const nx = st.nx, nz = st.nz, h = st.h, CC = CHUNK / GRID;
   const colorFn = terrainColorFn(st), c3 = [0, 0, 0];
-  const idxCache = {};
-  const indexFor = (n) => {
-    if (idxCache[n]) return idxCache[n];
-    const V = n + 1, idx = new Uint16Array(n * n * 6);
-    let k = 0;
-    for (let b = 0; b < n; b++) for (let a = 0; a < n; a++) {
-      const v00 = b * V + a, v10 = v00 + 1, v01 = v00 + V, v11 = v01 + 1;
-      idx[k++] = v00; idx[k++] = v01; idx[k++] = v10; idx[k++] = v10; idx[k++] = v01; idx[k++] = v11;
-    }
-    return (idxCache[n] = idx);
-  };
   const mat = terrainMaterial(true);
-  const lowR = st.def.halfW + 0.9;
-  const far = HIGH() ? 75 : 40;
+  const lowR = st.def.halfW + 0.9, low = LOW();
+  // na telefonie 2×2 kawałki w jednym meshu (mniej wywołań rysowania) i mocniejszy LOD
+  const block = low ? 2 : 1;
+  const groups = new Map();
   for (const ch of st.chunks) {
-    // LOD: kawałki z dala od drogi w połowie rozdzielczości (fizyka i tak używa pełnej siatki)
-    const step = ch.minDist > far ? 2 : 1, n = CC / step, V = n + 1;
+    const step = low ? (ch.minDist > 110 ? 4 : ch.minDist > 28 ? 2 : 1) : (ch.minDist > 75 ? 2 : 1);
+    const n = CC / step, V = n + 1;
     const pos = new Float32Array(V * V * 3), nor = new Float32Array(V * V * 3), clr = new Float32Array(V * V * 3);
     let p = 0;
     for (let b = 0; b <= n; b++) for (let a = 0; a <= n; a++, p++) {
@@ -2062,11 +2059,30 @@ function buildTerrain(st, group) {
       nor[p * 3] = gx / l; nor[p * 3 + 1] = 1 / l; nor[p * 3 + 2] = gz / l;
       clr[p * 3] = c3[0]; clr[p * 3 + 1] = c3[1]; clr[p * 3 + 2] = c3[2];
     }
+    const key = `${(ch.i / block) | 0}:${(ch.j / block) | 0}`;
+    let g = groups.get(key); if (!g) { g = []; groups.set(key, g); }
+    g.push({ pos, nor, clr, n });
+  }
+  for (const parts of groups.values()) {
+    let nv = 0, ni = 0;
+    for (const q of parts) { nv += (q.n + 1) ** 2; ni += q.n * q.n * 6; }
+    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), clr = new Float32Array(nv * 3);
+    const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+    let vo = 0, io = 0;
+    for (const q of parts) {
+      pos.set(q.pos, vo * 3); nor.set(q.nor, vo * 3); clr.set(q.clr, vo * 3);
+      const V = q.n + 1;
+      for (let b = 0; b < q.n; b++) for (let a = 0; a < q.n; a++) {
+        const v00 = vo + b * V + a, v10 = v00 + 1, v01 = v00 + V, v11 = v01 + 1;
+        idx[io++] = v00; idx[io++] = v01; idx[io++] = v10; idx[io++] = v10; idx[io++] = v01; idx[io++] = v11;
+      }
+      vo += V * V;
+    }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(clr, 3));
-    geo.setIndex(new THREE.BufferAttribute(indexFor(n), 1));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     const mesh = new THREE.Mesh(geo, mat);
     mesh.receiveShadow = true;
@@ -2164,7 +2180,7 @@ function buildWater(st, group) {
   geo.rotateX(-Math.PI / 2);
   const mat = new THREE.MeshBasicNodeMaterial();
   const vd = T.normalize(T.positionWorld.sub(T.cameraPosition));
-  const rip = T.mx_noise_float(T.vec3(T.positionWorld.x.mul(0.18), T.positionWorld.z.mul(0.18), T.time.mul(0.3))).mul(0.05);
+  const rip = LOW() ? T.float(0) : T.mx_noise_float(T.vec3(T.positionWorld.x.mul(0.18), T.positionWorld.z.mul(0.18), T.time.mul(0.3))).mul(0.05);
   const fres = T.clamp(T.pow(T.float(1).sub(T.abs(vd.y)), 4.0).add(rip).add(0.1), 0.0, 1.0);
   const refl = T.vec3(vd.x, T.abs(vd.y), vd.z);
   const glint = T.pow(T.max(T.dot(refl, ATM.sunDir), 0.0), 180.0).mul(4.0);
@@ -2221,7 +2237,13 @@ function buildTrees(st, group) {
   for (const type in st.trees) {
     const arr = st.trees[type];
     const geo = treeGeo(type);
-    const buckets = bucketInstances(arr, 5, 256, (i) => high || i % 2 === 0);
+    // telefon: pełny las przy drodze tylko co drugie drzewo, dalej rzadko, za 150 m nic (i tak w mgle)
+    const keep = (i) => {
+      if (high) return true;
+      const d = st.coarseDist(arr[i * 5], arr[i * 5 + 2]);
+      return d < 45 ? i % 2 === 0 : d < 150 ? i % 5 === 0 : false;
+    };
+    const buckets = bucketInstances(arr, 5, high ? 256 : 512, keep);
     for (const list of buckets.values()) {
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
       list.forEach((i, k) => {
@@ -2264,7 +2286,7 @@ function buildRocks(st, group) {
   geo.computeBoundingSphere();
   const mat = vcMaterial({ rough: 0.95 });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), e = new THREE.Euler();
-  const buckets = bucketInstances(arr, 5, 256, () => true);
+  const buckets = bucketInstances(arr, 5, HIGH() ? 256 : 512, (i) => HIGH() || st.coarseDist(arr[i * 5], arr[i * 5 + 2]) < 120);
   for (const list of buckets.values()) {
     const mesh = new THREE.InstancedMesh(geo, mat, list.length);
     list.forEach((i, k) => {
@@ -2275,7 +2297,7 @@ function buildRocks(st, group) {
       mesh.setMatrixAt(k, m4.compose(p, q, s));
     });
     mesh.computeBoundingSphere();
-    mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.castShadow = HIGH(); mesh.receiveShadow = true;
     group.add(mesh);
   }
 }
@@ -2645,7 +2667,9 @@ class CarModel {
         }
       }
       const tgt = new THREE.Object3D(); tgt.position.set(0, -1.2, -24); this.group.add(tgt);
-      const beams = this.night ? [[-0.5, 0.42, 170], [0.5, 0.42, 170], [0, 0.95, 60]] : [[-0.5, 0.45, 70], [0.5, 0.45, 70]];
+      const beams = LOW()
+        ? (this.night ? [[0, 0.62, 300]] : [[0, 0.5, 120]])
+        : (this.night ? [[-0.5, 0.42, 170], [0.5, 0.42, 170], [0, 0.95, 60]] : [[-0.5, 0.45, 70], [0.5, 0.45, 70]]);
       for (const [x, ang, I] of beams) {
         const sp = new THREE.SpotLight(0xfff3e0, I, 170, ang, 0.55, 1.15);
         sp.position.set(x, 0.2, -2.0);
@@ -2660,19 +2684,15 @@ class CarModel {
     const rimMat = new THREE.MeshStandardNodeMaterial({ color: cfg.rim, roughness: 0.3, metalness: 0.85 });
     const tireGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.235, 22).rotateZ(Math.PI / 2);
     const rimGeo = new THREE.CylinderGeometry(0.215, 0.215, 0.245, 14).rotateZ(Math.PI / 2);
-    const spokeGeo = new THREE.BoxGeometry(0.03, 0.4, 0.05);
+    const spokesFor = (s) => mergeColored(Array.from({ length: 5 }, (_, k) => ({ geo: new THREE.BoxGeometry(0.03, 0.4, 0.05).rotateX(k / 5 * Math.PI).translate(s * 0.125, 0, 0), color: col('#15171a') })));
+    const spokeGeos = { '-1': spokesFor(-1), '1': spokesFor(1) };
     this.wheels = WHEEL_POS.map(([x, z], i) => {
       const pivot = new THREE.Group(); pivot.position.set(x, -0.15, z);
       const spin = new THREE.Group(); pivot.add(spin);
       const tire = new THREE.Mesh(tireGeo, tireMat); tire.castShadow = true;
       const rim = new THREE.Mesh(rimGeo, rimMat);
       spin.add(tire, rim);
-      const s = x < 0 ? -1 : 1;
-      for (let k = 0; k < 5; k++) {
-        const sp = new THREE.Mesh(spokeGeo, black);
-        sp.position.x = s * 0.125; sp.rotation.x = k / 5 * Math.PI;
-        spin.add(sp);
-      }
+      spin.add(new THREE.Mesh(spokeGeos[x < 0 ? '-1' : '1'], black));
       this.group.add(pivot);
       return { pivot, spin, front: i < 2 };
     });
@@ -2699,6 +2719,7 @@ class CarModel {
 // ============================================================
 // Efekty: cząsteczki (billboardy w instancjach), pogoda, ślady opon
 // ============================================================
+const FXLIGHT = T.uniform(1); // jasność nieoświetlonego kurzu (dzień / zmierzch / noc)
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _qz = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3(), _zAxis = new THREE.Vector3(0, 0, 1);
 
 class Particles {
@@ -2716,7 +2737,7 @@ class Particles {
       ? new THREE.MeshStandardNodeMaterial({ roughness: 1, metalness: 0, transparent: true, depthWrite: false })
       : new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
     mat.opacityNode = T.texture(softTex, T.uv()).a.mul(T.attribute('pAlpha', 'float'));
-    if (!lit) mat.colorNode = T.vec3(1, 1, 1);
+    if (!lit) mat.colorNode = additive ? T.vec3(1, 1, 1) : T.vec3(1, 1, 1).mul(FXLIGHT);
     this.mesh = new THREE.InstancedMesh(geo, mat, max);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.setColorAt(0, new THREE.Color(1, 1, 1));
@@ -2761,9 +2782,10 @@ class Particles {
       al[i] = this.a0[i] * Math.min(1, t * 8) * Math.pow(1 - t, 1.3);
     }
     this.mesh.count = this.n;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.mesh.instanceColor.needsUpdate = true;
-    this.alpha.needsUpdate = true;
+    const n = Math.max(1, this.n);
+    for (const [attr, size] of [[this.mesh.instanceMatrix, 16], [this.mesh.instanceColor, 3], [this.alpha, 1]]) {
+      attr.clearUpdateRanges(); attr.addUpdateRange(0, n * size); attr.needsUpdate = true;
+    }
   }
 }
 
@@ -2853,9 +2875,9 @@ class Skids {
 class FX {
   constructor(scene, st) {
     this.scene = scene;
-    this.smoke = new Particles(HIGH() ? 1100 : 500, { lit: true });
-    this.glow = new Particles(260, { lit: false, additive: true });
-    this.skids = new Skids(HIGH() ? 2400 : 1000);
+    this.smoke = new Particles(HIGH() ? 1100 : 300, { lit: HIGH() });
+    this.glow = new Particles(HIGH() ? 260 : 120, { lit: false, additive: true });
+    this.skids = new Skids(HIGH() ? 2400 : 700);
     scene.add(this.smoke.mesh, this.glow.mesh, this.skids.mesh);
     this.weather = null;
     this.setStage(st);
@@ -2867,17 +2889,23 @@ class FX {
     this.st = st;
     const L = st.def.look;
     this.dust = col(L.dust);
+    FXLIGHT.value = L.time === 'night' ? 0.22 : L.time === 'dusk' ? 0.8 : 1;
     if (this.weather) { this.scene.remove(this.weather.mesh); this.weather.mesh.geometry.dispose(); this.weather.mesh.material.dispose(); this.weather = null; }
     if (L.weather) {
-      this.weather = new Weather(L.weather, L.weather === 'mist' ? (HIGH() ? 70 : 35) : (HIGH() ? 1400 : 600));
+      this.weather = new Weather(L.weather, L.weather === 'mist' ? (HIGH() ? 70 : 20) : (HIGH() ? 1400 : 350));
       this.scene.add(this.weather.mesh);
     }
     this.clear();
   }
   clear() { this.smoke.clear(); this.glow.clear(); this.skids.reset(); }
+  // przed kompilacją: każdy materiał efektu musi być „widoczny", żeby shader nie kompilował się w trakcie jazdy
+  prewarm(on) {
+    for (const m of [this.smoke.mesh, this.glow.mesh, this.skids.mesh]) m.count = on ? 1 : 0;
+    if (!on) { this.smoke.n = 0; this.glow.n = 0; this.skids.count = 0; }
+  }
   wheels(car, dt, night) {
     const sp = car.speed;
-    const hi = HIGH() ? 1 : 0.55;
+    const hi = HIGH() ? 1 : 0.38;
     for (let i = 0; i < 4; i++) {
       const wh = car.wheels[i];
       if (!wh.contact || !wh.surf) { this.skids.track(i, false); continue; }
@@ -3526,6 +3554,8 @@ const UI = {
     seg('optGear', 'gearbox', id, () => this.h.applySettings());
     seg('optAssist', 'assist', (v) => v === '1', () => this.h.applySettings());
     seg('optQuality', 'quality', id, () => this.h.qualityChanged());
+    seg('optPerf', 'perf', (v) => v === '1', () => { $('perf').hidden = !settings.perf; });
+    $('perf').hidden = !settings.perf;
     if (IS_TOUCH) {
       $('optTouchRow').hidden = false;
       const notes = { stick: 'Suwak: przeciągaj kciukiem w lewej połowie ekranu', buttons: 'Dwa przyciski, skręt narasta płynnie', tilt: 'Przechylaj telefon jak kierownicę' };
@@ -3622,14 +3652,22 @@ const UI = {
     fill($('n1'), a); fill($('n2'), b);
     $('nLink').textContent = a && b && link ? linkPhrase(link, lang === 'en' ? 'en' : 'pl') : '';
   },
+  hudT: 0, slowT: 0, tachoT: 0, hudCache: {},
+  // DOM i canvas odświeżane rzadziej niż klatka: czas 20 Hz, reszta ~7 Hz, obrotomierz 30 Hz
   hud(d) {
-    $('hTime').textContent = fmtTime(d.time);
-    $('hKm').textContent = `${(Math.max(0, d.remain) / 1000).toFixed(2).replace('.', ',')} km do mety`;
-    const dmg = $('hDmg'); dmg.style.width = `${Math.round(d.damage * 100)}%`;
-    dmg.style.background = d.damage > 0.6 ? 'var(--red)' : d.damage > 0.3 ? 'var(--signal)' : 'var(--green)';
-    $('rMe').style.top = `${(1 - clamp(d.prog, 0, 1)) * 100}%`;
-    $('rLead').style.top = `${(1 - clamp(d.lead, 0, 1)) * 100}%`;
-    this.tacho.draw(d.rpm, d.redline, d.kmh, d.gear, d.limiter);
+    const now = performance.now(), c = this.hudCache;
+    const set = (id, v) => { if (c[id] !== v) { c[id] = v; $(id).textContent = v; } };
+    if (now - this.hudT >= 50) { this.hudT = now; set('hTime', fmtTime(d.time)); }
+    if (now - this.slowT >= 150) {
+      this.slowT = now;
+      set('hKm', `${(Math.max(0, d.remain) / 1000).toFixed(2).replace('.', ',')} km do mety`);
+      const w = `${Math.round(d.damage * 100)}%`;
+      if (c.dmg !== w) { c.dmg = w; const dmg = $('hDmg'); dmg.style.width = w; dmg.style.background = d.damage > 0.6 ? 'var(--red)' : d.damage > 0.3 ? 'var(--signal)' : 'var(--green)'; }
+      const me = `${((1 - clamp(d.prog, 0, 1)) * 100).toFixed(1)}%`, ld = `${((1 - clamp(d.lead, 0, 1)) * 100).toFixed(1)}%`;
+      if (c.me !== me) { c.me = me; $('rMe').style.top = me; }
+      if (c.ld !== ld) { c.ld = ld; $('rLead').style.top = ld; }
+    }
+    if (now - this.tachoT >= 33) { this.tachoT = now; this.tacho.draw(d.rpm, d.redline, d.kmh, d.gear, d.limiter); }
   },
   split(text, delta) {
     const box = $('hSplit');
@@ -3688,6 +3726,9 @@ async function keepAwake(on) {
 
 function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
+  pipeline = null; bloomNode = null;
+  // telefon: bez post-processingu — render prosto na ekran (MSAA z renderera jest na GPU Apple prawie darmowe)
+  if (LOW()) return;
   pipeline = new THREE.RenderPipeline(renderer);
   const scenePass = T.pass(scene, camera, { samples: HIGH() ? 4 : 0 });
   const color = scenePass.getTextureNode('output');
@@ -3701,7 +3742,8 @@ function setupPipeline() {
 
 function applyLook(def) {
   const L = def.look;
-  scene.fog = new THREE.Fog(L.fog, L.fogNear, L.fogFar);
+  const fk = LOW() ? 0.8 : 1;
+  scene.fog = new THREE.Fog(L.fog, L.fogNear * fk, L.fogFar * fk);
   scene.background = new THREE.Color(L.fog);
   ATM.fog.value.set(L.fog); ATM.zenith.value.set(L.zenith); ATM.horizon.value.set(L.horizon);
   const el = L.sunElev * RAD, az = L.sunAz * RAD;
@@ -3714,14 +3756,15 @@ function applyLook(def) {
   hemi.color.set(L.hemiSky); hemi.groundColor.set(L.hemiGround); hemi.intensity = L.hemiI;
   renderer.toneMappingExposure = L.time === 'night' ? 1.3 : L.time === 'dusk' ? 1.05 : 0.95;
   if (bloomNode) bloomNode.strength.value = L.bloom;
-  camera.far = Math.max(L.fogFar * 1.5, 900);
+  // za końcem mgły wszystko jest w kolorze mgły — dalej nie ma sensu rysować
+  camera.far = L.fogFar * fk * 1.05;
   camera.updateProjectionMatrix();
 }
 
 function updateEnv(st) {
   try {
     if (!envRT) {
-      envRT = new THREE.CubeRenderTarget(128, { type: THREE.HalfFloatType });
+      envRT = new THREE.CubeRenderTarget(256, { type: THREE.HalfFloatType });
       cubeCam = new THREE.CubeCamera(1, 4000, envRT);
     }
     const hide = [game.world && game.world.group, game.model && game.model.group, game.fx && game.fx.smoke.mesh, game.fx && game.fx.glow.mesh].filter(Boolean);
@@ -3729,12 +3772,14 @@ function updateEnv(st) {
     const i = st.startS;
     cubeCam.position.set(st.x[i], st.y[i] + 4, st.z[i]);
     sky.position.copy(cubeCam.position); sky.scale.setScalar(3000);
-    const fog = scene.fog; scene.fog = null;
+    const fog = scene.fog, bg = scene.background; scene.fog = null; scene.background = null; sky.visible = true;
     cubeCam.update(renderer, scene);
     envRT.texture.needsPMREMUpdate = true;
-    scene.fog = fog;
+    scene.fog = fog; scene.background = bg;
     hide.forEach(o => o.visible = true);
-  } catch (e) { console.warn('env', e); envRT = null; }
+    // telefon: niebo z chmurami raz wypalone do cube mapy zamiast liczenia szumu co piksel
+    if (LOW()) { sky.visible = false; scene.background = envRT.texture; }
+  } catch (e) { console.warn('env', e); envRT = null; sky.visible = true; }
 }
 
 function stageLabels(st) {
@@ -3788,7 +3833,9 @@ async function loadStage(sel, force = false) {
   placeCar(st.startS + 4);
   UI.loading(true, null, 'Kompiluję shadery…');
   await nextFrame();
+  game.fx.prewarm(true);
   try { await renderer.compileAsync(scene, camera); } catch (e) { console.warn(e); }
+  game.fx.prewarm(false);
   UI.setStageHud(st, `${def.code} · ${def.name}`);
   UI.loading(false);
   return true;
@@ -4254,7 +4301,33 @@ function frame() {
   const fx = Math.round(renderPos.x * 2) / 2, fz = Math.round(renderPos.z * 2) / 2;
   sun.target.position.set(fx, renderPos.y, fz);
   sun.position.set(fx + sunDir.x * 150, renderPos.y + sunDir.y * 150, fz + sunDir.z * 150);
-  pipeline.render();
+  if (pipeline) pipeline.render(); else renderer.render(scene, camera);
+  adaptResolution(dt, now);
+}
+
+// ---------- dynamiczna rozdzielczość + licznik ----------
+const perf = { ema: 1 / 60, t: 0, scale: 1, lastDown: 0, good: 0, frames: 0, ft: 0 };
+function adaptResolution(dt, now) {
+  perf.ema += (dt - perf.ema) * 0.06;
+  perf.frames++; perf.ft += dt;
+  if (settings.perf && perf.ft >= 0.5) {
+    const info = renderer.info.render;
+    $('perf').textContent = `${Math.round(perf.frames / perf.ft)} fps · ${perf.scale.toFixed(2)}× · ${info.drawCalls} dc · ${Math.round(info.triangles / 1000)}k △ · ${game.backend}`;
+    perf.frames = 0; perf.ft = 0;
+  }
+  perf.t += dt;
+  if (perf.t < 1.2) return;
+  perf.t = 0;
+  if (game.state === 'paused' || game.state === 'results') return;
+  const cap = pixelRatio(), min = LOW() ? 0.6 : 0.85;
+  if (perf.ema > 1 / 48 && perf.scale > min) {
+    perf.scale = Math.max(min, +(perf.scale - 0.15).toFixed(2)); renderer.setPixelRatio(perf.scale);
+    perf.lastDown = now; perf.good = 0;
+  } else if (perf.ema < 1 / 56) {
+    if (++perf.good >= 4 && now - perf.lastDown > 12000 && perf.scale < cap) {
+      perf.scale = Math.min(cap, +(perf.scale + 0.1).toFixed(2)); renderer.setPixelRatio(perf.scale); perf.good = 0;
+    }
+  } else perf.good = 0;
 }
 
 function handleKeys(inp) {
@@ -4318,7 +4391,10 @@ const handlers = {
     sound.setVolume(settings.volume);
   },
   qualityChanged: async () => {
-    renderer.setPixelRatio(pixelRatio());
+    perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale);
+    renderer.shadowMap.type = LOW() ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+    sky.visible = true;
+    if (game.fx) { for (const m of [game.fx.smoke.mesh, game.fx.glow.mesh, game.fx.skids.mesh, game.fx.weather && game.fx.weather.mesh]) if (m) scene.remove(m); game.fx = null; }
     setupPipeline();
     const ok = await loadStage(game.sel, true);
     if (ok) enterMenu();
@@ -4351,21 +4427,23 @@ async function boot() {
     await Promise.race([Promise.all([document.fonts.load('italic 900 64px Saira'), document.fonts.load('600 20px "Martian Mono"')]), sleep(2500)]);
   } catch { /* fonty opcjonalne */ }
   try {
-    renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGPURenderer({ antialias: LOW(), powerPreference: 'high-performance' });
     await renderer.init();
   } catch (e) {
     console.error(e);
     fatal('Ta przeglądarka nie obsługuje ani WebGPU, ani WebGL 2. Spróbuj w aktualnym Chrome, Edge, Safari lub Firefoksie.');
     return;
   }
-  renderer.setPixelRatio(pixelRatio());
+  perf.scale = pixelRatio();
+  renderer.setPixelRatio(perf.scale);
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = LOW() ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   $('view').appendChild(renderer.domElement);
   const gpu = !!(renderer.backend && renderer.backend.isWebGPUBackend);
   $('backendBadge').textContent = gpu ? 'WebGPU' : 'WebGL 2 · tryb zgodności';
+  game.backend = gpu ? 'WebGPU' : 'WebGL2';
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.25, 1500);
