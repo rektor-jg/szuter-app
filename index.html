@@ -3168,7 +3168,7 @@ class FX {
 // ============================================================
 const POST = {
   blur: T.uniform(0),          // rozmycie ruchu (rośnie z prędkością)
-  ca: T.uniform(0.35),         // aberracja chromatyczna
+  ca: T.uniform(0.1),          // aberracja chromatyczna
   grain: T.uniform(0.14),      // ziarno filmu
   sunUV: T.uniform(new THREE.Vector2(0.5, 0.5)),
   sunVis: T.uniform(0),
@@ -3228,7 +3228,7 @@ function makeSupremeChain(scene, camera) {
   c = T.mix(T.vec3(lum, lum, lum), c, POST.sat);
   c = T.max(c.sub(0.18).mul(POST.contrast).add(0.18), T.vec3(0, 0, 0));
   const toned = T.renderOutput(T.vec4(c, 1.0), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
-  const ca = chromaticAberration(toned, POST.ca, null, 1.1);
+  const ca = chromaticAberration(toned, POST.ca, T.vec2(0.5, 0.5), 1.1);
   const grain = film(ca, POST.grain);
   return { output: T.vec4(vignette(grain.rgb, 0.45), 1.0), bloomNode, colorTransform: false, aoPass };
 }
@@ -4000,7 +4000,7 @@ function makeSun() {
   }
   if (!csm) Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 5, far: 320 });
   sun.shadow.camera.updateProjectionMatrix();
-  renderer.shadowMap.type = q.softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap; // WebGPU w r186: PCFSoft usunięty, PCF i tak filtruje
   scene.add(sun, sun.target);
   if (game.stage) applyLook(game.stage.def);
 }
@@ -4596,7 +4596,7 @@ const _sunP = new THREE.Vector3();
 function updatePost(dt, car, st) {
   const sp = game.state === 'race' || game.state === 'finish' || game.state === 'replay' ? car.speed : car.speed * 0.5;
   POST.blur.value += (clamp((sp - 10) / 38, 0, 1) * 0.85 - POST.blur.value) * Math.min(1, dt * 4);
-  POST.ca.value = 0.3 + clamp(sp / 45, 0, 1) * 0.55 + camState.shake * 1.5;
+  POST.ca.value = 0.08 + clamp(sp / 45, 0, 1) * 0.3 + camState.shake * 0.8;
   POST.aspect.value = camera.aspect;
   // słońce na ekranie + zasłonięcie terenem (promień w stronę słońca)
   let vis = 0;
