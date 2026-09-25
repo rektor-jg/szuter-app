@@ -5713,7 +5713,7 @@ function demoCar() {
   game.car.damage = 0;
   placeCar(game.stage.startS + 4);
   game.fx && game.fx.clear();
-  game.demo = { t: 0, cam: 0, mode: 0 };
+  game.demo = { t: 0, shot: null, corner: null };
   camState.init = false;
 }
 
@@ -6069,10 +6069,7 @@ function updateCamera(dt) {
   if (s === 'menu') {
     if (Menu.screen === 'garage') fov = garageCam(dt);
     else {
-      game.demo.t += dt;
-      if (game.demo.t > 12) { game.demo.t = 0; game.demo.mode = (game.demo.mode + 1) % 3; camState.init = false; }
-      // tytuł: przeloty „z helikoptera" przeplatane kamerami TV
-      fov = game.demo.mode === 0 ? heliCam(dt) : game.demo.mode === 1 ? chaseCam(dt, true) : tvCam(dt, currentS());
+      fov = demoCam(dt);
     }
   } else if (s === 'intro') {
     fov = game.introT < 2.4 ? orbitCam(dt, game.introT) : camFor(dt);
@@ -6089,17 +6086,111 @@ function updateCamera(dt) {
   camState.fov += (fov - camState.fov) * (1 - Math.exp(-dt * 4));
   if (Math.abs(camera.fov - camState.fov) > 0.01) { camera.fov = camState.fov; camera.updateProjectionMatrix(); if (Math.abs(camera.fov - csmFov) > 1.5) refreshCSM(); }
 }
-function heliCam(dt) {
-  const st = game.stage, t = performance.now() / 1000;
-  const i = clamp(Math.round(currentS() + 26), 0, st.N - 1), h = st.hd[i];
-  const lat = (Math.sin(t * 0.07) > 0 ? 1 : -1) * 11;
-  const x = st.x[i] - Math.sin(h) * lat, z = st.z[i] + Math.cos(h) * lat;
-  _t1.set(x, Math.max(st.heightAt(x, z), st.y[i]) + 9 + Math.sin(t * 0.3) * 2, z);
-  if (!camState.init) { camState.pos.copy(_t1); camState.init = true; }
-  camState.pos.lerp(_t1, 1 - Math.exp(-dt * 1.6));
-  camera.position.copy(camState.pos);
-  camera.lookAt(renderPos.x, renderPos.y + 0.6, renderPos.z);
-  return 44;
+// ---------- reżyser menu: krótkie ujęcia jak w transmisji rajdu ----------
+// cięcie co 3–5 s; przed zakrętem kamera czeka przy wierzchołku i auto przelatuje obok bokiem
+function camFree(x, z, r = 2.2) {
+  const st = game.stage, cx = Math.floor(x / st.colCell), cz = Math.floor(z / st.colCell);
+  for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+    const l = st.colliders.get(st.colKey(cx + dx, cz + dz)); if (!l) continue;
+    for (const c of l) if (Math.hypot(c.x - x, c.z - z) < c.r + r) return false;
+  }
+  return true;
+}
+// czy z (x, y, z) widać drogę w punkcie s — teren i korony drzew na linii wzroku
+function losClear(x, y, z, s) {
+  const st = game.stage, i = clamp(Math.round(s), 0, st.N - 1), ty = st.y[i] + 0.8;
+  for (let k = 1; k < 9; k++) {
+    const f = k / 10, px = x + (st.x[i] - x) * f, pz = z + (st.z[i] - z) * f, py = y + (ty - y) * f;
+    if (st.heightAt(px, pz) > py - 0.3) return false;
+    const l = st.colliders.get(st.colKey(Math.floor(px / st.colCell), Math.floor(pz / st.colCell)));
+    if (l) for (const c of l) if (Math.hypot(c.x - px, c.z - pz) < c.r + 0.9 && py > c.y0 && py < c.y1 + (c.kind === 'tree' ? 7 : 0.3)) return false;
+  }
+  return true;
+}
+function pickShot(s, last) {
+  const st = game.stage, hw = st.def.halfW, d = game.demo, r = Math.random;
+  const roadY = (k) => st.y[clamp(Math.round(k), 0, st.N - 1)];
+  if (last !== 'apex' && r() < 0.6) {
+    const c = st.route.corners.find(k => k.cls !== 'flat' && k !== d.corner && (k.s0 + k.s1) / 2 > s + 30 && (k.s0 + k.s1) / 2 < s + 140);
+    if (c) {
+      const apex = Math.round((c.s0 + c.s1) / 2);
+      // wewnątrz tuż za wierzchołkiem (auto nadjeżdża prosto w kamerę i ucieka bokiem), na zewnątrz wyjścia, wewnątrz przed wierzchołkiem
+      for (const [ds, lat] of [[8, c.dir * (hw + 2.5 + r() * 3)], [18, -c.dir * (hw + 4 + r() * 4)], [-14, c.dir * (hw + 3 + r() * 3)]]) {
+        const [x, z] = st.pointAt(apex + ds, lat);
+        const y = Math.max(st.heightAt(x, z), roadY(apex + ds)) + 0.7 + r() * 1.0;
+        if (!camFree(x, z) || !losClear(x, y, z, apex - 22) || !losClear(x, y, z, apex)) continue;
+        d.corner = c;
+        return { type: 'apex', x, y, z, frame: 3.2, dur: 8, until: apex + 24 };
+      }
+    }
+  }
+  if (last !== 'vista' && r() < 0.35) {
+    // widoczek: kamera daleko na wzniesieniu, auto mała plamka w krajobrazie
+    for (let k = 0; k < 6; k++) {
+      const ss = s + 70 + r() * 70, lat = (r() < 0.5 ? -1 : 1) * (hw + 20 + r() * 35);
+      const [x, z] = st.pointAt(ss, lat);
+      const y = Math.max(st.heightAt(x, z), roadY(ss)) + 5 + r() * 9;
+      if (!camFree(x, z, 3) || !losClear(x, y, z, ss - 40) || !losClear(x, y, z, ss)) continue;
+      return { type: 'vista', x, y, z, frame: 10, dur: 6.5, until: ss + 30 };
+    }
+  }
+  const pool = ['side', 'front', 'heli', 'wheel', 'chase'].filter(k => k !== last);
+  const type = pool[Math.floor(r() * pool.length)];
+  return { type, side: r() < 0.5 ? -1 : 1, dur: { side: 4, front: 3.6, heli: 5, wheel: 3, chase: 3.5 }[type] };
+}
+function demoCam(dt) {
+  const d = game.demo, st = game.stage, car = game.car, s = currentS();
+  let sh = d.shot;
+  if (!sh || d.t > sh.dur || (sh.until && s > sh.until) || sh.bad) { sh = d.shot = pickShot(s, sh && sh.type); d.t = 0; camState.init = false; }
+  d.t += dt;
+  const t = d.t, h = st.hd[car.idx], fx = Math.cos(h), fz = Math.sin(h), rx = -fz, rz = fx;
+  const follow = (k) => { if (!camState.init) { camState.pos.copy(_t1); camState.init = true; } camState.pos.lerp(_t1, 1 - Math.exp(-dt * k)); camera.position.copy(camState.pos); };
+  switch (sh.type) {
+    case 'apex': case 'vista': {
+      // statyw przy trasie: długi obiektyw trzyma auto w kadrze, lekko drży jak z ręki
+      const w = sh.type === 'apex' ? 0.22 : 0.08;
+      camera.position.set(sh.x, sh.y, sh.z);
+      camera.lookAt(renderPos.x + Math.sin(t * 1.7) * w, renderPos.y + 0.45 + Math.sin(t * 2.3) * w * 0.6, renderPos.z + Math.cos(t * 1.3) * w);
+      return clamp(2 * Math.atan(sh.frame / camera.position.distanceTo(renderPos)) / RAD, 11, 58);
+    }
+    case 'side': {
+      // samochód z kamerą jedzie obok, nisko
+      _t1.set(renderPos.x + rx * sh.side * 4.4 + fx * 1.2, 0, renderPos.z + rz * sh.side * 4.4 + fz * 1.2);
+      _t1.y = Math.max(st.heightAt(_t1.x, _t1.z) + 0.5, renderPos.y + 0.55);
+      if (!camFree(_t1.x, _t1.z, 0.8)) sh.bad = t > 0.8;
+      follow(7);
+      camera.lookAt(renderPos.x + fx * 0.8, renderPos.y + 0.35, renderPos.z + fz * 0.8);
+      return 50;
+    }
+    case 'front': {
+      // kamera ucieka przed autem nad drogą, auto ją goni
+      const k = clamp(car.idx + 8 + car.speed * 0.14, 0, st.N - 1), lat = ((car.pos[0] - st.x[car.idx]) * rx + (car.pos[2] - st.z[car.idx]) * rz) * 0.5;
+      const [x, z] = st.pointAt(k, lat);
+      _t1.set(x, Math.max(st.heightAt(x, z), st.y[Math.round(k)]) + 1.05, z);
+      follow(6);
+      camera.lookAt(renderPos.x, renderPos.y + 0.5, renderPos.z);
+      return 46;
+    }
+    case 'heli': {
+      // helikopter z boku i z przodu, wysoko — widać odcinek i okolicę
+      const i = clamp(car.idx + 30, 0, st.N - 1), hh = st.hd[i], lat = sh.side * 24;
+      const x = st.x[i] - Math.sin(hh) * lat, z = st.z[i] + Math.cos(hh) * lat;
+      _t1.set(x, Math.max(st.heightAt(x, z), st.y[i]) + 20 + Math.sin(t * 0.4) * 2, z);
+      follow(1.4);
+      camera.lookAt(renderPos.x, renderPos.y + 0.6, renderPos.z);
+      return 40;
+    }
+    case 'wheel': {
+      // kamera na wysięgniku przy tylnym kole patrzy do przodu wzdłuż boku auta
+      const q = [renderQuat.x, renderQuat.y, renderQuat.z, renderQuat.w];
+      qRot(q, sh.side * 1.6, -0.05, 1.3, _v3a);
+      camera.position.set(renderPos.x + _v3a[0], Math.max(renderPos.y + _v3a[1], st.heightAt(renderPos.x + _v3a[0], renderPos.z + _v3a[2]) + 0.15), renderPos.z + _v3a[2]);
+      qRot(q, sh.side * 0.15, 0.05, -8, _v3a);
+      camera.lookAt(renderPos.x + _v3a[0], renderPos.y + _v3a[1], renderPos.z + _v3a[2]);
+      return 64;
+    }
+    default: return chaseCam(dt, true);
+  }
 }
 function garageCam(dt) {
   const t = performance.now() / 1000, a = t * 0.2 + 0.7, r = 6.4;
@@ -6150,7 +6241,7 @@ function frame() {
         game.lastInp = { throttle: 0, brake: 0 };
       } else {
         const b = {};
-        simulate(dt, () => botInput(car, st, 0.8, b), demoRules);
+        simulate(dt, () => botInput(car, st, 0.93, b), demoRules);
         game.lastInp = b;
       }
       break;
