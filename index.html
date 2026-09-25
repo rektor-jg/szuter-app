@@ -387,6 +387,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
+      <p class="note-p" style="font-size:12px;color:var(--paper-muted)">Szuter Rally · three.js (MIT) · fonty Saira i Martian Mono (SIL OFL 1.1) · gra nie zbiera żadnych danych.</p>
     </div></div>
     <footer class="scr-foot"><span class="keys"><kbd>↑</kbd> <kbd>↓</kbd> opcja · <kbd>◂</kbd> <kbd>▸</kbd> zmiana · <kbd>Esc</kbd> wstecz</span></footer>
   </section>
@@ -3664,10 +3665,13 @@ const Tilt = {
 // ---------- haptyka: vibrate albo systemowy „switch" w Safari na iOS ----------
 const Haptic = {
   el: null, t: 0,
-  tap() {
+  tap(k = 0.3) {
     if (!IS_TOUCH) return;
     const now = performance.now(); if (now - this.t < 80) return; this.t = now;
     try {
+      // aplikacja iOS (Capacitor): prawdziwy silnik wibracji, siła zależna od uderzenia
+      const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+      if (H) { const p = H.impact({ style: k > 0.7 ? 'HEAVY' : k > 0.4 ? 'MEDIUM' : 'LIGHT' }); if (p && p.catch) p.catch(() => {}); return; }
       if (navigator.vibrate) { navigator.vibrate(12); return; }
       if (!this.el) {
         const lab = document.createElement('label'), inp = document.createElement('input');
@@ -3768,7 +3772,7 @@ class Input {
     return out;
   }
   rumble(strong, weak, ms = 120) {
-    if (strong > 0.25) Haptic.tap();
+    if (strong > 0.25) Haptic.tap(strong);
     const a = this.gp && this.gp.vibrationActuator;
     if (!a || !a.playEffect) return;
     try { a.playEffect('dual-rumble', { duration: ms, strongMagnitude: clamp(strong, 0, 1), weakMagnitude: clamp(weak, 0, 1) }); } catch { /* */ }
@@ -5267,6 +5271,7 @@ async function boot() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
   last = performance.now();
   renderer.setAnimationLoop(frame);
+  if (window.SZUTER_NATIVE) { try { window.Capacitor?.Plugins?.StatusBar?.hide(); } catch { /* */ } }
   globalThis.__szuter = { game, sound, settings, Menu, input, codriver }; // uchwyt do diagnostyki i testów E2E
 }
 
