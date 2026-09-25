@@ -659,27 +659,31 @@ const CARS = [
   {
     id: 'kaze', name: 'Kaze WRC', drive: '4wd', front: 0.42, mass: 1230, torque: 410, redline: 7600, idle: 950,
     gears: [3.2, 2.25, 1.74, 1.41, 1.16, 0.97], final: 4.7, brake: 15500, bias: 0.6, hb: 6200, steer: 0.6, steerHigh: 0.16, grip: 1.0,
-    color: '#1747c4', color2: '#f3c21a', rim: '#d6ae45', num: 5, body: 'hatch',
-    stats: { grip: 0.9, handling: 0.84 },
+    color: '#1d4fc7', color2: '#141518', rim: '#e2b53b', num: 5, body: 'impreza',
+    stats: { grip: 0.9, handling: 0.84 }, color3: '#f2c11d',
+    wheelPos: [[-0.78, -1.2625], [0.78, -1.2625], [-0.78, 1.2625], [0.78, 1.2625]],
   },
   {
     id: 'falke', name: 'Falke RS', drive: '4wd', front: 0.36, mass: 1255, torque: 440, redline: 7300, idle: 900,
     gears: [3.1, 2.2, 1.7, 1.38, 1.14, 0.95], final: 4.7, brake: 15800, bias: 0.62, hb: 6000, steer: 0.58, steerHigh: 0.15, grip: 0.98,
-    color: '#f1f0ea', color2: '#1b2f6b', rim: '#e9e9e9', num: 3, body: 'hatch',
-    stats: { grip: 0.86, handling: 0.78 },
+    color: '#eef0f2', color2: '#3565c9', rim: '#c9ccd1', num: 3, body: 'fiesta',
+    stats: { grip: 0.86, handling: 0.78 }, color3: '#141518',
+    wheelPos: [[-0.79, -1.2450], [0.79, -1.2450], [-0.79, 1.2450], [0.79, 1.2450]],
   },
   {
     id: 'lupo', name: 'Lupo S2', drive: 'rwd', front: 0, mass: 990, torque: 290, redline: 8200, idle: 1000,
     gears: [3.0, 2.1, 1.6, 1.28, 1.05], final: 4.4, brake: 12500, bias: 0.62, hb: 5200, steer: 0.64, steerHigh: 0.17, grip: 0.95,
-    color: '#e8622c', color2: '#161616', rim: '#cfcfcf', num: 9, body: 'coupe',
-    stats: { grip: 0.72, handling: 0.95 },
+    color: '#e8622c', color2: '#17181b', rim: '#d9dbde', num: 9, body: 'p205',
+    stats: { grip: 0.72, handling: 0.95 }, color3: '#f3f3f3',
+    wheelPos: [[-0.72, -1.2100], [0.72, -1.2100], [-0.72, 1.2100], [0.72, 1.2100]],
   },
   {
     // nowoczesne R5: turbo 1.6, sekwencyjna 5-biegowa, napęd 4×4
     id: 'pulso', name: 'Pulso R5', drive: '4wd', front: 0.4, mass: 1230, torque: 430, redline: 7200, idle: 950,
     gears: [3.05, 2.2, 1.72, 1.4, 1.16], final: 4.85, brake: 16200, bias: 0.6, hb: 6100, steer: 0.6, steerHigh: 0.16, grip: 1.03,
-    color: '#eef0f3', color2: '#141a2c', color3: '#19c3e6', rim: '#e3e6ea', caliper: '#d11f2a', num: 1, body: 'modern',
+    color: '#eef0f3', color2: '#3a66c8', color3: '#141518', rim: '#c9ccd1', caliper: '#d11f2a', num: 1, body: 'fabia',
     stats: { grip: 0.93, handling: 0.88 },
+    wheelPos: [[-0.8, -1.2390], [0.8, -1.2390], [-0.8, 1.2390], [0.8, 1.2390]],
   },
   {
     // hot hatch odwzorowany z prawdziwego auta: 2.3 turbo, 4×4, 6 biegów, rozstaw osi 2,647 m
@@ -2955,6 +2959,177 @@ function rsBodyGeo(P) {
 
 
 
+
+// ---------- auta low poly (płaskie ścianki, kolory na całych ścianach) — sylwetki z rysunków bocznych ----------
+const LP = {
+  // Pulso R5: hatchback 5-drzwiowy klasy B (rysunek: Škoda Fabia 2015), poszerzenia R5
+  fabia: { L: 3.99, axles: [0.75, 3.228], stations: 30, doors: 5,
+    top: [[0, 0.55], [0.06, 0.65], [0.17, 0.79], [0.28, 0.85], [0.51, 0.92], [0.74, 0.98], [0.97, 1.02], [1.1, 1.06], [1.31, 1.19], [1.54, 1.32], [1.77, 1.42], [2.0, 1.46], [2.4, 1.48], [2.8, 1.47], [3.14, 1.44], [3.36, 1.42], [3.48, 1.31], [3.71, 1.13], [3.82, 1.05], [3.9, 0.95], [3.95, 0.72], [3.99, 0.56]],
+    bot: [[0, 0.3], [0.25, 0.23], [0.6, 0.21], [3.4, 0.21], [3.8, 0.25], [3.99, 0.32]],
+    shoulder: [[0, 0.6], [0.4, 0.8], [1.1, 0.93], [2.0, 0.97], [3.0, 1.0], [3.6, 1.02], [3.99, 0.9]],
+    dlo: [[1.15, 0.97], [1.4, 0.98], [2.5, 1.0], [3.2, 1.03], [3.45, 1.08], [3.6, 1.2]],
+    rail: [[1.1, 1.0], [1.3, 1.14], [1.6, 1.33], [1.9, 1.4], [2.2, 1.42], [3.2, 1.4], [3.45, 1.32], [3.6, 1.21], [3.99, 1.1]],
+    roofW: [[1.0, 0.72], [1.9, 0.62], [3.3, 0.6], [3.99, 0.55]],
+    hw: [[0, 0.64], [0.05, 0.75], [0.15, 0.83], [0.35, 0.87], [0.75, 0.88], [1.3, 0.86], [2.5, 0.855], [3.228, 0.88], [3.7, 0.86], [3.9, 0.8], [3.99, 0.68]],
+    win: [1.2, 3.58], pillars: [[2.27, 2.37], [3.06, 3.13]], wind: [1.1, 1.93], rear: [3.42, 3.86],
+    head: [0.72, 0.86], tail: [0.95, 1.08], grille: [0.36, 0.6], wing: 'hatch' },
+  // Falke RS: hatchback 3-drzwiowy (Fiesta R5): długie drzwi, mocniej pochylona klapa
+  fiesta: { L: 3.97, axles: [0.74, 3.23], stations: 30, doors: 3,
+    top: [[0, 0.55], [0.06, 0.66], [0.17, 0.8], [0.28, 0.86], [0.51, 0.93], [0.74, 0.99], [0.97, 1.03], [1.1, 1.07], [1.31, 1.2], [1.54, 1.32], [1.77, 1.41], [2.0, 1.45], [2.4, 1.46], [2.8, 1.45], [3.1, 1.42], [3.25, 1.39], [3.45, 1.26], [3.7, 1.1], [3.84, 0.99], [3.92, 0.76], [3.97, 0.56]],
+    bot: [[0, 0.3], [0.25, 0.23], [0.6, 0.21], [3.4, 0.21], [3.8, 0.25], [3.97, 0.32]],
+    shoulder: [[0, 0.6], [0.4, 0.8], [1.1, 0.93], [2.0, 0.97], [3.0, 1.01], [3.6, 1.03], [3.97, 0.9]],
+    dlo: [[1.15, 0.97], [1.4, 0.98], [2.4, 1.0], [2.8, 1.03], [3.1, 1.08], [3.3, 1.19]],
+    rail: [[1.1, 1.0], [1.3, 1.14], [1.6, 1.33], [1.9, 1.39], [2.2, 1.41], [2.9, 1.39], [3.15, 1.3], [3.3, 1.2], [3.97, 1.1]],
+    roofW: [[1.0, 0.72], [1.9, 0.62], [3.2, 0.58], [3.97, 0.55]],
+    hw: [[0, 0.64], [0.05, 0.75], [0.15, 0.83], [0.35, 0.87], [0.74, 0.885], [1.3, 0.86], [2.5, 0.855], [3.23, 0.885], [3.7, 0.86], [3.9, 0.8], [3.97, 0.68]],
+    win: [1.2, 3.28], pillars: [[2.55, 2.64]], wind: [1.1, 1.93], rear: [3.2, 3.84],
+    head: [0.73, 0.87], tail: [0.93, 1.06], grille: [0.34, 0.66], wing: 'hatch' },
+  // Kaze WRC: sedan (rysunek: Impreza WRC 2002) — wysokie skrzydło na klapie bagażnika
+  impreza: { L: 4.405, axles: [0.95, 3.475], stations: 34, doors: 4,
+    top: [[0, 0.46], [0.13, 0.69], [0.26, 0.76], [0.5, 0.82], [0.76, 0.9], [1.13, 0.9], [1.26, 0.94], [1.51, 1.09], [1.76, 1.23], [2.02, 1.4], [2.14, 1.42], [2.52, 1.39], [2.89, 1.38], [3.15, 1.35], [3.4, 1.25], [3.65, 1.12], [3.9, 0.99], [4.2, 1.0], [4.33, 0.96], [4.405, 0.62]],
+    bot: [[0, 0.33], [0.13, 0.16], [1.0, 0.15], [3.0, 0.15], [3.96, 0.2], [4.3, 0.25], [4.405, 0.33]],
+    shoulder: [[0, 0.6], [0.5, 0.78], [1.2, 0.87], [2.5, 0.92], [3.6, 0.96], [4.405, 0.9]],
+    dlo: [[1.28, 0.93], [2.0, 0.95], [2.9, 0.97], [3.3, 1.0]],
+    rail: [[1.25, 0.95], [1.5, 1.08], [1.8, 1.25], [2.05, 1.35], [2.8, 1.34], [3.2, 1.29], [3.45, 1.17], [3.7, 1.02], [4.405, 1.0]],
+    roofW: [[1.2, 0.72], [2.0, 0.62], [3.2, 0.6], [3.9, 0.68], [4.405, 0.66]],
+    hw: [[0, 0.64], [0.06, 0.76], [0.16, 0.84], [0.4, 0.875], [0.95, 0.885], [1.5, 0.86], [2.8, 0.86], [3.475, 0.885], [4.1, 0.86], [4.3, 0.8], [4.405, 0.68]],
+    win: [1.3, 3.36], pillars: [[2.4, 2.5]], wind: [1.26, 2.02], rear: [3.3, 3.86],
+    head: [0.66, 0.78], tail: [0.86, 0.98], grille: [0.36, 0.58], wing: 'sedan' },
+  // Lupo S2: mały hatchback z lat 80. (rysunek: Peugeot 205), napęd na tył
+  p205: { L: 3.705, axles: [0.68, 3.1], stations: 28, doors: 3,
+    top: [[0, 0.4], [0.1, 0.58], [0.21, 0.67], [0.43, 0.7], [0.74, 0.77], [0.95, 0.81], [1.17, 0.97], [1.38, 1.11], [1.58, 1.24], [1.72, 1.31], [2.0, 1.32], [2.54, 1.31], [3.0, 1.3], [3.12, 1.2], [3.3, 1.0], [3.5, 0.84], [3.62, 0.76], [3.705, 0.55]],
+    bot: [[0, 0.3], [0.15, 0.21], [3.5, 0.21], [3.705, 0.3]],
+    shoulder: [[0, 0.56], [0.4, 0.7], [1.0, 0.79], [2.5, 0.83], [3.2, 0.85], [3.705, 0.78]],
+    dlo: [[1.0, 0.81], [2.0, 0.84], [3.0, 0.87]],
+    rail: [[0.97, 0.83], [1.3, 1.02], [1.65, 1.22], [2.0, 1.26], [2.9, 1.25], [3.1, 1.16], [3.705, 1.0]],
+    roofW: [[0.95, 0.66], [1.7, 0.58], [3.0, 0.58], [3.5, 0.55]],
+    hw: [[0, 0.68], [0.06, 0.75], [0.15, 0.79], [0.68, 0.82], [1.2, 0.8], [3.1, 0.82], [3.5, 0.79], [3.705, 0.7]],
+    win: [1.02, 3.06], pillars: [[2.28, 2.36]], wind: [0.97, 1.68], rear: [3.1, 3.52],
+    head: [0.52, 0.64], tail: [0.66, 0.8], grille: [0.46, 0.62], wing: 'lip' },
+};
+
+// bryła low poly + klasyfikacja ścianek (0 lakier, 1 kolor 2, 2 kolor 3, 3 szyba, 4 plastik, 5 reflektor, 6 tylna lampa, 7 grill)
+function lpBodyGeo(P, livery) {
+  const L = P.L, CF = (P.axles[0] + P.axles[1]) / 2;
+  const top = spline1d(P.top), bot = spline1d(P.bot), belt = spline1d(P.shoulder), dlo = spline1d(P.dlo), rail = spline1d(P.rail), roofW = spline1d(P.roofW), hwS = spline1d(P.hw);
+  // stacje: równe + wszystkie linie charakterystyczne (okna, słupki, nadkola), żeby ścianki szły po krawędziach
+  const key = [P.win[0], P.win[1], P.wind[0], P.wind[1], P.rear[0], P.rear[1], ...P.pillars.flat(), 0.03, 0.12, 0.3, L - 0.3, L - 0.12, L - 0.03];
+  for (const a of P.axles) for (const d of [-0.44, -0.36, -0.25, -0.12, 0, 0.12, 0.25, 0.36, 0.44]) key.push(a + d);
+  let st = [];
+  for (let i = 0; i < P.stations; i++) st.push(L * i / (P.stations - 1));
+  st = [...st, ...key].filter(v => v >= 0 && v <= L).sort((a, b) => a - b).filter((v, i, a) => i === 0 || v - a[i - 1] > 0.035);
+  const half = (s) => {
+    const hw = hwS(s), t = top(s), b = bot(s);
+    const be = Math.min(belt(s), t - 0.02), d = be - b;
+    const gh = clamp((t - be - 0.04) / 0.22, 0, 1);
+    const rw = roofW(s), ra = clamp(rail(s), be + 0.03, t - 0.03);
+    const gy = clamp(Math.max(be + 0.01, dlo(s)), be + 0.01, ra - 0.004);
+    const gx = lerp(hw - 0.07, rw + 0.05, (gy - be - 0.01) / Math.max(0.01, ra - be - 0.01));
+    const G = (hood, cab) => [lerp(hood[0], cab[0], gh), lerp(hood[1], cab[1], gh)];
+    return [[0, b], [hw - 0.12, b], [hw - 0.04, b + 0.05], [hw - 0.02, b + 0.2 * d], [hw, b + 0.5 * d], [hw, b + 0.75 * d], [hw - 0.02, b + 0.9 * d], [hw - 0.05, be - 0.01],
+      G([hw - 0.1, lerp(be, t, 0.5)], [gx, gy]), G([hw * 0.7, t - 0.03], [rw + 0.05, ra]), G([hw * 0.45, t - 0.014], [rw, t - 0.035]), G([hw * 0.22, t - 0.004], [rw * 0.55, t - 0.008]), [0, t]];
+  };
+  const NH = 13, N0 = 24;
+  const rings = st.map((s) => {
+    const r = half(s), pts = [];
+    for (let k = 0; k < N0; k++) { const src = k < NH ? r[k] : r[N0 - k]; let x = k < NH ? src[0] : -src[0], y = src[1];
+      const q = k < NH ? k : N0 - k;
+      for (const ax of P.axles) { const R = 0.43, dz = s - ax; if (Math.abs(dz) < R && q > 0.5 && q < 6.5) { const ya = 0.33 + Math.sqrt(R * R - dz * dz); if (y < ya) { y = ya; x *= 0.95; } } }
+      pts.push([x, y, q]); }
+    return pts;
+  });
+  const pos = [], colr = [], kind = [];
+  const inR = (v, [a, b]) => v > a && v < b;
+  const classify = (cx, cy, cs, cq, nx, ny, nz) => {
+    const h = cy, ax = Math.abs(cx);
+    const glassSide = cq > 8 && cq < 9 && inR(cs, P.win) && !P.pillars.some(pp => inR(cs, pp));
+    const glassTop = cq > 9 && (inR(cs, P.wind) || inR(cs, P.rear));
+    if (glassSide || glassTop) return 3;
+    if (cs < 0.3 && nz < -0.3 && inR(h, P.head) && ax > 0.3) return 5;
+    if (cs < 0.45 && Math.abs(nx) > 0.3 && inR(h, P.head) && cs < 0.42 && cq > 5) return 5;
+    if (cs > L - 0.3 && nz > 0.3 && inR(h, P.tail) && ax > 0.36) return 6;
+    if (cs > L - 0.4 && Math.abs(nx) > 0.3 && inR(h, P.tail) && cq > 5) return 6;
+    if (cs < 0.15 && nz < -0.4 && inR(h, P.grille) && ax < 0.44) return 7;
+    if (cq < 2.5 || h < 0.36) return 4;
+    if (cs < 0.2 && h < 0.44) return 4;
+    if (cs > L - 0.22 && h < 0.44) return 4;
+    return livery(cs, h, ax, cq, ny);
+  };
+  // czworokąt = dwa trójkąty w jednym kolorze (klasa liczona ze środka czworokąta) — czyste granice po krawędziach siatki
+  const quad = (a, b, c, d) => {
+    const e1 = [d[0] - a[0], d[1] - a[1], d[2] - a[2]], e2 = [c[0] - b[0], c[1] - b[1], c[2] - b[2]];
+    let nx = e1[1] * e2[2] - e1[2] * e2[1], ny = e1[2] * e2[0] - e1[0] * e2[2], nz = e1[0] * e2[1] - e1[1] * e2[0];
+    const nl = Math.hypot(nx, ny, nz); if (nl < 1e-10) return; nx /= nl; ny /= nl; nz /= nl;
+    const m = (j) => (a[j] + b[j] + c[j] + d[j]) / 4;
+    const k = classify(m(0), m(1), m(2), m(3), nx, ny, nz);
+    for (const v of [a, b, c, b, d, c]) { pos.push(v[0], v[1] - COM_H, v[2] - CF); kind.push(k); }
+  };
+  for (let i = 0; i < st.length - 1; i++) for (let k = 0; k < N0; k++) {
+    const k1 = (k + 1) % N0;
+    const A = [...rings[i][k].slice(0, 2), st[i], rings[i][k][2]], B = [...rings[i][k1].slice(0, 2), st[i], rings[i][k1][2]];
+    const C = [...rings[i + 1][k].slice(0, 2), st[i + 1], rings[i + 1][k][2]], D = [...rings[i + 1][k1].slice(0, 2), st[i + 1], rings[i + 1][k1][2]];
+    quad(A, B, C, D);
+  }
+  // czoła: poziome pasy podzielone na trzy kolumny (rogi / środek), żeby lampy i grill miały własne ścianki
+  for (const [i, front] of [[0, true], [st.length - 1, false]]) {
+    const r = rings[i], s0 = st[i];
+    for (let k = 0; k < NH - 1; k++) {
+      const R0 = r[k], R1 = r[k + 1];
+      const cols = [-1, -0.42, 0.42, 1];
+      for (let c = 0; c < 3; c++) {
+        const P0 = [R0[0] * cols[c], R0[1], s0, 12], P1 = [R0[0] * cols[c + 1], R0[1], s0, 12], P2 = [R1[0] * cols[c], R1[1], s0, 12], P3 = [R1[0] * cols[c + 1], R1[1], s0, 12];
+        if (front) quad(P0, P2, P1, P3); else quad(P0, P1, P2, P3);
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('kind', new THREE.Float32BufferAttribute(kind, 1));
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  return { geo: g, hwS, top, CF };
+}
+
+
+const LP_LIVERY = {
+  // biało-niebieska: niebieski dach i klin z przodu, pas wzdłuż boku (jak referencyjna Fabia R5)
+  pulso: (s, h, ax, q, ny) => (q > 10.5 && ny > 0.8 ? 1 : (h < 0.62 - 0.06 * s && s < 1.8) ? 1 : (h > 0.52 && h < 0.66 && s > 1.2) ? 1 : 0),
+  // biała góra, niebieski dół (jak referencyjna Fiesta rally)
+  falke: (s, h) => (h < 0.64 - 0.02 * s ? 1 : 0),
+  // niebieska z żółtym łukiem na boku i żółtym pasem na dachu
+  kaze: (s, h, ax, q) => (q > 10.5 && ax < 0.16 ? 2 : (h > 0.5 + 0.08 * Math.sin((s - 1.0) * 1.3) && h < 0.66 + 0.08 * Math.sin((s - 1.0) * 1.3) && s > 0.9 && s < 4.1 ? 2 : 0)),
+  // pomarańczowa z czarnym dachem i czarnym pasem nad progiem
+  lupo: (s, h, ax, q) => (q > 9.5 && s > 1.6 && s < 3.1 ? 1 : h > 0.4 && h < 0.46 ? 1 : 0),
+};
+
+
+// koło low poly: opona 14-kątna, felga z 5 ramion w kształcie gwiazdy, piasta
+function lpWheelKit(cfg) {
+  const mk = (sd) => {
+    const parts = [];
+    parts.push({ geo: new THREE.CylinderGeometry(0.33, 0.33, 0.235, 14, 1, true).rotateZ(Math.PI / 2), color: col('#26272a') });
+    for (const sx of [-1, 1]) parts.push({ geo: new THREE.RingGeometry(0.235, 0.33, 14).rotateY(sx * Math.PI / 2).translate(sx * 0.1175, 0, 0), color: col('#222326') });
+    parts.push({ geo: new THREE.CylinderGeometry(0.235, 0.235, 0.22, 14, 1, true).rotateZ(Math.PI / 2), color: col('#303236') });
+    parts.push({ geo: new THREE.CircleGeometry(0.23, 14).rotateY(-Math.PI / 2).translate(-0.06, 0, 0), color: col('#1c1d20') });
+    const st = new THREE.Shape(), n = 5;
+    for (let i = 0; i < n * 2; i++) {
+      const a = i / (n * 2) * Math.PI * 2, r = i % 2 ? 0.07 : 0.225, w = i % 2 ? 0 : 0.18;
+      const p = [Math.cos(a - w) * r, Math.sin(a - w) * r], p2 = [Math.cos(a + w) * r, Math.sin(a + w) * r];
+      if (i === 0) st.moveTo(...p); else st.lineTo(...p);
+      if (w) st.lineTo(...p2);
+    }
+    const g = new THREE.ExtrudeGeometry(st, { depth: 0.03, bevelEnabled: false });
+    g.applyMatrix4(WHEEL_PLANE); g.translate(0.075, 0, 0);
+    parts.push({ geo: g, color: col(cfg.rim) });
+    parts.push({ geo: new THREE.CylinderGeometry(0.06, 0.07, 0.04, 8).rotateZ(Math.PI / 2).translate(0.095, 0, 0), color: col(cfg.rim) });
+    const m = mergeColored(parts);
+    return sd < 0 ? mirrorX(m) : m;
+  };
+  const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.6, metalness: 0.2, side: THREE.DoubleSide });
+  mat.colorNode = T.attribute('color', 'vec3');
+  return { geo: { '1': mk(1), '-1': mk(-1) }, mat, materials: [mat] };
+}
+
 // ---------- modele z plików (glTF): wczytane raz przy starcie, dopasowane do fizyki ----------
 const CAR_GLTF = {};
 // Orkan RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 (assets/orkan/license.txt)
@@ -3180,7 +3355,9 @@ class CarModel {
     const tailMat = new THREE.MeshBasicNodeMaterial(); tailMat.colorNode = T.vec3(1.0, 0.06, 0.04).mul(this.uBrake);
     let paint, liv, glass, roofMat, numMat;
     const extra = [];
-    if (cfg.body === 'rs' && CAR_GLTF.orkan) {
+    if (LP[cfg.body]) {
+      this.buildLowPoly(cfg, LP[cfg.body], extra);
+    } else if (cfg.body === 'rs' && CAR_GLTF.orkan) {
       ({ paint, liv, glass, roofMat, numMat } = this.buildFromGltf(cfg, CAR_GLTF.orkan, extra));
     } else if (cfg.body === 'rs') {
       ({ paint, liv, glass, roofMat, numMat } = this.buildRS(cfg, P, black, headMat, tailMat, extra));
@@ -3280,7 +3457,7 @@ class CarModel {
     this.spots = [];
     if (look.time !== 'day') {
       // listwa rajdowych lamp + reflektory
-      if (this.night && !this.fromFile) {
+      if (this.night && !this.fromFile && !LP[cfg.body]) {
         const pod = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.05, 0.12), black);
         pod.position.set(0, P.head[1] - COM_H + 0.19, P.head[0] - (P.com ?? COM_FROM_FRONT) + 0.26);
         this.group.add(pod);
@@ -3348,11 +3525,19 @@ class CarModel {
     const discGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.028, hi ? 48 : 28).rotateZ(Math.PI / 2);
     const calGeo = new THREE.BoxGeometry(0.05, 0.12, 0.09);
     const fileW = this.fromFile ? this.fromFile.wheels : null;
+    const lpW = LP[cfg.body] ? lpWheelKit(cfg) : null;
+    if (lpW) extra.push(...lpW.materials);
     const rsW = hi && !fileW ? rsWheelKit(cfg) : null;
     if (rsW) this.materials_rs = rsW.materials;
     this.wheels = (cfg.wheelPos || WHEEL_POS).map(([x, z], i) => {
       const pivot = new THREE.Group(); pivot.position.set(x, -0.15, z);
       const spin = new THREE.Group(); pivot.add(spin);
+      if (lpW) {
+        const sd = x < 0 ? -1 : 1;
+        const wm = new THREE.Mesh(lpW.geo[sd], lpW.mat); wm.castShadow = true; spin.add(wm);
+        this.group.add(pivot);
+        return { pivot, spin, front: i < 2 };
+      }
       if (fileW) {
         const key = (i < 2 ? 'F' : 'R') + (x < 0 ? 'L' : 'R');
         const wm = new THREE.Mesh(fileW[key], fileW[key].userData.mat); wm.castShadow = true;
@@ -3489,6 +3674,61 @@ class CarModel {
     }
     for (const [x, z] of WHEEL_POS) add(new THREE.BoxGeometry(0.3, 0.24, 0.015), black, x * 0.95, -0.31, z + 0.48);
     return { paint: paintMat, liv: mat, glass: null, roofMat: carbon, numMat };
+  }
+  // auto low poly: jedna bryła z kolorami na ściankach + czarne poszerzenia nadkoli, skrzydło, lusterka, chlapacze
+  buildLowPoly(cfg, P, extra) {
+    const liv = LP_LIVERY[cfg.id] || (() => 0);
+    const { geo, hwS, top, CF } = lpBodyGeo(P, liv);
+    this.tris = geo.attributes.position.count / 3;
+    this.lpCF = CF;
+    const k = T.attribute('kind', 'float');
+    const is = (n) => T.float(1).sub(T.step(0.5, T.abs(k.sub(n))));
+    const c1 = T.uniform(col(cfg.color)), c2 = T.uniform(col(cfg.color2 || '#1b1d21')), c3 = T.uniform(col(cfg.color3 || cfg.color2 || '#f3f3f3'));
+    let base = c1.mul(is(0)).add(c2.mul(is(1))).add(c3.mul(is(2)));
+    base = dirtyColor(base, this.uDirt, this.uDirtCol);
+    const glassC = T.vec3(0.055, 0.065, 0.075), plastic = T.vec3(0.07, 0.075, 0.08), headC = T.vec3(0.92, 0.93, 0.95), tailC = T.vec3(0.55, 0.04, 0.04), grill = T.vec3(0.04, 0.042, 0.046);
+    const paintK = is(0).add(is(1)).add(is(2));
+    const mat = new THREE.MeshPhysicalNodeMaterial({ roughness: 0.5, metalness: 0.05, clearcoat: 0.5, clearcoatRoughness: 0.2 });
+    mat.colorNode = base.mul(paintK).add(glassC.mul(is(3))).add(plastic.mul(is(4))).add(headC.mul(is(5))).add(tailC.mul(is(6))).add(grill.mul(is(7)));
+    mat.roughnessNode = T.float(0.45).mul(paintK).add(T.float(0.12).mul(is(3))).add(T.float(0.85).mul(is(4).add(is(7)))).add(T.float(0.2).mul(is(5).add(is(6))));
+    mat.emissiveNode = T.vec3(1.0, 0.97, 0.9).mul(is(5)).mul(this.uHead).mul(1.1).add(T.vec3(1.0, 0.05, 0.03).mul(is(6)).mul(this.uBrake).mul(0.9));
+    const body = new THREE.Mesh(geo, mat); body.castShadow = true; body.receiveShadow = true;
+    this.group.add(body);
+    const black = new THREE.MeshStandardNodeMaterial({ color: '#141518', roughness: 0.75, metalness: 0.05, flatShading: true });
+    const paintMat = new THREE.MeshPhysicalNodeMaterial({ roughness: 0.45, metalness: 0.05, clearcoat: 0.5, flatShading: true });
+    paintMat.colorNode = dirtyColor(c1, this.uDirt, this.uDirtCol);
+    extra.push(mat, black, paintMat);
+    const Y = (h) => h - COM_H, Z = (s0) => s0 - CF;
+    const add = (g, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(g.index ? g.toNonIndexed() : g, m); o.geometry.computeVertexNormals(); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; this.group.add(o); return o; };
+    // poszerzenia nadkoli: łuk z 7 odcinków wysunięty poza bok
+    for (const ax of P.axles) for (const sx of [-1, 1]) {
+      const sh = new THREE.Shape(); const R0 = 0.425, R1 = 0.5, a0 = 0.2, a1 = Math.PI - 0.2, n = 7;
+      for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; const p = [Math.cos(a) * R1, Math.sin(a) * R1]; if (i === 0) sh.moveTo(...p); else sh.lineTo(...p); }
+      for (let i = n; i >= 0; i--) { const a = a0 + (a1 - a0) * i / n; sh.lineTo(Math.cos(a) * R0, Math.sin(a) * R0); }
+      const g = new THREE.ExtrudeGeometry(sh, { depth: 0.14, bevelEnabled: false, curveSegments: 1 });
+      g.translate(0, 0, -0.07); g.rotateY(Math.PI / 2);
+      add(g, black, sx * (hwS(ax) - 0.02), Y(0.33), Z(ax));
+    }
+    // skrzydło
+    const fin = (w, chord, h, s0, t0, strutH) => {
+      const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(chord, 0.02); sh.lineTo(chord, 0.045); sh.lineTo(chord * 0.3, 0.05); sh.lineTo(0, 0.025); sh.lineTo(0, 0);
+      const g = new THREE.ExtrudeGeometry(sh, { depth: w, bevelEnabled: false }); g.translate(0, 0, -w / 2); g.rotateY(-Math.PI / 2);
+      add(g, black, 0, Y(h), Z(s0));
+      for (const sx of [-1, 1]) {
+        add(new THREE.BoxGeometry(0.012, 0.12 + t0, chord * 1.05), black, sx * w / 2, Y(h) + 0.02 - t0 / 2, Z(s0) + chord / 2);
+        if (strutH) add(new THREE.BoxGeometry(0.03, strutH, 0.08), black, sx * w * 0.3, Y(h) - strutH / 2 + 0.01, Z(s0) + chord * 0.5);
+      }
+    };
+    if (P.wing === 'hatch') fin(1.4, 0.38, top(P.rear[0]) + 0.08, P.rear[0] - 0.05, 0.05, 0.1);
+    else if (P.wing === 'sedan') fin(1.5, 0.34, 1.26, P.L - 0.42, 0.08, 0.26);
+    else fin(1.1, 0.16, top(P.rear[0] - 0.02) + 0.01, P.rear[0] - 0.12, 0.0, 0);
+    // lusterka, chlapacze, wlot na dachu
+    for (const sx of [-1, 1]) {
+      const ms = P.wind[0] + 0.25;
+      add(new THREE.BoxGeometry(0.16, 0.1, 0.12), paintMat, sx * (hwS(ms) + 0.02), Y(P.shoulder[2][1] + 0.12), Z(ms));
+      for (const ax of P.axles) add(new THREE.BoxGeometry(0.28, 0.2, 0.02), black, sx * (hwS(ax) - 0.12), Y(0.17), Z(ax + 0.48));
+    }
+    add(new THREE.BoxGeometry(0.34, 0.06, 0.28), black, 0, Y(top(P.wind[1] + 0.25) + 0.02), Z(P.wind[1] + 0.25));
   }
   // model z pliku: własny lakier (kolor z konfiguracji, kurz, drobiny metaliku), przyciemnione szyby,
   // światła świecące od reflektorów i hamowania; reszta materiałów z pliku bez zmian
