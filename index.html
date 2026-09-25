@@ -373,7 +373,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
   <section class="scr" id="scrRally" hidden aria-label="Rajd">
     <header class="scr-head"><button class="back" type="button" data-back>◂ Menu</button><h2>Rajd</h2><span class="step" id="rallyKm"></span></header>
     <div class="sheet-wrap"><div class="sheet">
-      <p class="note-p">Sześć odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą i Brazylia</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
+      <p class="note-p">Siedem odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia i Kenia</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
       <div class="rows" id="rallyRows"></div>
     </div></div>
     <footer class="scr-foot"><span class="keys"><kbd>Enter</kbd> dalej · <kbd>Esc</kbd> wstecz</span><button class="go" id="rallyGo" type="button">Wybierz auto <span>▸</span></button></footer>
@@ -677,7 +677,29 @@ const STAGES = [
       road: '#a14f2c', rut: '#7a381f', stone: '#b56842', dust: '#b0633d', fx: 'dust', weather: 'mist', bloom: 0.32,
       water: '#2c4a55', forest: true, rays: true,
     },
+  },  {
+    id: 'ken', country: 'Kenia', code: 'KEN', name: 'Kedong', seed: 4242, length: 4600,
+    surface: 'gravel', surfaceLabel: 'czerwony pył · sawanna',
+    halfW: 3.4, ditch: 0.4, ditchW: 3.4, blendW: 20, corridor: 260,
+    terrain: { amp: 22, freq: 1 / 600, ridge: 0.15 },
+    grade: 0.07, rolling: [0.6, 130, 0.2, 60], jumps: 3, jumpH: [1.2, 1.8],
+    corners: { hairpin: 0.03, tight: 0.18, medium: 0.3, easy: 0.3, flat: 0.19 },
+    pStraight: 0.6, straightScale: 1.05, maxR: 1000,
+    grip: { road: 0.72, verge: 0.6, ditch: 0.52, off: 0.52 },
+    crr: { road: 0.036, verge: 0.06, ditch: 0.12, off: 0.11 },
+    loose: 1, water: null,
+    // sawanna: rzadkie akacje o płaskich koronach, kolczaste krzewy, kandelabrowe wilczomlecze; stada zwierząt w oddali
+    trees: { mix: [['acacia', 0.5], ['thorn', 0.38], ['euphorbia', 0.12]], density: 0.0034, clear: 3.6, mid: 0.7, far: 0.55, scale: [0.8, 1.35] },
+    rocks: 0.0016, walls: 0, bales: 0, poles: 0, crowds: 12,
+    look: {
+      time: 'day', sunElev: 36, sunAz: 245, sun: '#ffe0ae', sunI: 3.3, hemiSky: '#c9d6e2', hemiGround: '#8a6a40', hemiI: 1.15,
+      fog: '#e5cfa8', fogNear: 160, fogFar: 1150, zenith: '#5f93c8', horizon: '#ecd7b2', clouds: 0.25, stars: 0,
+      grass: '#b0944e', grass2: '#c8ac60', dirt: '#a4552e', rock: '#7d6b5a', verge: '#b8804f',
+      road: '#b9673a', rut: '#8f4a27', stone: '#cf8858', dust: '#c98a5c', fx: 'dust', weather: null, bloom: 0.2,
+      water: '#2c4a55', wildlife: true,
+    },
   },
+
 
 ];
 
@@ -2195,7 +2217,7 @@ const EN = {
   'jeden OS · rekordy i rywale': 'one stage · records and rivals', 'prowadzenie · grafika · pilot · sterowanie': 'handling · graphics · co-driver · controls',
   'klasyfikacja generalna': 'overall standings', 'Wybór odcinka': 'Stage select', 'Wybierz auto': 'Choose car', 'Garaż': 'Garage', 'Na start': 'To the start',
   'Start rajdu': 'Start rally', '◂ Odcinek': '◂ Stage', '◂ Rajd': '◂ Rally', 'Następne auto': 'Next car', 'Poprzednie auto': 'Previous car',
-  'Sześć odcinków po kolei:': 'Six stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą i Brazylia': 'Finland, Greece, Sweden, Corsica, Wales at night and Brazil',
+  'Siedem odcinków po kolei:': 'Seven stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia i Kenia': 'Finland, Greece, Sweden, Corsica, Wales at night, Brazil and Kenya',
   '. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.': '. Times add up and the overall standings against rivals update after every stage. The service crew repairs the car between stages.',
   // skróty klawiszy
   'wybór ·': 'select ·', 'dalej · pad:': 'next · pad:', 'dalej ·': 'next ·', 'odcinek ·': 'stage ·', 'losuj ·': 'shuffle ·', 'wstecz': 'back', 'auto ·': 'car ·', 'start ·': 'start ·', 'opcja ·': 'option ·', 'zmiana ·': 'change ·',
@@ -2203,7 +2225,7 @@ const EN = {
   'Długość': 'Length', 'Nawierzchnia': 'Surface', 'Pora': 'Time of day', 'Pogoda': 'Weather', 'Zakręty': 'Corners', 'Nawroty': 'Hairpins',
   'Hopy i garby': 'Jumps & crests', 'Przewyższenie': 'Elevation', 'Lider': 'Leader', 'Rekord': 'Record', 'Losowy odcinek': 'Random stage', 'LOS': 'RND',
   'dzień': 'day', 'zmierzch': 'dusk', 'noc': 'night', 'sucho': 'dry', 'mgła': 'mist', 'śnieżyca': 'snowfall', 'szuter': 'gravel', 'asfalt': 'tarmac', 'śnieg': 'snow',
-  'Finlandia': 'Finland', 'Grecja': 'Greece', 'Szwecja': 'Sweden', 'Korsyka': 'Corsica', 'Walia': 'Wales', 'Brazylia': 'Brazil',
+  'Finlandia': 'Finland', 'Grecja': 'Greece', 'Szwecja': 'Sweden', 'Korsyka': 'Corsica', 'Walia': 'Wales', 'Brazylia': 'Brazil', 'Kenia': 'Kenya', 'czerwony pył': 'red dust', 'sawanna': 'savanna',
   'hopy': 'jumps', 'kamienisty szuter': 'rocky gravel', 'upał': 'heat', 'bandy': 'snow banks', 'serpentyny': 'hairpins', 'błoto': 'mud',
   'czerwona ziemia': 'red dirt', 'las deszczowy': 'rainforest',
   // garaż
@@ -2576,6 +2598,19 @@ function treeGeo(type) {
     // paproć drzewiasta: krótki pień, rozeta liści
     case 'fern': parts = [trunk(0.14, 0.1, 2.6, '#4d4232', 65),
       ...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => ({ geo: new THREE.ConeGeometry(0.35, 2.6, 3, 1).scale(1, 1, 0.2).rotateZ(-1.6).translate(1.25, 2.7, 0).rotateY(k / 8 * Math.PI * 2 + 0.2), color: jitterColor('#4c7d2c', 0.2, 66 + k) }))]; break;
+    // akacja (parasolowa): cienki, rozwidlony pień, płaska szeroka korona w dwóch warstwach
+    case 'acacia': parts = [trunk(0.2, 0.12, 3.2, '#5d4a37', 80),
+      { geo: new THREE.CylinderGeometry(0.08, 0.12, 2.6, 5).rotateZ(0.55).translate(0.75, 4.1, 0), color: col('#5d4a37') },
+      { geo: new THREE.CylinderGeometry(0.08, 0.12, 2.4, 5).rotateZ(-0.6).translate(-0.7, 4.0, 0.1), color: col('#57452f') },
+      { geo: new THREE.CylinderGeometry(4.6, 3.9, 0.7, 9).translate(0, 5.5, 0), color: jitterColor('#5f6b2c', 0.12, 81) },
+      { geo: new THREE.CylinderGeometry(3.0, 3.4, 0.55, 8).translate(0.6, 6.05, 0.3), color: jitterColor('#6c7733', 0.12, 82) }]; break;
+    // kolczasty krzew: niski, szarozielony, poszarpany
+    case 'thorn': parts = [blob(0.9, 0, 0.55, 0, 0.6, '#77744a', 83), blob(0.7, 0.7, 0.45, 0.2, 0.55, '#6b6a42', 84), blob(0.6, -0.6, 0.4, -0.3, 0.55, '#827d50', 85)]; break;
+    // wilczomlecz kandelabrowy: pień i pionowe ramiona jak świecznik
+    case 'euphorbia': parts = [trunk(0.22, 0.18, 2.4, '#5b5a36', 86),
+      ...[[-0.9, 0], [0.9, 0.3], [0, 0.95], [0.3, -0.85], [-0.5, -0.6]].flatMap(([x, z], k) => [
+        { geo: new THREE.CylinderGeometry(0.1, 0.1, Math.hypot(x, z), 5).rotateZ(Math.PI / 2).rotateY(-Math.atan2(z, x)).translate(x / 2, 2.3, z / 2), color: col('#4f6a2e') },
+        { geo: new THREE.CylinderGeometry(0.16, 0.18, 2.4 + (k % 3) * 0.5, 7).translate(x, 3.4 + (k % 3) * 0.25, z), color: jitterColor('#4d7131', 0.1, 87 + k) }])]; break;
     case 'snowbirch': parts = [trunk(0.13, 0.08, 7.5, '#e4e1da', 35),
       { geo: new THREE.IcosahedronGeometry(1.2, 1).scale(0.85, 1.7, 0.85).translate(0, 6.9, 0), color: snowy('#a7a39c', 36) },
       { geo: new THREE.IcosahedronGeometry(0.85, 1).scale(0.8, 1.6, 0.8).translate(0.55, 8.2, 0.3), color: snowy('#b3afa8', 37) },
@@ -2880,6 +2915,48 @@ function buildTvCams(st) {
   return cams;
 }
 
+// zwierzęta sawanny (Kenia): stada żyraf i zebr daleko od trasy — proste bryły, wzory w shaderze
+function buildWildlife(st, group) {
+  if (!st.def.look.wildlife) return;
+  const box = (w, h, d, x, y, z, rx = 0) => new THREE.BoxGeometry(w, h, d).rotateX(rx).translate(x, y, z);
+  const legs = (h, dx, dz, t) => [[-dx, -dz], [dx, -dz], [-dx, dz], [dx, dz]].map(([x, z]) => box(t, h, t, x, h / 2, z));
+  const giraffeGeo = mergeColored([
+    ...legs(1.9, 0.28, 0.55, 0.14).map(g => ({ geo: g, color: col('#d8b27a') })),
+    { geo: box(0.75, 0.95, 1.7, 0, 2.25, 0), color: col('#c9974f') },
+    { geo: box(0.32, 2.3, 0.36, 0, 3.55, -0.95, -0.35), color: col('#c9974f') },
+    { geo: box(0.3, 0.32, 0.62, 0, 4.72, -1.5), color: col('#b8843f') },
+    { geo: box(0.05, 0.22, 0.05, 0.08, 4.97, -1.35), color: col('#5a4430') }, { geo: box(0.05, 0.22, 0.05, -0.08, 4.97, -1.35), color: col('#5a4430') },
+  ]);
+  const zebraGeo = mergeColored([
+    ...legs(0.85, 0.2, 0.42, 0.12).map(g => ({ geo: g, color: col('#e8e6df') })),
+    { geo: box(0.55, 0.62, 1.4, 0, 1.15, 0), color: col('#e8e6df') },
+    { geo: box(0.22, 0.75, 0.3, 0, 1.55, -0.72, -0.6), color: col('#e8e6df') },
+    { geo: box(0.2, 0.26, 0.55, 0, 1.85, -1.05, 0.4), color: col('#e8e6df') },
+    { geo: box(0.05, 0.5, 0.12, 0, 1.15, 0.72, 0.3), color: col('#222') },
+  ]);
+  const gMat = wmat('giraffe', () => { const m = vcMaterial({ rough: 0.9 }); const p = T.positionGeometry; const n = T.mx_noise_float(p.mul(4.2)); m.colorNode = T.mix(T.attribute('color', 'vec3'), T.vec3(0.42, 0.26, 0.12), T.step(0.22, n).mul(T.step(1.3, p.y))); return m; });
+  const zMat = wmat('zebra', () => { const m = vcMaterial({ rough: 0.9 }); const p = T.positionGeometry; const band = T.step(0.0, T.sin(p.z.mul(22).add(p.y.mul(9)).add(T.mx_noise_float(p.mul(3)).mul(2)))); m.colorNode = T.mix(T.attribute('color', 'vec3'), T.vec3(0.05, 0.05, 0.06), band.mul(T.step(0.3, p.y))); return m; });
+  const rng = makeRng(st.seed ^ 0x2eb2a), herds = { g: [], z: [] };
+  for (let s = LEAD + 120; s < st.N - 100; s += 170 + rng() * 170) {
+    const kind = rng() < 0.4 ? 'g' : 'z', side = rng() < 0.5 ? -1 : 1, lat = side * (34 + rng() * 45), n = kind === 'g' ? 2 + Math.floor(rng() * 4) : 4 + Math.floor(rng() * 8);
+    const [cx, cz] = st.pointAt(Math.round(s), lat), rot = rng() * 6.28;
+    for (let i = 0; i < n; i++) {
+      const x = cx + (rng() - 0.5) * 22, z = cz + (rng() - 0.5) * 22;
+      if (st.roadDist(x, z) < 24) continue;
+      herds[kind].push([x, st.heightAt(x, z), z, rot + (rng() - 0.5) * 1.2, 0.9 + rng() * 0.2]);
+    }
+  }
+  for (const [kind, geo, mat] of [['g', giraffeGeo, gMat], ['z', zebraGeo, zMat]]) {
+    const L = herds[kind]; if (!L.length) continue;
+    const mesh = new THREE.InstancedMesh(geo, mat, L.length);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+    L.forEach(([x, y, z, r, k], i) => mesh.setMatrixAt(i, m4.compose(p.set(x, y, z), q.setFromAxisAngle(up, r), sc.setScalar(k))));
+    mesh.computeBoundingSphere(); mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.name = kind === 'g' ? 'giraffes' : 'zebras';
+    group.add(mesh);
+  }
+}
+
 // snopy światła przebijające się przez korony (las deszczowy): wysokie, pochylone wzdłuż słońca, addytywne,
 // wyłaniają się, gdy się do nich zbliżasz, i gasną tuż przy kamerze
 function buildLightShafts(st, group) {
@@ -2926,6 +3003,7 @@ class World {
     buildRocks(st, this.group);
     buildProps(st, this.group);
     buildLightShafts(st, this.group);
+    buildWildlife(st, this.group);
     this.gantry = buildGantries(st, this.group, labels);
     this.tvCams = buildTvCams(st);
   }
