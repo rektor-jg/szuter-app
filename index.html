@@ -390,7 +390,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
         <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button><button data-v="supreme">SUPREME</button></div></div>
         <div class="opt"><label>Oszczędzanie baterii<small>30 kl./s i niższa rozdzielczość — dłużej na baterii</small></label><div class="seg" id="optSaver"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
-        <div class="opt"><label>Antyaliasing<small id="optAaNote">FXAA: wygładza krawędzie i migotanie, prawie za darmo</small></label><div class="seg" id="optAa"><button data-v="fsr">FSR 1</button><button data-v="fxaa">FXAA</button><button data-v="max">MAKS</button></div></div>
+        <div class="opt"><label>Antyaliasing<small id="optAaNote">FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu</small></label><div class="seg" id="optAa"><button data-v="fsr">FSR 1</button><button data-v="fxaa">FXAA</button><button data-v="off">WYŁ</button></div></div>
         <div class="opt"><label>Tryb retro<small>Niska rozdzielczość, 15-bitowy kolor i dithering jak na PS1 — przy okazji oszczędza baterię</small></label><div class="seg" id="optRetro"><button data-v="0">WYŁ</button><button data-v="1">PS1</button></div></div>
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
@@ -1975,7 +1975,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: IS_TOUCH ? 'fsr' : 'fxaa', retro: false, saver: false },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fsr', retro: false, saver: false },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -2212,9 +2212,9 @@ function vcMaterial({ rough = 0.9, metal = 0, sway = 0, bounce = 0, side = THREE
 // słownik całych tekstów + reguły dla tekstów złożonych, tłumaczenie po kawałkach rozdzielonych „ · ”.
 // Obserwator DOM tłumaczy każdy tekst, który pojawi się lub zmieni na ekranie.
 // ============================================================
-// jednorazowo: telefon przechodzi na FSR 1 (mniej prądu przy tym samym wyglądzie)
-if ((settings.rev || 0) < 1) { if (IS_TOUCH) settings.aa = 'fsr'; settings.rev = 1; }
-if (!['fxaa', 'max', ...(IS_TOUCH ? ['fsr'] : [])].includes(settings.aa)) settings.aa = 'fxaa';
+// jednorazowo: wszyscy przechodzą na FSR 1 (domyślny antyaliasing)
+if ((settings.rev || 0) < 2) { settings.aa = 'fsr'; settings.rev = 2; }
+if (!['fsr', 'fxaa', 'off'].includes(settings.aa)) settings.aa = 'fsr';
 // budżet telefonu (≤200 poleceń rysowania, ≤1,5 mln trójkątów): wysoka i supreme tylko na komputerze
 if (IS_TOUCH && (settings.quality === 'high' || settings.quality === 'supreme')) settings.quality = 'medium';
 if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en';
@@ -2255,8 +2255,8 @@ const EN = {
   'Licznik klatek': 'Frame counter', 'FPS, rozdzielczość i obciążenie w rogu ekranu': 'FPS, resolution and load in the corner', 'Głośność': 'Volume',
   'Język': 'Language', 'Język interfejsu i pilota': 'Interface and co-driver language',
   'Oszczędzanie baterii': 'Battery saver', 'Telefon się grzeje': 'Phone is getting hot', '30 kl./s': '30 fps', '30 kl./s i niższa rozdzielczość — dłużej na baterii': '30 fps and lower resolution — longer battery life',
-  'Antyaliasing': 'Anti-aliasing', 'MAKS': 'MAX', 'FXAA: wygładza krawędzie i migotanie, prawie za darmo': 'FXAA: smooths edges and shimmer, almost free',
-  'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu': 'Max: FXAA and higher resolution on phones — prettiest, uses more battery',
+  'Antyaliasing': 'Anti-aliasing', 'FXAA: wygładza krawędzie i migotanie, prawie za darmo': 'FXAA: smooths edges and shimmer, almost free',
+  'Wyłączony: najostrzej, ale krawędzie są poszarpane i migoczą': 'Off: sharpest, but edges are jagged and shimmer',
   'Symulacja: czysta fizyka, pełne poślizgi i dachowania': 'Simulation: pure physics, full slides and rollovers',
   // jazda, pauza, wyniki
   'Czas OS': 'Stage time', 'Pauza': 'Pause', 'Wróć': 'Resume', 'Od nowa': 'Restart', 'Menu': 'Menu', 'Meta': 'Finish', 'Kamera': 'Camera',
@@ -4239,8 +4239,9 @@ function vignette(rgb, k = 0.38) {
   return rgb.mul(T.float(1).sub(T.smoothstep(0.42, 1.05, d).mul(k)));
 }
 
-function makeHighChain(scene, camera, q) {
+function makeHighChain(scene, camera, q, scale = 1) {
   const scenePass = T.pass(scene, camera);
+  scenePass.setResolutionScale(scale);
   let color = scenePass.getTextureNode('output');
   if (RAYS.on) color = T.vec4(color.rgb.add(sunRays(scenePass)), 1.0);
   let out = color, bloomNode = null;
@@ -4262,10 +4263,11 @@ function sunFlare() {
   return f.mul(POST.sunVis);
 }
 
-function makeSupremeChain(scene, camera) {
+function makeSupremeChain(scene, camera, scale = 1) {
   // przebieg wstępny: normalne + prędkości (SSAO i rozmycie ruchu)
   const prePass = T.pass(scene, camera);
   prePass.name = 'Pre-Pass';
+  prePass.setResolutionScale(scale);
   prePass.transparent = false;
   prePass.setMRT(T.mrt({ output: T.packNormalToRGB(T.normalView), velocity: T.velocity }));
   prePass.getTexture('output').type = THREE.UnsignedByteType;
@@ -4276,6 +4278,7 @@ function makeSupremeChain(scene, camera) {
   const aoPass = ssao(preDepth, preNormal, camera);
   aoPass.radius.value = 1.4; aoPass.intensity.value = 1.15; aoPass.samples.value = 16;
   const scenePass = T.pass(scene, camera);
+  scenePass.setResolutionScale(scale);
   scenePass.contextNode = T.builtinAOContext(aoPass.getTextureNode().sample(T.screenUV).r);
   const color = scenePass.getTextureNode('output');
   const bloomNode = bloom(color, 0.3, 0.45, 0.98);
@@ -4995,10 +4998,9 @@ const UI = {
     if (IS_TOUCH) $('optQuality').querySelectorAll('button[data-v="high"],button[data-v="supreme"]').forEach(b => b.remove());
     seg('optQuality', 'quality', id, () => { setQNote(); this.h.qualityChanged(); });
     seg('optPerf', 'perf', (v) => v === '1', () => { $('perf').hidden = !settings.perf; });
-    const aaNote = { fsr: 'FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu', fxaa: 'FXAA: wygładza krawędzie i migotanie, prawie za darmo', max: 'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu' };
-    const setAaNote = () => { $('optAaNote').textContent = aaNote[settings.aa] || aaNote.fxaa; };
+    const aaNote = { fsr: 'FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu', fxaa: 'FXAA: wygładza krawędzie i migotanie, prawie za darmo', off: 'Wyłączony: najostrzej, ale krawędzie są poszarpane i migoczą' };
+    const setAaNote = () => { $('optAaNote').textContent = aaNote[settings.aa] || aaNote.fsr; };
     setAaNote();
-    if (!IS_TOUCH) $('optAa').querySelector('button[data-v="fsr"]').remove();
     seg('optAa', 'aa', id, () => { setAaNote(); this.h.aaChanged(); });
     seg('optRetro', 'retro', (v) => v === '1', () => this.h.retroChanged());
     seg('optSaver', 'saver', (v) => v === '1', () => this.h.saverChanged());
@@ -5439,8 +5441,8 @@ const prevPos = new THREE.Vector3(), prevQuat = new THREE.Quaternion(), curPos =
 const renderPos = new THREE.Vector3(), renderQuat = new THREE.Quaternion();
 let physAcc = 0, alpha = 0;
 
-// MAKS: telefon rysuje w wyższej rozdzielczości (bliżej natywnej), komputer co najmniej 2×
-const pixelRatio = () => Math.min(devicePixelRatio || 1, settings.saver ? (IS_TOUCH ? 1.25 : 1) : settings.aa === 'max' ? (IS_TOUCH ? Math.max(Q().dprTouch, 2.6) : Math.max(Q().dpr, 2)) : (IS_TOUCH ? Q().dprTouch : Q().dpr));
+// oszczędzanie baterii: niższa rozdzielczość; FSR 1 liczy scenę w 75% tej wartości
+const pixelRatio = () => Math.min(devicePixelRatio || 1, settings.saver ? (IS_TOUCH ? 1.25 : 1) : (IS_TOUCH ? Q().dprTouch : Q().dpr));
 const PORTRAIT = typeof matchMedia !== 'undefined' ? matchMedia('(orientation: portrait)') : null;
 let wakeLock = null;
 async function keepAwake(on) {
@@ -5460,7 +5462,7 @@ function bayer4(p) {
 function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
   pipeline = null; bloomNode = null;
-  const q = Q(), retro = !!settings.retro, fsr = !retro && settings.aa === 'fsr' && !q.pipeline;
+  const q = Q(), retro = !!settings.retro, fsr = !retro && settings.aa === 'fsr', scale = fsr ? FSR_SCALE : 1;
   RAYS.on = !!(game.stage && game.stage.def.look.rays);
   pipeline = new THREE.RenderPipeline(renderer);
   let chain;
@@ -5471,8 +5473,8 @@ function setupPipeline() {
     if (RAYS.on) c = T.vec4(c.rgb.add(sunRays(sp)), 1.0);
     chain = { output: c, colorTransform: true };
   } else {
-    try { chain = q.supreme ? makeSupremeChain(scene, camera) : makeHighChain(scene, camera, q); }
-    catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high); }
+    try { chain = q.supreme ? makeSupremeChain(scene, camera, scale) : makeHighChain(scene, camera, q, scale); }
+    catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high, scale); }
   }
   const toned = chain.colorTransform ? T.renderOutput(chain.output) : chain.output;
   if (retro) {
@@ -5486,10 +5488,10 @@ function setupPipeline() {
     const lo = T.convertToTexture(toned); lo.setResolutionScale(FSR_SCALE);
     const aa = T.convertToTexture(fxaa(lo)); aa.setResolutionScale(FSR_SCALE);
     pipeline.outputNode = fsr1(aa, 0.25);
-  } else {
+  } else if (settings.aa === 'fxaa') {
     // FXAA na obrazie po mapowaniu tonów, w sRGB — wygładza drobne krawędzie (pnie, słupki, liście)
     pipeline.outputNode = fxaa(toned);
-  }
+  } else pipeline.outputNode = toned;
   pipeline.outputColorTransform = false;
   bloomNode = chain.bloomNode || null;
 }
@@ -6431,7 +6433,7 @@ function adaptResolution(dt, now) {
   perf.t = 0;
   // przy limicie klatek (menu na telefonie, oszczędzanie, 30 kl./s z gorąca) czas klatki mierzy limit, nie obciążenie
   if (frameCap()) return;
-  const cap = pixelRatio(), min = settings.aa === 'max' ? Math.max(Q().minScale, cap * 0.75) : Q().minScale;
+  const cap = pixelRatio(), min = Q().minScale;
   if (IS_TOUCH && !game.autoCap && !settings.saver && game.state === 'race' && perf.scale <= min + 0.01 && perf.ema > 1 / 50) {
     if (++perf.hot >= 4) { game.autoCap = 30; UI.toast('Telefon się grzeje · 30 kl./s', false, 2.5); }
   } else perf.hot = 0;
