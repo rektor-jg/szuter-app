@@ -2904,14 +2904,20 @@ function rsBodyGeo(P) {
   };
   const ring = (s) => { const r = half(s), pts = r.slice(); for (let k = r.length - 2; k >= 1; k--) pts.push([-r[k][0], r[k][1]]); return pts; };
   const N0 = 24, NR = N0 * SUB, NH = 13;
+  // napięcie stycznych w punktach przekroju: < 1 = ciaśniejszy promień, czyli wyraźne przetłoczenie
+  // (3: dolne przetłoczenie progu, 6: linia barku nad klamkami, 7: krawędź pod szybą, 9–10: krawędzie maski / dachu)
+  const TEN = [1, 0.8, 0.7, 0.3, 1, 0.9, 0.22, 0.35, 0.6, 0.45, 0.55, 1, 1];
+  const tenAt = (k) => TEN[k < NH ? k : N0 - k];
   const pos = [], sq = [];
   for (const s of stations) {
     const pts = ring(s);
     for (let k = 0; k < N0; k++) {
-      const p0 = pts[(k - 1 + N0) % N0], p1 = pts[k], p2 = pts[(k + 1) % N0], p3 = pts[(k + 2) % N0];
+      const k1 = (k + 1) % N0, p0 = pts[(k - 1 + N0) % N0], p1 = pts[k], p2 = pts[k1], p3 = pts[(k + 2) % N0];
+      const ta = tenAt(k), tb = tenAt(k1);
       for (let j = 0; j < SUB; j++) {
         const t = j / SUB, t2 = t * t, t3 = t2 * t;
-        const cr = (a, b, c, d) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+        const h00 = 2 * t3 - 3 * t2 + 1, h10 = t3 - 2 * t2 + t, h01 = -2 * t3 + 3 * t2, h11 = t3 - t2;
+        const cr = (a, b, c, d) => h00 * b + h10 * ta * 0.5 * (c - a) + h01 * c + h11 * tb * 0.5 * (d - b);
         let x = cr(p0[0], p1[0], p2[0], p3[0]), y = cr(p0[1], p1[1], p2[1], p3[1]);
         const q = k < NH ? k + t : (N0 - k - t);
         for (const ax of P.axles) {
@@ -3459,10 +3465,11 @@ class CarModel {
     const tailK = T.max(tlSide, tlRear);
     // przód: górny grill, szary panel z tablicą, dolny wlot, boczne wloty ze światłami LED
     const fr = front.mul(T.step(s, T.float(0.12)));
-    const upperG = band(h, 0.64, 0.71, 0.004).mul(T.step(ax, lin(h, 0.64, 0.71, 0.4, 0.47))).mul(fr);
-    const panel = band(h, 0.4, 0.62, 0.004).mul(T.step(ax, lin(h, 0.4, 0.62, 0.46, 0.58))).mul(fr);
-    const panelMesh = band(h, 0.53, 0.605, 0.004).mul(T.step(ax, T.float(0.5))).mul(fr);
-    const lowerG = band(h, 0.24, 0.37, 0.004).mul(T.step(ax, T.float(0.45))).mul(fr);
+    // za otworami zderzaka (osobna bryła) cała powierzchnia czoła to czarna siatka
+    const upperG = band(h, 0.64, 0.715, 0.004).mul(T.step(ax, lin(h, 0.64, 0.715, 0.39, 0.47))).mul(fr);
+    const panel = T.float(0);
+    const panelMesh = band(h, 0.395, 0.62, 0.004).mul(T.step(ax, lin(h, 0.395, 0.62, 0.47, 0.6))).mul(fr);
+    const lowerG = band(h, 0.245, 0.37, 0.004).mul(T.step(ax, lin(h, 0.245, 0.37, 0.4, 0.46))).mul(fr);
     const sideInt = band(ax, 0.62, 0.84, 0.006).mul(band(h, 0.22, lin(ax, 0.62, 0.84, 0.43, 0.4), 0.004)).mul(T.max(fr, front.mul(0.0)));
     const fog = band(ax, 0.72, 0.745, 0.002).mul(band(h, 0.29, 0.38, 0.003)).mul(fr);
     // tył: dyfuzor, odblaski, wnęka tablicy
@@ -3472,6 +3479,12 @@ class CarModel {
     // siatka grilla (plaster miodu)
     const hx = T.fract(T.positionGeometry.x.mul(55)), hy = T.fract(T.positionGeometry.y.mul(62).add(T.floor(T.positionGeometry.x.mul(55)).mul(0.5)));
     const meshPat = T.smoothstep(0.08, 0.2, hx).mul(T.smoothstep(0.08, 0.2, hy)).mul(T.float(1).sub(T.smoothstep(0.8, 0.92, hx)));
+    // drobiny metaliku: szum wysokiej częstotliwości w jasności i chropowatości lakieru
+    const flake = T.mx_noise_float(T.positionGeometry.mul(820)).mul(0.5).add(0.5);
+    // ceramiczna ramka szyb: czarny pas przy krawędzi przechodzący w kropki
+    const inner = band(q, 8.16, 8.87, 0.02).mul(band(s, 1.28, 3.69, 0.006)).max(T.smoothstep(9.3, 9.45, q).mul(band(s, 1.14, 1.91, 0.008))).max(T.smoothstep(9.32, 9.48, q).mul(band(s, 3.5, 4.16, 0.008)));
+    const dotUV = T.vec2(s.mul(95), h.mul(95));
+    const dots = T.smoothstep(0.32, 0.26, T.length(T.fract(dotUV).sub(0.5)));
     const meshK = T.max(T.max(upperG, panelMesh), T.max(lowerG, sideInt));
     const paintCol = T.uniform(col(cfg.color));
     let c = dirtyColor(paintCol, this.uDirt, this.uDirtCol);
@@ -3481,7 +3494,10 @@ class CarModel {
     c = T.mix(c, T.vec3(0.11, 0.115, 0.125), plate);
     c = T.mix(c, T.mix(T.vec3(0.012, 0.013, 0.015), T.vec3(0.05, 0.052, 0.058), meshPat), meshK);
     c = T.mix(c, T.vec3(0.75, 0.77, 0.8), chromeK);
+    const fritK = glassK.sub(inner).clamp(0, 1);
     c = T.mix(c, T.vec3(0.04, 0.055, 0.07), glassK);
+    c = T.mix(c, T.vec3(0.012, 0.013, 0.015), T.max(fritK.mul(dots), T.smoothstep(0.55, 0.9, fritK)));
+    c = c.mul(T.mix(T.float(1), flake.mul(0.1).add(0.95), T.float(1).sub(T.max(glassK, T.max(frameK, meshK)))));
     // reflektor: chromowany odbłyśnik z gradientem, dwie soczewki projektorów z pierścieniami, pasek LED
     let lensK = T.float(0), ringK = T.float(0);
     for (const [cx, cy, rr] of [[0.6, 0.752, 0.027], [0.715, 0.772, 0.023]]) {
@@ -3501,7 +3517,7 @@ class CarModel {
     const mat = new THREE.MeshPhysicalNodeMaterial({ roughness: 0.25, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.03 });
     mat.colorNode = c;
     const darkK = T.max(T.max(frameK, sillK), T.max(meshK, diff));
-    mat.roughnessNode = T.mix(T.mix(T.float(0.26), T.float(0.55), darkK), T.float(0.03), T.max(glassK, T.max(headK, tailK)));
+    mat.roughnessNode = T.mix(T.mix(flake.mul(0.14).add(0.19), T.float(0.55), darkK), T.float(0.03), T.max(glassK.sub(fritK.mul(0.8)), T.max(headK, tailK)));
     mat.metalnessNode = T.mix(T.mix(T.float(0.55), T.float(0.1), darkK), T.float(0.9), chromeK);
     mat.emissiveNode = T.vec3(1.0, 0.97, 0.9).mul(T.max(T.max(drl.mul(1.4), fog.mul(1.2)), lensK.mul(0.5)).mul(this.uHead))
       .add(T.vec3(1.0, 0.05, 0.03).mul(tailK).mul(seg.mul(0.6).add(0.4)).mul(this.uBrake).mul(0.8));
@@ -3514,6 +3530,26 @@ class CarModel {
     const chrome = new THREE.MeshStandardNodeMaterial({ color: '#c9ccd1', roughness: 0.18, metalness: 1 });
     extra.push(mat, paintMat, gloss, chrome);
     const add = (g, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); this.group.add(o); return o; };
+    // zderzak przedni: płyta w kolorze nadwozia z otworami (fazowane krawędzie), wysunięta przed czoło bryły
+    {
+      const trap = (xt, yt, xb, yb, r = 0.03) => { const p = new THREE.Path(); p.moveTo(-xb + r, yb); p.lineTo(xb - r, yb); p.quadraticCurveTo(xb, yb, xb + (xt - xb) * 0.15, yb + (yt - yb) * 0.15); p.lineTo(xt, yt - r); p.quadraticCurveTo(xt, yt, xt - r, yt); p.lineTo(-xt + r, yt); p.quadraticCurveTo(-xt, yt, -xt, yt - r); p.lineTo(-xb - (xt - xb) * 0.15, yb + (yt - yb) * 0.15); p.quadraticCurveTo(-xb, yb, -xb + r, yb); return p; };
+      // każdy otwór dostaje zaokrągloną ramkę w kolorze nadwozia — otwór wygląda na wgłębiony w zderzak
+      const trapS = (xt, yt, xb, yb, r) => { const sh = new THREE.Shape(); sh.moveTo(-xb + r, yb); sh.lineTo(xb - r, yb); sh.quadraticCurveTo(xb, yb, xb + (xt - xb) * 0.15, yb + (yt - yb) * 0.15); sh.lineTo(xt, yt - r); sh.quadraticCurveTo(xt, yt, xt - r, yt); sh.lineTo(-xt + r, yt); sh.quadraticCurveTo(-xt, yt, -xt, yt - r); sh.lineTo(-xb - (xt - xb) * 0.15, yb + (yt - yb) * 0.15); sh.quadraticCurveTo(-xb, yb, -xb + r, yb); return sh; };
+      for (const [xt, yt, xb, yb, r] of [[0.47, 0.715, 0.39, 0.64, 0.02], [0.6, 0.62, 0.47, 0.395, 0.035], [0.46, 0.37, 0.4, 0.245, 0.03]]) {
+        const o = trapS(xt + 0.035, Y(yt + 0.028), xb + 0.035, Y(yb - 0.028), r + 0.03);
+        o.holes.push(trap(xt, Y(yt), xb, Y(yb), r));
+        const g = new THREE.ExtrudeGeometry(o, { depth: 0.006, bevelEnabled: true, bevelThickness: 0.014, bevelSize: 0.012, bevelSegments: 6, curveSegments: 20 });
+        add(g, paintMat, 0, 0, Z(0.004), 0, Math.PI, 0);
+      }
+      // szary panel („skrzydło”) w dużym otworze, z wnęką na tablicę
+      const gp = new THREE.Shape(); gp.moveTo(-0.58, Y(0.505)); gp.lineTo(0.58, Y(0.505)); gp.lineTo(0.5, Y(0.405)); gp.lineTo(-0.5, Y(0.405)); gp.lineTo(-0.58, Y(0.505));
+      const gpg = new THREE.ExtrudeGeometry(gp, { depth: 0.02, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 3 }).translate(0, 0, -0.02);
+      const grey = new THREE.MeshPhysicalNodeMaterial({ color: '#4a4e55', roughness: 0.35, metalness: 0.6, clearcoat: 0.8 });
+      extra.push(grey);
+      add(gpg, grey, 0, 0, Z(0.0));
+      add(new THREE.BoxGeometry(0.52, 0.11, 0.012), gloss, 0, Y(0.455), Z(-0.02));
+
+    }
     // splitter z zaokrąglonymi końcami
     const spl = new THREE.Shape(); spl.moveTo(-0.8, 0); spl.lineTo(0.8, 0); spl.quadraticCurveTo(0.86, 0.1, 0.78, 0.2); spl.lineTo(-0.78, 0.2); spl.quadraticCurveTo(-0.86, 0.1, -0.8, 0);
     const splG = new THREE.ExtrudeGeometry(spl, { depth: 0.022, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 24 }).rotateX(Math.PI / 2);
@@ -3549,10 +3585,13 @@ class CarModel {
     // lusterka: obudowa w kolorze nadwozia, czarna stopka, szkło
     for (const sx of [-1, 1]) {
       const hw = hwS(1.52);
-      const cap = add(new THREE.SphereGeometry(1, 48, 24).scale(0.1, 0.075, 0.12), paintMat, sx * (hw + 0.11), Y(1.07), Z(1.5));
-      cap.castShadow = true;
+      const ms = new THREE.Shape(); ms.moveTo(-0.1, -0.055); ms.lineTo(0.09, -0.045); ms.quadraticCurveTo(0.12, -0.04, 0.115, 0.0); ms.lineTo(0.105, 0.05); ms.quadraticCurveTo(0.1, 0.07, 0.07, 0.07); ms.lineTo(-0.09, 0.06); ms.quadraticCurveTo(-0.11, 0.055, -0.105, 0.02); ms.lineTo(-0.1, -0.055);
+      const mg = new THREE.ExtrudeGeometry(ms, { depth: 0.07, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.02, bevelSegments: 8, curveSegments: 16 });
+      mg.translate(0, 0, -0.07); if (sx < 0) mirrorX(mg);
+      const cap = add(mg, paintMat, sx * (hw + 0.11), Y(1.07), Z(1.5) + 0.04); cap.castShadow = true;
       add(new THREE.BoxGeometry(0.1, 0.035, 0.07, 3, 1, 3), gloss, sx * (hw + 0.03), Y(1.02), Z(1.47));
-      add(new THREE.CircleGeometry(1, 32).scale(0.075, 0.05, 1), chrome, sx * (hw + 0.11), Y(1.07), Z(1.5) + 0.105, 0, 0, 0);
+      add(new THREE.PlaneGeometry(0.2, 0.1), chrome, sx * (hw + 0.11), Y(1.075), Z(1.5) + 0.075);
+      add(new THREE.BoxGeometry(0.09, 0.012, 0.02), headMat, sx * (hw + 0.15), Y(1.02), Z(1.47));
       // klamki
       for (const [ds, dh] of [[2.33, 0.865], [3.17, 0.93]]) {
         const hwd = hwS(ds);
@@ -5608,6 +5647,7 @@ function orbitCam(dt, t) {
 }
 
 function updateCamera(dt) {
+  if (game.camHold) return; // diagnostyka: kamera ustawiona ręcznie
   let fov = 60;
   const s = game.state;
   if (s === 'menu') {
@@ -6014,7 +6054,7 @@ async function boot() {
   looping = true;
   renderer.setAnimationLoop(frame);
   if (window.SZUTER_NATIVE) { try { window.Capacitor?.Plugins?.StatusBar?.hide(); } catch { /* */ } }
-  globalThis.__szuter = { game, sound, settings, Menu, input, codriver }; // uchwyt do diagnostyki i testów E2E
+  globalThis.__szuter = { game, sound, settings, Menu, input, codriver, camera: () => camera }; // uchwyt do diagnostyki i testów E2E
   if (PROF.on) bench();
 }
 
