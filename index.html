@@ -669,7 +669,7 @@ const STAGES = [
     crr: { road: 0.038, verge: 0.065, ditch: 0.15, off: 0.13 },
     loose: 1, water: null,
     // olbrzymie drzewa tuż przy drodze, korony nad trasą; palmy, paprocie drzewiaste i gęste poszycie
-    trees: { mix: [['giant', 0.34], ['palm', 0.18], ['jungle', 0.32], ['fern', 0.16]], density: 0.022, clear: 2.0, mid: 0.8, far: 0.45, scale: [0.95, 1.5] },
+    trees: { mix: [['giant', 0.34], ['palm', 0.18], ['jungle', 0.32], ['fern', 0.16]], density: 0.022, clear: 2.0, mid: 0.7, far: 0.28, scale: [0.95, 1.5] },
     rocks: 0.0006, walls: 0, bales: 0, poles: 0, crowds: 6,
     look: {
       time: 'day', sunElev: 58, sunAz: 150, sun: '#fff0c4', sunI: 3.4, hemiSky: '#b2d2a6', hemiGround: '#3b5226', hemiI: 1.15,
@@ -1983,7 +1983,7 @@ const col = (h) => new THREE.Color(h);
 // profile grafiki: niski (telefon), średni, wysoki (komputer)
 const QUALITY = {
   low: {
-    dprTouch: 1.5, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 1024, shadowExt: 55, softShadows: false,
+    dprTouch: 2, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 1024, shadowExt: 55, softShadows: false,
     treeShadows: false, rockShadows: false, block: 2, lodNear: 28, lodFar: 110, treeNear: 2, treeFar: 5, treeMax: 150, rockMax: 120, bucket: 512,
     smoke: 300, glow: 120, skids: 700, litDust: false, emit: 0.38, snow: 350, mist: 20, fogK: 0.8, bakeSky: true, beams: 1, ripple: false,
   },
@@ -2210,6 +2210,8 @@ function vcMaterial({ rough = 0.9, metal = 0, sway = 0, bounce = 0, side = THREE
 // Obserwator DOM tłumaczy każdy tekst, który pojawi się lub zmieni na ekranie.
 // ============================================================
 if (settings.aa !== 'fxaa' && settings.aa !== 'max') settings.aa = 'fxaa';
+// budżet telefonu (≤200 poleceń rysowania, ≤1,5 mln trójkątów): wysoka i supreme tylko na komputerze
+if (IS_TOUCH && (settings.quality === 'high' || settings.quality === 'supreme')) settings.quality = 'medium';
 if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en';
 const EN = {
   // nazwa i ekran tytułowy
@@ -2244,7 +2246,7 @@ const EN = {
   'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna': 'Supreme: cascaded shadows, SSAO, motion blur, grass, valley fog, lens flare — strong GPU',
   'Licznik klatek': 'Frame counter', 'FPS, rozdzielczość i obciążenie w rogu ekranu': 'FPS, resolution and load in the corner', 'Głośność': 'Volume',
   'Język': 'Language', 'Język interfejsu i pilota': 'Interface and co-driver language',
-  'Oszczędzanie baterii': 'Battery saver', '30 kl./s i niższa rozdzielczość — dłużej na baterii': '30 fps and lower resolution — longer battery life',
+  'Oszczędzanie baterii': 'Battery saver', 'Telefon się grzeje': 'Phone is getting hot', '30 kl./s': '30 fps', '30 kl./s i niższa rozdzielczość — dłużej na baterii': '30 fps and lower resolution — longer battery life',
   'Antyaliasing': 'Anti-aliasing', 'MAKS': 'MAX', 'FXAA: wygładza krawędzie i migotanie, prawie za darmo': 'FXAA: smooths edges and shimmer, almost free',
   'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu': 'Max: FXAA and higher resolution on phones — prettiest, uses more battery',
   'Symulacja: czysta fizyka, pełne poślizgi i dachowania': 'Simulation: pure physics, full slides and rollovers',
@@ -2572,10 +2574,12 @@ function buildWater(st, group) {
 // ---------- drzewa i rośliny ----------
 const TREE_GEOS = {};
 function treeGeo(type) {
-  if (TREE_GEOS[type]) return TREE_GEOS[type];
+  const lite = !Q().pipeline; // niska/średnia: bryły koron bez podziału (4× mniej trójkątów na olbrzymach)
+  const key = type + (lite ? ':lite' : '');
+  if (TREE_GEOS[key]) return TREE_GEOS[key];
   const trunk = (r0, r1, h, c, seed) => ({ geo: new THREE.CylinderGeometry(r1, r0, h, 7, 1, true).translate(0, h / 2, 0), color: jitterColor(c, 0.15, seed) });
   const cone = (r, h, y, c, seed) => ({ geo: new THREE.ConeGeometry(r, h, 9, 1, true).translate(0, y + h / 2, 0), color: jitterColor(c, 0.22, seed) });
-  const blob = (r, x, y, z, sy, c, seed, det = 0) => ({ geo: new THREE.IcosahedronGeometry(r, det).scale(1, sy, 1).translate(x, y, z), color: jitterColor(c, 0.25, seed) });
+  const blob = (r, x, y, z, sy, c, seed, det = 0) => ({ geo: new THREE.IcosahedronGeometry(r, lite ? 0 : det).scale(1, sy, 1).translate(x, y, z), color: jitterColor(c, 0.25, seed) });
   const snowy = (base, seed) => { const c = col(base), w = col('#eef3fa'), rng = makeRng(seed); return (out, x, y, z, nx, ny) => { out.copy(c).lerp(w, ny > 0.25 ? 0.82 : ny > -0.1 ? 0.35 : 0.05).multiplyScalar(0.9 + rng() * 0.2); }; };
   let parts;
   switch (type) {
@@ -2625,7 +2629,7 @@ function treeGeo(type) {
   }
   const g = mergeColored(parts);
   g.computeBoundingSphere();
-  TREE_GEOS[type] = g;
+  TREE_GEOS[key] = g;
   return g;
 }
 
@@ -2654,7 +2658,7 @@ function buildTrees(st, group) {
       if (st.def.look.forest && d < 45) return true; // las deszczowy: przy drodze pełna gęstość na każdej jakości
       return d < 45 ? i % qp.treeNear === 0 : d < qp.treeMax ? i % qp.treeFar === 0 : false;
     };
-    const buckets = bucketInstances(arr, 5, qp.bucket, keep);
+    const buckets = bucketInstances(arr, 5, st.def.look.forest ? 128 : qp.bucket, keep);
     for (const list of buckets.values()) {
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
       list.forEach((i, k) => {
@@ -3441,7 +3445,8 @@ const CAR_GLTF = {};
 // Orkan RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 (assets/orkan/license.txt)
 async function loadCarModels() {
   try {
-    const gl = await new GLTFLoader().loadAsync('assets/orkan/scene.gltf');
+    // telefon: wersja uproszczona (~21 tys. trójkątów zamiast 90 tys.), komputer: pełny model
+    const gl = await new GLTFLoader().loadAsync(IS_TOUCH ? 'assets/orkan/lite.glb' : 'assets/orkan/scene.gltf');
     CAR_GLTF.orkan = prepareGltfCar(gl.scene, { wb: 2 * 1.3235, wheelY: -0.15 });
   } catch (e) { console.warn('model auta z pliku niedostępny — zostaje bryła proceduralna', e && e.message); }
 }
@@ -5346,6 +5351,7 @@ const UI = {
     const qNote = { low: 'Niska: najpłynniej na telefonie', medium: 'Średnia: gęstszy las, oświetlony kurz, ostrzejszy obraz', high: 'Wysoka: pełny las, bloom, cienie drzew — na komputer', supreme: 'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna' };
     const setQNote = () => { $('optQualityNote').textContent = qNote[settings.quality] || qNote.low; };
     setQNote();
+    if (IS_TOUCH) $('optQuality').querySelectorAll('button[data-v="high"],button[data-v="supreme"]').forEach(b => b.remove());
     seg('optQuality', 'quality', id, () => { setQNote(); this.h.qualityChanged(); });
     seg('optPerf', 'perf', (v) => v === '1', () => { $('perf').hidden = !settings.perf; });
     const aaNote = { fxaa: 'FXAA: wygładza krawędzie i migotanie, prawie za darmo', max: 'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu' };
@@ -6508,7 +6514,7 @@ function frameCap() {
   const s = game.state;
   if (s === 'paused' || s === 'results') return 15;
   if (s === 'menu' || s === 'boot') return IS_TOUCH || settings.saver ? 30 : 0;
-  return settings.saver ? 30 : 0;
+  return settings.saver || game.autoCap ? 30 : 0;
 }
 let lastDraw = 0;
 function frame() {
@@ -6536,7 +6542,7 @@ function frame() {
     }
     case 'intro': introUpdate(dt, inp); game.lastInp = inp; break;
     case 'race':
-      simulate(dt, () => inp, raceRules);
+      simulate(dt, game.botDrive ? (() => { const b = {}; botInput(car, st, 0.95, b); return b; }) : () => inp, raceRules);
       game.lastInp = inp;
       if (game.bannerT > 0) { game.bannerT -= dt; if (game.bannerT <= 0) UI.banner(''); }
       break;
@@ -6649,7 +6655,7 @@ function updatePost(dt, car, st) {
 }
 
 // ---------- dynamiczna rozdzielczość + licznik ----------
-const perf = { ema: 1 / 60, t: 0, scale: 1, lastDown: 0, good: 0, frames: 0, ft: 0 };
+const perf = { ema: 1 / 60, t: 0, scale: 1, lastDown: 0, good: 0, frames: 0, ft: 0, hot: 0 };
 function adaptResolution(dt, now) {
   perf.ema += (dt - perf.ema) * 0.06;
   perf.frames++; perf.ft += dt;
@@ -6663,6 +6669,9 @@ function adaptResolution(dt, now) {
   perf.t = 0;
   if (game.state === 'paused' || game.state === 'results') return;
   const cap = pixelRatio(), min = settings.aa === 'max' ? Math.max(Q().minScale, cap * 0.75) : Q().minScale;
+  if (IS_TOUCH && !game.autoCap && !settings.saver && game.state === 'race' && perf.scale <= min + 0.01 && perf.ema > 1 / 50) {
+    if (++perf.hot >= 4) { game.autoCap = 30; UI.toast('Telefon się grzeje · 30 kl./s', false, 2.5); }
+  } else perf.hot = 0;
   if (perf.ema > 1 / 48 && perf.scale > min) {
     perf.scale = Math.max(min, +(perf.scale - 0.15).toFixed(2)); renderer.setPixelRatio(perf.scale);
     perf.lastDown = now; perf.good = 0;
@@ -6892,8 +6901,24 @@ function hookGpu() {
   }
 }
 
+// test długiej jazdy na telefonie (window.SZUTER_SOAK): bot jeździ w kółko, co 30 s zapis płynności i rozdzielczości
+async function soak() {
+  const min = +window.SZUTER_SOAK || 15, t0 = performance.now();
+  game.botDrive = true;
+  Menu.h.start('stage');
+  let d0 = game.draws || 0, last = performance.now();
+  while (performance.now() - t0 < min * 60000) {
+    await sleep(30000);
+    const now = performance.now(), fps = ((game.draws || 0) - d0) / ((now - last) / 1000); d0 = game.draws || 0; last = now;
+    console.log('[soak] ' + JSON.stringify({ min: +((now - t0) / 60000).toFixed(1), fps: Math.round(fps), scale: perf.scale, frameMs: +(perf.ema * 1000).toFixed(1), autoCap: game.autoCap || 0, state: game.state, q: settings.quality, stage: game.stage.def.id }));
+    if (game.state === 'results' || game.state === 'finish') { game.resultsSaved = false; beginIntro(); }
+  }
+  console.log('[soak] done');
+}
+
 // automatyczny przejazd po menu: tytuł → odcinki (wszystkie karty) → garaż → start → jazda
 async function bench() {
+  if (window.SZUTER_SOAK) return soak();
   const out = (tag) => {
     console.log('[bench] ' + tag + ' ' + JSON.stringify({ marks: PROF.marks, long: PROF.long, gpu: PROF.gpu }));
     PROF.marks = []; PROF.long = []; PROF.gpu = {};
