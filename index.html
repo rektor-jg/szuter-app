@@ -241,7 +241,7 @@ body.touch .tile svg{width:50px;height:50px}
 body.touch .tile b{font-size:13px}
 body.touch .tile.next{width:60px}
 body.touch .tile.next svg{width:34px;height:34px}
-body.touch #tacho{width:120px;height:120px;left:calc(var(--sal,env(safe-area-inset-left,0px)) + 24px);right:auto;top:calc(var(--sat,env(safe-area-inset-top,0px)) + 102px);bottom:auto;transform:none}
+body.touch #tacho{width:100px;height:100px;left:50%;right:auto;top:auto;bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) - 6px);transform:translateX(-50%)}
 body.touch .rail{bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 36px);left:calc(var(--sal,env(safe-area-inset-left,0px)) + 12px)}
 body.touch .hudbtn{width:40px;height:40px;top:calc(var(--sat,env(safe-area-inset-top,0px)) + 70px)}
 body.touch .hudbtn{width:48px;height:48px}
@@ -2966,6 +2966,13 @@ function rsBodyGeo(P) {
 
 
 
+// wspólne reflektory wszystkich aut (stała liczba świateł w scenie niezależnie od auta i pory dnia)
+let CAR_SPOTS = null;
+function carSpots() {
+  if (!CAR_SPOTS) CAR_SPOTS = [0, 1, 2].map(() => new THREE.SpotLight(0xfff3e0, 0, 170, 0.5, 0.55, 1.15));
+  return CAR_SPOTS;
+}
+
 // ---------- auta low poly (płaskie ścianki, kolory na całych ścianach) — sylwetki z rysunków bocznych ----------
 const LP = {
   // Pulso R5: hatchback 5-drzwiowy klasy B (rysunek: Škoda Fabia 2015), poszerzenia R5
@@ -3498,14 +3505,10 @@ class CarModel {
       : nb === 2
         ? (this.night ? [[-0.5, 0.5, 200], [0.5, 0.5, 200]] : [[-0.5, 0.5, 60], [0.5, 0.5, 60]])
         : (this.night ? [[-0.5, 0.42, 170], [0.5, 0.42, 170], [0, 0.95, 60]] : [[-0.5, 0.45, 70], [0.5, 0.45, 70], [0, 0.95, 0]]);
-    for (const [x, ang, I] of beams) {
-      const sp = new THREE.SpotLight(0xfff3e0, day ? 0 : I, 170, ang, 0.55, 1.15);
-      sp.position.set(x, 0.2, -2.0);
-      sp.target = tgt;
-      sp.userData.I = day ? 0 : I;
-      this.group.add(sp);
-      this.spots.push(sp);
-    }
+    // reflektory: jeden wspólny komplet świateł dla wszystkich aut (CAR_SPOTS), przepinany przy zmianie auta —
+    // inne obiekty świateł = inny zestaw świateł sceny = przebudowa shaderów całego odcinka
+    this.beams = beams.map(([x, ang, I]) => ({ x, ang, I: day ? 0 : I }));
+    this.spotTarget = tgt;
 
     // --- snopy światła w mgle/kurzu (supreme, zmierzch i noc)
     this.uCone = T.uniform(1);
@@ -3977,6 +3980,16 @@ class CarModel {
     // podłoga (żeby pod autem nie było widać nieba)
     add(new THREE.BoxGeometry(1.62, 0.02, 3.7), black, 0, Y(0.17), Z(2.2));
     return { paint: paintMat, liv: mat, glass: null, roofMat: gloss, numMat: chrome };
+  }
+  // podpina wspólne reflektory do tego auta (pozycje, kąty i moc z jego konfiguracji; nadmiarowe zgaszone)
+  attachSpots(spots) {
+    this.spots = spots;
+    spots.forEach((sp, i) => {
+      const b = this.beams[i];
+      this.group.add(sp); sp.target = this.spotTarget;
+      sp.position.set(b ? b.x : 0, 0.2, -2.0); sp.angle = b ? b.ang : 0.5;
+      sp.userData.I = b ? b.I : 0;
+    });
   }
   setLights(on) { for (const s of this.spots) s.intensity = on ? s.userData.I : 0; this.uHead.value = on ? 3.2 : 1.1; this.uCone.value = on ? 1 : 0; }
   sync(pos, quat, car, dt) {
@@ -5587,21 +5600,42 @@ function stageLabels(st) {
   return { start: `OS · ${st.def.name}`, finish: `${st.def.country} · ${st.def.name}`, split: 'MIĘDZYCZAS', splitSub: st.def.name, stop: 'strefa stop' };
 }
 
-function setupCar(idx, keepOld = false) {
-  const old = game.model;
+// Modele aut: jeden na auto, porę dnia i jakość (reflektory i snopy światła zależą od pory), budowane raz
+// i trzymane — przełączanie aut w garażu to tylko podmiana w scenie, bez budowania i kompilacji shaderów.
+const carModels = new Map();
+function carModelFor(idx) {
+  const look = game.stage.def.look, key = `${idx}:${look.time}:${settings.quality}`;
+  let m = carModels.get(key);
+  if (!m) { m = new CarModel(CARS[idx], look); m.cacheKey = key; carModels.set(key, m); }
+  m.uDirtCol.value.copy(col(look.dust));
+  if (envRT) for (const mm of m.materials) if (mm.isMeshStandardMaterial || mm.isMeshPhysicalMaterial || mm.isMeshStandardNodeMaterial || mm.isMeshPhysicalNodeMaterial) { mm.envMap = envRT.texture; mm.envMapIntensity = look.time === 'night' ? 0.15 : 0.9; }
+  return m;
+}
+function setupCar(idx) {
   const cfg = CARS[idx];
   game.car = new Car(cfg);
   game.car.damage = 0;
   game.car.auto = settings.gearbox === 'auto';
   game.car.assist = settings.assist;
   game.car.arcade = settings.arcade;
-  game.model = new CarModel(cfg, game.stage.def.look);
-  game.model.setLights(game.stage.def.look.time !== 'day');
-  if (envRT) for (const m of game.model.materials) if (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial || m.isMeshStandardNodeMaterial || m.isMeshPhysicalNodeMaterial) { m.envMap = envRT.texture; m.envMapIntensity = game.stage.def.look.time === 'night' ? 0.15 : 0.9; }
-  scene.add(game.model.group);
-  // stary model zwalniamy dopiero, gdy nowy trzyma te same shadery — inaczej three.js je wyrzuca i kompiluje od nowa
-  if (old) { scene.remove(old.group); if (keepOld) return old; old.dispose(); }
+  const m = carModelFor(idx);
+  if (game.model && game.model !== m) scene.remove(game.model.group);
+  game.model = m; m.uDirt.value = 0; m.group.visible = true;
+  m.attachSpots(carSpots()); m.setLights(game.stage.def.look.time !== 'day');
+  if (!m.group.parent) scene.add(m.group);
+  // modele z poprzedniej jakości grafiki nie wrócą — zwalniamy
+  for (const [k, v] of carModels) if (!k.endsWith(':' + settings.quality) && v !== m) { scene.remove(v.group); v.dispose(); carModels.delete(k); }
   return null;
+}
+// przed rozgrzewką: pozostałe auta na chwilę w scenie (reflektory są wspólne, więc liczba świateł się nie zmienia),
+// żeby ich shadery skompilowały się razem z odcinkiem
+function prewarmCars(on) {
+  for (let i = 0; i < CARS.length; i++) {
+    const m = carModelFor(i);
+    if (m === game.model) continue;
+    if (on) { m.group.position.set(game.car.pos[0], game.car.pos[1], game.car.pos[2]); m.group.quaternion.set(game.car.q[0], game.car.q[1], game.car.q[2], game.car.q[3]); scene.add(m.group); }
+    else scene.remove(m.group);
+  }
 }
 
 function placeCar(idx, lateral = 0) {
@@ -5650,7 +5684,7 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
   mark('fx', t); t = performance.now();
   updateEnv(st);
   mark('env', t); t = performance.now();
-  const oldModel = setupCar(game.sel.car, true);
+  setupCar(game.sel.car);
   mark('car', t);
   game.stageKey = key;
   placeCar(st.startS + 4);
@@ -5658,11 +5692,11 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
     // pierwszy start: menu od razu, shadery kompilują się w tle (iOS: kilkanaście sekund, bez pamięci między uruchomieniami)
     game.gfxReady = false;
     game.gfxPromise = (async () => {
-      game.fx.prewarm(true);
+      game.fx.prewarm(true); prewarmCars(true);
       const t0 = performance.now();
       try { await warmup(); } catch (e) { console.warn(e); }
       mark('warmup', t0);
-      game.fx.prewarm(false);
+      game.fx.prewarm(false); prewarmCars(false);
       game.gfxReady = true;
       $('miniLoad').hidden = true;
       $('view').classList.add('ready');
@@ -5674,14 +5708,13 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
   }
   show(true, null, 'Kompiluję shadery…');
   await nextFrame();
-  game.fx.prewarm(true);
+  game.fx.prewarm(true); prewarmCars(true);
   t = performance.now();
   try { await warmup(); } catch (e) { console.warn(e); }
   mark('warmup', t);
-  game.fx.prewarm(false);
+  game.fx.prewarm(false); prewarmCars(false);
   t = performance.now();
   if (oldWorld) { scene.remove(oldWorld.group); oldWorld.dispose(); }
-  if (oldModel) oldModel.dispose();
   mark('dispose', t);
   if (token !== game.loadToken) return false; // w międzyczasie ruszyło nowsze ładowanie — ono dokończy HUD i wskaźnik
   UI.setStageHud(st, `${def.code} · ${def.name}`);
@@ -5710,9 +5743,6 @@ async function withoutCulling(fn) {
   scene.traverse(o => { if (o.frustumCulled) { o.frustumCulled = false; culled.push(o); } });
   try { await fn(); } finally { for (const o of culled) o.frustumCulled = true; }
 }
-
-// stary model zwolniony po kilku klatkach, gdy nowy już przejął jego skompilowane shadery
-function disposeLater(o) { if (o) setTimeout(() => o.dispose(), 700); }
 
 // garaż: auto stoi przed startem, kamera krąży wokół
 function parkCar() {
@@ -5758,7 +5788,7 @@ async function startGo(mode) {
     const ok = await loadStage(game.sel);
     if (!ok) return;
   }
-  if (game.car.cfg !== CARS[game.sel.car]) disposeLater(setupCar(game.sel.car, true));
+  if (game.car.cfg !== CARS[game.sel.car]) setupCar(game.sel.car);
   beginIntro();
 }
 
@@ -6358,7 +6388,7 @@ const handlers = {
   },
   setCar: (i) => {
     game.sel.car = i; settings.car = i; saveSettings();
-    disposeLater(setupCar(i, true));
+    setupCar(i);
     if (Menu.screen === 'garage') parkCar(); else demoCar();
   },
   start: (mode) => startGo(mode),
