@@ -3648,7 +3648,9 @@ function dirtyColor(base, uDirt, dirtCol) {
 class CarModel {
   constructor(cfg, look) {
     this.cfg = cfg;
-    const P = PROFILES[cfg.body];
+    // auta low poly nie mają profilu starej karoserii — pozycja reflektorów (snopy światła, listwa lamp) z ich danych
+    const lp = LP[cfg.body];
+    const P = PROFILES[cfg.body] || { head: [0.12, (lp.head[0] + lp.head[1]) / 2], com: (lp.axles[0] + lp.axles[1]) / 2 };
     this.group = new THREE.Group();
     this.uDirt = T.uniform(0);
     this.uDirtCol = T.uniform(col(look.dust));
