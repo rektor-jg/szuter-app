@@ -644,7 +644,7 @@ const STAGES = [
     trees: { mix: [['spruce', 0.7], ['pine', 0.15], ['broadleaf', 0.15]], density: 0.012, clear: 3.8, mid: 0.55, far: 0.3, scale: [0.9, 1.4] },
     rocks: 0.0005, walls: 0, bales: 0.3, poles: 1, crowds: 6,
     look: {
-      time: 'night', sunElev: 32, sunAz: 300, sun: '#9fb6ff', sunI: 0.6, hemiSky: '#34466c', hemiGround: '#121410', hemiI: 0.75,
+      time: 'night', sunElev: 32, sunAz: 300, sun: '#9fb6ff', sunI: 0.7, hemiSky: '#3a4d76', hemiGround: '#171a14', hemiI: 0.95,
       fog: '#101826', fogNear: 20, fogFar: 330, zenith: '#04070d', horizon: '#121b28', clouds: 0.4, stars: 1,
       grass: '#39432a', grass2: '#4a4630', dirt: '#4a3d2c', rock: '#555552', verge: '#5b4a35',
       road: '#6b5840', rut: '#4f4130', stone: '#8a7a60', dust: '#5a4a38', fx: 'mud', weather: 'mist', bloom: 0.35,
@@ -665,8 +665,8 @@ const STAGES = [
     trees: { mix: [['giant', 0.34], ['palm', 0.18], ['jungle', 0.32], ['fern', 0.16]], density: 0.022, clear: 2.0, mid: 0.8, far: 0.45, scale: [0.95, 1.5] },
     rocks: 0.0006, walls: 0, bales: 0, poles: 0, crowds: 6,
     look: {
-      time: 'day', sunElev: 58, sunAz: 150, sun: '#fff0c4', sunI: 3.4, hemiSky: '#9dbf95', hemiGround: '#243217', hemiI: 0.75,
-      fog: '#98b08a', fogNear: 18, fogFar: 340, zenith: '#6c9fc4', horizon: '#c6d8bb', clouds: 0.35, stars: 0,
+      time: 'day', sunElev: 58, sunAz: 150, sun: '#fff0c4', sunI: 3.4, hemiSky: '#b2d2a6', hemiGround: '#3b5226', hemiI: 1.15,
+      fog: '#a9bf9b', fogNear: 22, fogFar: 360, shadowK: 0.5, zenith: '#6c9fc4', horizon: '#c6d8bb', clouds: 0.35, stars: 0,
       grass: '#2c461a', grass2: '#44622a', dirt: '#8a3e22', rock: '#6d6456', verge: '#743822',
       road: '#a14f2c', rut: '#7a381f', stone: '#b56842', dust: '#b0633d', fx: 'dust', weather: 'mist', bloom: 0.32,
       water: '#2c4a55', forest: true, rays: true,
@@ -5583,6 +5583,8 @@ function makeSun() {
   if (csm) { csm.dispose?.(); csm = null; }
   sun = new THREE.DirectionalLight('#ffffff', 3);
   sun.castShadow = true;
+  // cień nie jest czarny: część światła nieba zostaje (0 = brak cienia, 1 = pełna czerń)
+  sun.shadow.intensity = 0.62;
   sun.shadow.mapSize.set(q.shadowMap, q.shadowMap);
   sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.04;
   if (q.csm) {
@@ -5644,8 +5646,11 @@ function applyLook(def) {
   ATM.clouds.value = L.clouds; ATM.stars.value = L.stars; ATM.night.value = L.time === 'night' ? 1 : 0;
   ATM.water.value.set(L.water); ATM.detail.value = def.surface === 'snow' ? 0.35 : 1;
   sun.color.set(L.sun); sun.intensity = L.sunI;
-  hemi.color.set(L.hemiSky); hemi.groundColor.set(L.hemiGround); hemi.intensity = L.hemiI;
-  renderer.toneMappingExposure = L.time === 'night' ? 1.3 : L.time === 'dusk' ? 1.05 : 0.95;
+  hemi.color.set(L.hemiSky); hemi.groundColor.set(L.hemiGround); hemi.intensity = L.hemiI * 1.3;
+  renderer.toneMappingExposure = L.time === 'night' ? 1.55 : L.time === 'dusk' ? 1.15 : 1.05;
+  const shK = L.shadowK ?? 0.62;
+  sun.shadow.intensity = shK;
+  if (csm) for (const l of csm.lights || []) if (l.shadow) l.shadow.intensity = shK;
   if (bloomNode) bloomNode.strength.value = L.bloom;
   // za końcem mgły wszystko jest w kolorze mgły — dalej nie ma sensu rysować
   camera.far = L.fogFar * fk * 1.05;
