@@ -390,7 +390,8 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
         <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button><button data-v="supreme">SUPREME</button></div></div>
         <div class="opt"><label>Oszczędzanie baterii<small>30 kl./s i niższa rozdzielczość — dłużej na baterii</small></label><div class="seg" id="optSaver"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
-        <div class="opt"><label>Antyaliasing<small id="optAaNote">FXAA: wygładza krawędzie i migotanie, prawie za darmo</small></label><div class="seg" id="optAa"><button data-v="fxaa">FXAA</button><button data-v="max">MAKS</button></div></div>
+        <div class="opt"><label>Antyaliasing<small id="optAaNote">FXAA: wygładza krawędzie i migotanie, prawie za darmo</small></label><div class="seg" id="optAa"><button data-v="fsr">FSR 1</button><button data-v="fxaa">FXAA</button><button data-v="max">MAKS</button></div></div>
+        <div class="opt"><label>Tryb retro<small>Niska rozdzielczość, 15-bitowy kolor i dithering jak na PS1 — przy okazji oszczędza baterię</small></label><div class="seg" id="optRetro"><button data-v="0">WYŁ</button><button data-v="1">PS1</button></div></div>
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
@@ -490,6 +491,8 @@ import { motionBlur } from 'three/addons/tsl/display/MotionBlur.js';
 import { chromaticAberration } from 'three/addons/tsl/display/ChromaticAberrationNode.js';
 import { film } from 'three/addons/tsl/display/FilmNode.js';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
+import { fsr1 } from 'three/addons/tsl/display/FSR1Node.js';
+import { radialBlur } from 'three/addons/tsl/display/radialBlur.js';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -672,7 +675,7 @@ const STAGES = [
     trees: { mix: [['giant', 0.34], ['palm', 0.18], ['jungle', 0.32], ['fern', 0.16]], density: 0.022, clear: 2.0, mid: 0.7, far: 0.28, scale: [0.95, 1.5] },
     rocks: 0.0006, walls: 0, bales: 0, poles: 0, crowds: 6,
     look: {
-      time: 'day', sunElev: 58, sunAz: 150, sun: '#fff0c4', sunI: 3.4, hemiSky: '#b2d2a6', hemiGround: '#3b5226', hemiI: 1.15,
+      time: 'day', sunElev: 34, sunAz: 150, sun: '#fff0c4', sunI: 3.4, hemiSky: '#b2d2a6', hemiGround: '#3b5226', hemiI: 1.15,
       fog: '#a9bf9b', fogNear: 22, fogFar: 360, shadowK: 0.5, zenith: '#6c9fc4', horizon: '#c6d8bb', clouds: 0.35, stars: 0,
       grass: '#2c461a', grass2: '#44622a', dirt: '#8a3e22', rock: '#6d6456', verge: '#743822',
       road: '#a14f2c', rut: '#7a381f', stone: '#b56842', dust: '#b0633d', fx: 'dust', weather: 'mist', bloom: 0.32,
@@ -1972,7 +1975,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fxaa', saver: false },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: IS_TOUCH ? 'fsr' : 'fxaa', retro: false, saver: false },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -2209,11 +2212,16 @@ function vcMaterial({ rough = 0.9, metal = 0, sway = 0, bounce = 0, side = THREE
 // słownik całych tekstów + reguły dla tekstów złożonych, tłumaczenie po kawałkach rozdzielonych „ · ”.
 // Obserwator DOM tłumaczy każdy tekst, który pojawi się lub zmieni na ekranie.
 // ============================================================
-if (settings.aa !== 'fxaa' && settings.aa !== 'max') settings.aa = 'fxaa';
+// jednorazowo: telefon przechodzi na FSR 1 (mniej prądu przy tym samym wyglądzie)
+if ((settings.rev || 0) < 1) { if (IS_TOUCH) settings.aa = 'fsr'; settings.rev = 1; }
+if (!['fxaa', 'max', ...(IS_TOUCH ? ['fsr'] : [])].includes(settings.aa)) settings.aa = 'fxaa';
 // budżet telefonu (≤200 poleceń rysowania, ≤1,5 mln trójkątów): wysoka i supreme tylko na komputerze
 if (IS_TOUCH && (settings.quality === 'high' || settings.quality === 'supreme')) settings.quality = 'medium';
 if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en';
 const EN = {
+  'Tryb retro': 'Retro mode',
+  'Niska rozdzielczość, 15-bitowy kolor i dithering jak na PS1 — przy okazji oszczędza baterię': 'Low resolution, 15-bit colour and dithering like on the PS1 — saves battery too',
+  'FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu': 'FSR 1: rendered at 75% resolution and upscaled with sharpening — less power',
   // nazwa i ekran tytułowy
   'Szuter': 'Roadbook', 'Szuter Rally': 'Roadbook Rally', 'rally · odcinki specjalne · WebGPU': 'rally · special stages · WebGPU',
   'Menu główne': 'Main menu', 'Odcinek specjalny': 'Special stage', 'Rajd': 'Rally', 'Opcje': 'Options', 'Kontynuuj': 'Continue',
@@ -4210,14 +4218,31 @@ const POST = {
   contrast: T.uniform(1.06),
 };
 
+// promienie słońca (las deszczowy): niebo prześwitujące przez korony w pobliżu słońca, rozmyte promieniście od słońca —
+// oba przebiegi w ćwiartce rozdzielczości, więc tanie także na telefonie
+const RAYS = { on: false, far: T.uniform(1000), k: T.uniform(0) };
+function sunRays(pass) {
+  const sky = T.step(RAYS.far.mul(0.8), pass.getViewZNode().negate());
+  const near = T.exp(T.length(T.screenUV.sub(POST.sunUV).mul(T.vec2(POST.aspect, 1.0))).mul(-2.4));
+  const src = T.convertToTexture(T.vec4(ATM.sunCol.mul(sky.mul(near)), 1.0));
+  src.setResolutionScale(0.25);
+  const rays = T.convertToTexture(radialBlur(src, { center: POST.sunUV, weight: 0.9, decay: 0.965, count: T.int(28), exposure: 2.6 }));
+  rays.setResolutionScale(0.25);
+  // 4 próbki po przekątnych wygładzają szum rozmycia (inaczej po powiększeniu widać kratkę na liściach)
+  const o = T.vec2(0.75, 0.75).div(T.vec2(T.textureSize(rays))), p = T.vec2(o.x, o.y.negate()), u = T.uv();
+  const r = rays.sample(u.add(o)).rgb.add(rays.sample(u.sub(o)).rgb).add(rays.sample(u.add(p)).rgb).add(rays.sample(u.sub(p)).rgb);
+  return r.mul(RAYS.k.mul(0.25));
+}
+
 function vignette(rgb, k = 0.38) {
   const d = T.length(T.screenUV.sub(0.5).mul(T.vec2(1.2, 1.0)));
   return rgb.mul(T.float(1).sub(T.smoothstep(0.42, 1.05, d).mul(k)));
 }
 
 function makeHighChain(scene, camera, q) {
-  const scenePass = T.pass(scene, camera, { samples: 0 });
-  const color = scenePass.getTextureNode('output');
+  const scenePass = T.pass(scene, camera);
+  let color = scenePass.getTextureNode('output');
+  if (RAYS.on) color = T.vec4(color.rgb.add(sunRays(scenePass)), 1.0);
   let out = color, bloomNode = null;
   if (q.bloom) { bloomNode = bloom(color, 0.25, 0.4, 1.0); out = color.add(bloomNode); }
   return { output: T.vec4(vignette(out.rgb), 1.0), bloomNode, colorTransform: true };
@@ -4250,12 +4275,13 @@ function makeSupremeChain(scene, camera) {
   // SSAO przyciemnia światło otoczenia w zakamarkach (pod drzewami, wokół kół, w rowach)
   const aoPass = ssao(preDepth, preNormal, camera);
   aoPass.radius.value = 1.4; aoPass.intensity.value = 1.15; aoPass.samples.value = 16;
-  const scenePass = T.pass(scene, camera, { samples: 0 });
+  const scenePass = T.pass(scene, camera);
   scenePass.contextNode = T.builtinAOContext(aoPass.getTextureNode().sample(T.screenUV).r);
   const color = scenePass.getTextureNode('output');
   const bloomNode = bloom(color, 0.3, 0.45, 0.98);
   const blurred = motionBlur(color, preVel.mul(POST.blur));
   let c = blurred.rgb.add(bloomNode.rgb).add(sunFlare());
+  if (RAYS.on) c = c.add(sunRays(scenePass));
   // gradacja kolorów (liniowo): nasycenie i kontrast wokół szarości 18%
   const lum = T.dot(c, T.vec3(0.2126, 0.7152, 0.0722));
   c = T.mix(T.vec3(lum, lum, lum), c, POST.sat);
@@ -4969,10 +4995,12 @@ const UI = {
     if (IS_TOUCH) $('optQuality').querySelectorAll('button[data-v="high"],button[data-v="supreme"]').forEach(b => b.remove());
     seg('optQuality', 'quality', id, () => { setQNote(); this.h.qualityChanged(); });
     seg('optPerf', 'perf', (v) => v === '1', () => { $('perf').hidden = !settings.perf; });
-    const aaNote = { fxaa: 'FXAA: wygładza krawędzie i migotanie, prawie za darmo', max: 'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu' };
+    const aaNote = { fsr: 'FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu', fxaa: 'FXAA: wygładza krawędzie i migotanie, prawie za darmo', max: 'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu' };
     const setAaNote = () => { $('optAaNote').textContent = aaNote[settings.aa] || aaNote.fxaa; };
     setAaNote();
+    if (!IS_TOUCH) $('optAa').querySelector('button[data-v="fsr"]').remove();
     seg('optAa', 'aa', id, () => { setAaNote(); this.h.aaChanged(); });
+    seg('optRetro', 'retro', (v) => v === '1', () => this.h.retroChanged());
     seg('optSaver', 'saver', (v) => v === '1', () => this.h.saverChanged());
     $('perf').hidden = !settings.perf;
     if (IS_TOUCH) {
@@ -5422,27 +5450,47 @@ async function keepAwake(on) {
   } catch { wakeLock = null; }
 }
 
+const FSR_SCALE = 0.75, RETRO_SCALE = 0.3;
+// dithering Bayera 4×4 po pikselach obrazu retro (0…1)
+function bayer4(p) {
+  const m2 = (x, y) => T.mod(x.mul(2).add(y.mul(3)), 4.0);
+  const a = T.mod(p.x, 2.0), b = T.mod(p.y, 2.0), c = T.mod(T.floor(p.x.div(2)), 2.0), d = T.mod(T.floor(p.y.div(2)), 2.0);
+  return m2(a, b).mul(4).add(m2(c, d)).add(0.5).div(16);
+}
 function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
   pipeline = null; bloomNode = null;
-  const q = Q(), aa = true;
+  const q = Q(), retro = !!settings.retro, fsr = !retro && settings.aa === 'fsr' && !q.pipeline;
+  RAYS.on = !!(game.stage && game.stage.def.look.rays);
   pipeline = new THREE.RenderPipeline(renderer);
   let chain;
-  if (!q.pipeline) {
-    const sp = T.pass(scene, camera, { samples: 0 });
-    chain = { output: sp.getTextureNode('output'), colorTransform: true };
+  if (!q.pipeline || retro) {
+    const sp = T.pass(scene, camera);
+    if (fsr || retro) sp.setResolutionScale(retro ? RETRO_SCALE : FSR_SCALE);
+    let c = sp.getTextureNode('output');
+    if (RAYS.on) c = T.vec4(c.rgb.add(sunRays(sp)), 1.0);
+    chain = { output: c, colorTransform: true };
   } else {
     try { chain = q.supreme ? makeSupremeChain(scene, camera) : makeHighChain(scene, camera, q); }
     catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high); }
   }
-  if (aa) {
-    // FXAA na obrazie po mapowaniu tonów, w sRGB — wygładza drobne krawędzie (pnie, słupki, liście), których MSAA nie łapie
-    pipeline.outputNode = fxaa(chain.colorTransform ? T.renderOutput(chain.output) : chain.output);
-    pipeline.outputColorTransform = false;
+  const toned = chain.colorTransform ? T.renderOutput(chain.output) : chain.output;
+  if (retro) {
+    // PS1: obraz w ~⅓ rozdzielczości powiększany bez wygładzania, 15-bitowy kolor (32 poziomy na kanał) z ditheringiem
+    const lo = T.convertToTexture(toned); lo.setResolutionScale(RETRO_SCALE);
+    lo.renderTarget.texture.magFilter = THREE.NearestFilter; lo.renderTarget.texture.minFilter = THREE.NearestFilter;
+    const px = T.floor(T.screenCoordinate.xy.mul(RETRO_SCALE));
+    pipeline.outputNode = T.vec4(T.floor(lo.rgb.mul(31).add(bayer4(px))).div(31), 1.0);
+  } else if (fsr) {
+    // FSR 1: scena i FXAA w 75% rozdzielczości, potem skalowanie z zachowaniem krawędzi (EASU) i wyostrzenie (RCAS)
+    const lo = T.convertToTexture(toned); lo.setResolutionScale(FSR_SCALE);
+    const aa = T.convertToTexture(fxaa(lo)); aa.setResolutionScale(FSR_SCALE);
+    pipeline.outputNode = fsr1(aa, 0.25);
   } else {
-    pipeline.outputNode = chain.output;
-    pipeline.outputColorTransform = chain.colorTransform;
+    // FXAA na obrazie po mapowaniu tonów, w sRGB — wygładza drobne krawędzie (pnie, słupki, liście)
+    pipeline.outputNode = fxaa(toned);
   }
+  pipeline.outputColorTransform = false;
   bloomNode = chain.bloomNode || null;
 }
 
@@ -5630,6 +5678,7 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
   game.world = new World(st, stageLabels(st));
   mark('world', t);
   scene.add(game.world.group);
+  if (RAYS.on !== !!st.def.look.rays && pipeline) setupPipeline();
   t = performance.now();
   applyLook(def);
   setupFog(def);
@@ -6320,7 +6369,7 @@ function frame() {
   const fx = Math.round((renderPos.x + _camFwd.x * ext * 0.45) / tex) * tex, fz = Math.round((renderPos.z + _camFwd.z * ext * 0.45) / tex) * tex;
   sun.target.position.set(fx, renderPos.y, fz);
   sun.position.set(fx + sunDir.x * 150, renderPos.y + sunDir.y * 150, fz + sunDir.z * 150);
-  if (Q().supreme) updatePost(dt, car, st);
+  if (Q().supreme || RAYS.on) updatePost(dt, car, st);
   const tr = PROF.on ? performance.now() : 0;
   const warm = warmReq;
   if (!warm && game.gfxReady === false) { /* shadery jeszcze się kompilują — nic nie rysujemy, żeby nie kompilować drugi raz synchronicznie */ }
@@ -6344,20 +6393,24 @@ function updatePost(dt, car, st) {
   POST.ca.value = 0.08 + clamp(sp / 45, 0, 1) * 0.3 + camState.shake * 0.8;
   POST.aspect.value = camera.aspect;
   // słońce na ekranie + zasłonięcie terenem (promień w stronę słońca)
-  let vis = 0;
+  let vis = 0, rays = 0;
   if (st.def.look.time !== 'night' && sunDir.y > -0.02) {
-    _sunP.copy(camera.position).addScaledVector(sunDir, 800).project(camera);
-    if (_sunP.z < 1 && Math.abs(_sunP.x) < 1.25 && Math.abs(_sunP.y) < 1.25) {
+    _sunP.copy(camera.position).addScaledVector(sunDir, camera.far * 0.5).project(camera); // w zasięgu kamery, inaczej z > 1
+    const edge = Math.max(Math.abs(_sunP.x), Math.abs(_sunP.y));
+    if (_sunP.z < 1 && edge < 1.8) {
       POST.sunUV.value.set((_sunP.x + 1) / 2, (1 - _sunP.y) / 2);
-      vis = 1 - smoothstep(0.85, 1.25, Math.max(Math.abs(_sunP.x), Math.abs(_sunP.y)));
+      vis = 1 - smoothstep(0.85, 1.25, edge);
+      rays = 1 - smoothstep(1.1, 1.8, edge);
       const c = camera.position;
-      for (let k = 1; k <= 24 && vis > 0; k++) {
+      for (let k = 1; k <= 24 && rays > 0; k++) {
         const d = k * k * 1.2;
-        if (st.heightAt(c.x + sunDir.x * d, c.z + sunDir.z * d) > c.y + sunDir.y * d) vis = 0;
+        if (st.heightAt(c.x + sunDir.x * d, c.z + sunDir.z * d) > c.y + sunDir.y * d) { vis = 0; rays = 0; }
       }
     }
   }
   POST.sunVis.value += (vis * (st.def.look.time === 'dusk' ? 1.2 : 0.8) - POST.sunVis.value) * Math.min(1, dt * 6);
+  RAYS.far.value = camera.far;
+  RAYS.k.value += (rays * 0.9 - RAYS.k.value) * Math.min(1, dt * 4);
 }
 
 // ---------- dynamiczna rozdzielczość + licznik ----------
@@ -6473,6 +6526,7 @@ const handlers = {
   },
   blip: (k) => sound.ui(k),
   aaChanged: () => { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); setupPipeline(); },
+  retroChanged: () => setupPipeline(),
   saverChanged: () => { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); },
   langChanged: () => { Menu.relabel(); },
   applySettings: () => {
@@ -6588,7 +6642,7 @@ async function boot() {
   looping = true;
   renderer.setAnimationLoop(frame);
   if (window.SZUTER_NATIVE) { try { window.Capacitor?.Plugins?.StatusBar?.hide(); } catch { /* */ } }
-  globalThis.__szuter = { game, sound, settings, Menu, input, codriver, camera: () => camera, renderer: () => renderer, scene: () => scene }; // uchwyt do diagnostyki i testów E2E
+  globalThis.__szuter = { RAYS, POST, game, sound, settings, Menu, input, codriver, camera: () => camera, renderer: () => renderer, scene: () => scene }; // uchwyt do diagnostyki i testów E2E
   if (PROF.on) bench();
 }
 
