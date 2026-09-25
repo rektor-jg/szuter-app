@@ -371,7 +371,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
   <section class="scr" id="scrRally" hidden aria-label="Rajd">
     <header class="scr-head"><button class="back" type="button" data-back>◂ Menu</button><h2>Rajd</h2><span class="step" id="rallyKm"></span></header>
     <div class="sheet-wrap"><div class="sheet">
-      <p class="note-p">Pięć odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka i Walia nocą</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
+      <p class="note-p">Sześć odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą i Brazylia</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
       <div class="rows" id="rallyRows"></div>
     </div></div>
     <footer class="scr-foot"><span class="keys"><kbd>Enter</kbd> dalej · <kbd>Esc</kbd> wstecz</span><button class="go" id="rallyGo" type="button">Wybierz auto <span>▸</span></button></footer>
@@ -380,6 +380,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
     <header class="scr-head"><button class="back" type="button" data-back>◂ Menu</button><h2>Opcje</h2></header>
     <div class="sheet-wrap"><div class="sheet">
       <div class="opts">
+        <div class="opt"><label>Język<small>Język interfejsu i pilota</small></label><div class="seg" id="optUi"><button data-v="pl">PL</button><button data-v="en">EN</button></div></div>
         <div class="opt"><label for="optArcade">Prowadzenie<small id="optArcadeNote">Arcade</small></label><div class="slide"><span>SYM</span><input type="range" id="optArcade" min="0" max="1" step="0.05"><span>ARCADE</span></div></div>
         <div class="opt"><label>Pilot<small>Czyta notatki głosem przeglądarki</small></label><div class="seg" id="optLang"><button data-v="pl">PL</button><button data-v="en">EN</button><button data-v="off">WYŁ</button></div></div>
         <div class="opt"><label>Skrzynia<small>Ręczna: Q / E albo LB / RB</small></label><div class="seg" id="optGear"><button data-v="auto">AUTO</button><button data-v="manual">RĘCZNA</button></div></div>
@@ -2174,6 +2175,117 @@ function vcMaterial({ rough = 0.9, metal = 0, sway = 0, bounce = 0, side = THREE
   }
   return m;
 }
+
+// ============================================================
+// Język interfejsu (PL / EN). Polski jest w kodzie źródłem; angielski dokładany na ekranie:
+// słownik całych tekstów + reguły dla tekstów złożonych, tłumaczenie po kawałkach rozdzielonych „ · ”.
+// Obserwator DOM tłumaczy każdy tekst, który pojawi się lub zmieni na ekranie.
+// ============================================================
+if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en';
+const EN = {
+  // nazwa i ekran tytułowy
+  'Szuter': 'Roadbook', 'Szuter Rally': 'Roadbook Rally', 'rally · odcinki specjalne · WebGPU': 'rally · special stages · WebGPU',
+  'Menu główne': 'Main menu', 'Odcinek specjalny': 'Special stage', 'Rajd': 'Rally', 'Opcje': 'Options', 'Kontynuuj': 'Continue',
+  'jeden OS · rekordy i rywale': 'one stage · records and rivals', 'prowadzenie · grafika · pilot · sterowanie': 'handling · graphics · co-driver · controls',
+  'klasyfikacja generalna': 'overall standings', 'Wybór odcinka': 'Stage select', 'Wybierz auto': 'Choose car', 'Garaż': 'Garage', 'Na start': 'To the start',
+  'Start rajdu': 'Start rally', '◂ Odcinek': '◂ Stage', '◂ Rajd': '◂ Rally', 'Następne auto': 'Next car', 'Poprzednie auto': 'Previous car',
+  'Sześć odcinków po kolei:': 'Six stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą i Brazylia': 'Finland, Greece, Sweden, Corsica, Wales at night and Brazil',
+  '. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.': '. Times add up and the overall standings against rivals update after every stage. The service crew repairs the car between stages.',
+  // skróty klawiszy
+  'wybór ·': 'select ·', 'dalej · pad:': 'next · pad:', 'dalej ·': 'next ·', 'odcinek ·': 'stage ·', 'losuj ·': 'shuffle ·', 'wstecz': 'back', 'auto ·': 'car ·', 'start ·': 'start ·', 'opcja ·': 'option ·', 'zmiana ·': 'change ·',
+  // karty odcinków
+  'Długość': 'Length', 'Nawierzchnia': 'Surface', 'Pora': 'Time of day', 'Pogoda': 'Weather', 'Zakręty': 'Corners', 'Nawroty': 'Hairpins',
+  'Hopy i garby': 'Jumps & crests', 'Przewyższenie': 'Elevation', 'Lider': 'Leader', 'Rekord': 'Record', 'Losowy odcinek': 'Random stage', 'LOS': 'RND',
+  'dzień': 'day', 'zmierzch': 'dusk', 'noc': 'night', 'sucho': 'dry', 'mgła': 'mist', 'śnieżyca': 'snowfall', 'szuter': 'gravel', 'asfalt': 'tarmac', 'śnieg': 'snow',
+  'Finlandia': 'Finland', 'Grecja': 'Greece', 'Szwecja': 'Sweden', 'Korsyka': 'Corsica', 'Walia': 'Wales', 'Brazylia': 'Brazil',
+  'hopy': 'jumps', 'kamienisty szuter': 'rocky gravel', 'upał': 'heat', 'bandy': 'snow banks', 'serpentyny': 'hairpins', 'błoto': 'mud',
+  'czerwona ziemia': 'red dirt', 'las deszczowy': 'rainforest',
+  // garaż
+  'napęd 4×4': '4×4', 'napęd na przód': 'front-wheel drive', 'napęd na tył': 'rear-wheel drive', 'moc': 'power', 'zwrot': 'turn-in',
+  'Twoje rekordy tym autem': 'Your records with this car', 'Twój rekord': 'Your record',
+  // opcje
+  'Prowadzenie': 'Handling', 'SYM': 'SIM', 'Pilot': 'Co-driver', 'Czyta notatki głosem przeglądarki': 'Reads pace notes aloud with the device voice',
+  'Skrzynia': 'Gearbox', 'RĘCZNA': 'MANUAL', 'Ręczna: Q / E albo LB / RB': 'Manual: Q / E or LB / RB', 'Asysta': 'Assists',
+  'Kontra przy poślizgu i kontrola trakcji': 'Counter-steer and traction control', 'WŁ': 'ON', 'WYŁ': 'OFF', 'Kierownica': 'Steering', 'SUWAK': 'SLIDER', 'PRZECHYŁ': 'TILT',
+  'Suwak: przeciągaj kciukiem w lewej połowie ekranu': 'Slider: drag your thumb on the left half of the screen', 'Dwa przyciski, skręt narasta płynnie': 'Two buttons, steering builds up smoothly',
+  'Przechylaj telefon jak kierownicę': 'Tilt the phone like a steering wheel', 'Sprawdzam czujnik…': 'Checking the sensor…',
+  'Czujnik ruchu jest tu zablokowany. Otwórz plik gry bezpośrednio w Safari, żeby użyć przechyłu.': 'The motion sensor is blocked here. Open the game directly in Safari to use tilt.',
+  'Grafika': 'Graphics', 'NISKA': 'LOW', 'ŚREDNIA': 'MEDIUM', 'WYSOKA': 'HIGH', 'Niska: najpłynniej na telefonie': 'Low: smoothest on phones',
+  'Średnia: gęstszy las, oświetlony kurz, ostrzejszy obraz': 'Medium: denser forest, lit dust, sharper image', 'Wysoka: pełny las, bloom, cienie drzew — na komputer': 'High: full forest, bloom, tree shadows — for computers',
+  'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna': 'Supreme: cascaded shadows, SSAO, motion blur, grass, valley fog, lens flare — strong GPU',
+  'Licznik klatek': 'Frame counter', 'FPS, rozdzielczość i obciążenie w rogu ekranu': 'FPS, resolution and load in the corner', 'Głośność': 'Volume',
+  'Język': 'Language', 'Język interfejsu i pilota': 'Interface and co-driver language',
+  'Symulacja: czysta fizyka, pełne poślizgi i dachowania': 'Simulation: pure physics, full slides and rollovers',
+  // jazda, pauza, wyniki
+  'Czas OS': 'Stage time', 'Pauza': 'Pause', 'Wróć': 'Resume', 'Od nowa': 'Restart', 'Menu': 'Menu', 'Meta': 'Finish', 'Kamera': 'Camera',
+  'Gaz': 'Gas', 'Hamulec': 'Brake', 'Ręczny': 'Handbrake', 'Pedały': 'Pedals', 'W lewo': 'Left', 'W prawo': 'Right', 'Powrót na trasę': 'Back on track',
+  'Obróć telefon': 'Rotate your phone', 'Odcinek jedzie się poziomo. Gra ruszy sama, gdy obrócisz ekran.': 'Stages are driven in landscape. The game resumes when you rotate the screen.',
+  '● Powtórka': '● Replay', 'Wyjdź': 'Exit', 'Powtórka': 'Replay', 'Powtórka OS': 'Stage replay', 'Jeszcze raz': 'Retry', 'Inny odcinek': 'Another stage',
+  'Ty': 'You', 'Zły kierunek': 'Wrong way', 'Pierwszy przejazd: rekord zapisany': 'First run: record saved', 'Dźwięk wyłączony': 'Sound off', 'Dźwięk włączony': 'Sound on',
+  'Kibice stawiają auto na koła': 'Spectators put you back on your wheels', 'Kąpiel w jeziorze': 'Took a swim',
+  'za autem': 'chase', 'daleko': 'far', 'maska': 'hood', 'zderzak': 'bumper', 'Klasyfikacja końcowa': 'Final standings',
+  'MIĘDZYCZAS': 'SPLIT', 'strefa stop': 'stop zone', 'START': 'START', 'META': 'FINISH', 'OS': 'SS',
+  // ładowanie
+  'Uruchamiam silnik…': 'Starting the engine…', 'Wytyczam trasę…': 'Plotting the route…', 'Buduję świat…': 'Building the world…', 'Kompiluję shadery…': 'Compiling shaders…',
+  'Przygotowuję grafikę…': 'Preparing graphics…', 'Wczytuję auta…': 'Loading cars…', 'WebGL 2 · tryb zgodności': 'WebGL 2 · compatibility mode', 'Nie ruszymy': "Can't start",
+  'Ta przeglądarka nie obsługuje ani WebGPU, ani WebGL 2. Spróbuj w aktualnym Chrome, Edge, Safari lub Firefoksie.': "This browser supports neither WebGPU nor WebGL 2. Try an up-to-date Chrome, Edge, Safari or Firefox.",
+  'Szuter Rally · three.js (MIT) · fonty Saira i Martian Mono (SIL OFL 1.1) · model Orkana RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · gra nie zbiera żadnych danych.':
+    'Roadbook Rally · three.js (MIT) · Saira and Martian Mono fonts (SIL OFL 1.1) · Orkan RS model: “2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · the game collects no data.',
+};
+// teksty złożone: wzorce (liczby, nazwy) przepisywane regułą
+const EN_RULES = [
+  [/^([\d,.]+) km do mety$/, (m) => `${m[1].replace(',', '.')} km to finish`],
+  [/^kara \+(\d+) s$/, (m) => `penalty +${m[1]} s`],
+  [/^Kamera: (.+)$/, (m) => `Camera: ${EN[m[1]] || m[1]}`],
+  [/^(\d+) OS$/, (m) => `${m[1]} SS`], [/^OS (\d+)\/(\d+)$/, (m) => `SS ${m[1]}/${m[2]}`], [/^OS (\d+) ▸$/, (m) => `SS ${m[1]} ▸`], [/^OS (\d+)$/, (m) => `SS ${m[1]}`],
+  [/^Rekord · (.+)$/, (m) => `Record · ${m[1]}`], [/^losowy #(\w+)$/, (m) => `random #${m[1]}`], [/^(\d+) KM$/, (m) => `${m[1]} hp`], [/^(\d+) biegów$/, (m) => `${m[1]} gears`],
+  [/^(\d+)\. miejsce$/, (m) => `P${m[1]}`], [/^(\d+)\. miejsce w rajdzie$/, (m) => `P${m[1]} in the rally`], [/^generalka: (\d+)\. \((.+)\)$/, (m) => `overall: P${m[1]} (${m[2]})`],
+  [/^Międzyczas (\d+)$/, (m) => `Split ${m[1]}`], [/^Rekord odcinka \(poprzedni (.+)\)$/, (m) => `Stage record (previous ${m[1]})`], [/^Rekord: (.+)$/, (m) => `Record: ${m[1]}`],
+  [/^\+(\d+) s$/, (m) => `+${m[1]} s`], [/^Walia nocą$/, () => 'Wales at night'],
+  [/^Bliżej symulacji \((\d+)%\): lekka pomoc w poślizgu$/, (m) => `Closer to sim (${m[1]}%): light help in slides`],
+  [/^Arcade (\d+)%: auto słucha kierownicy, pobocze wybacza$/, (m) => `Arcade ${m[1]}%: the car follows the wheel, verges forgive`],
+  [/^Pełny arcade \((\d+)%\): przyczepność jak na szynach, prawie bez uszkodzeń$/, (m) => `Full arcade (${m[1]}%): grip like on rails, almost no damage`],
+  [/^Nie udało się zbudować odcinka: (.*)$/, (m) => `Could not build the stage: ${m[1]}`],
+];
+function trText(s) {
+  if (settings.ui !== 'en' || !s) return s;
+  const k = s.trim(); if (!k) return s;
+  const one = (x) => { if (EN[x] != null) return EN[x]; for (const [re, f] of EN_RULES) { const m = re.exec(x); if (m) return f(m); } return null; };
+  // dopiski zaczynające się od „· ” (np. „ · 1. miejsce”, „ · generalka: 3. (…)”)
+  if (k.startsWith('· ')) { const rest = trText(k.slice(2)); return rest === k.slice(2) ? s : s.replace(k, '· ' + rest); }
+  let r = one(k);
+  if (r == null && k.includes(' · ')) { const parts = k.split(' · '); const tp = parts.map(p => one(p) ?? p); if (tp.some((p, i) => p !== parts[i])) r = tp.join(' · '); }
+  return r == null ? s : s.replace(k, r);
+}
+const t = (s) => trText(s);
+const _i18nOrig = new WeakMap(), _i18nSet = new WeakMap();
+function trNode(n) {
+  if (_i18nSet.get(n) === n.nodeValue) return; // to nasza własna zmiana
+  _i18nOrig.set(n, n.nodeValue);
+  const v = trText(n.nodeValue);
+  if (v !== n.nodeValue) { _i18nSet.set(n, v); n.nodeValue = v; }
+}
+function translateDom(root = document.body) {
+  const w = document.createTreeWalker(root, 4 /* NodeFilter.SHOW_TEXT */);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const orig = _i18nOrig.get(n);
+    if (orig != null && _i18nSet.get(n) === n.nodeValue) { n.nodeValue = orig; _i18nSet.delete(n); } // przywróć polski oryginał
+    trNode(n);
+  }
+  root.querySelectorAll('[aria-label]').forEach(el => { if (!el.dataset.pl) el.dataset.pl = el.getAttribute('aria-label'); el.setAttribute('aria-label', trText(el.dataset.pl)); });
+  document.documentElement.lang = settings.ui;
+  document.title = settings.ui === 'en' ? 'Roadbook Rally' : 'Szuter Rally';
+}
+function initI18n() {
+  translateDom();
+  new globalThis.MutationObserver((ms) => {
+    if (settings.ui !== 'en') return;
+    for (const m of ms) {
+      if (m.type === 'characterData') trNode(m.target);
+      else for (const a of m.addedNodes) { if (a.nodeType === 3) trNode(a); else if (a.nodeType === 1) { const w = document.createTreeWalker(a, 4 /* NodeFilter.SHOW_TEXT */); for (let n = w.nextNode(); n; n = w.nextNode()) trNode(n); } }
+    }
+  }).observe(document.body, { subtree: true, childList: true, characterData: true });
+}
 // ============================================================
 // Świat: niebo (TSL), teren, droga, woda, las, rekwizyty
 // ============================================================
@@ -2776,7 +2888,7 @@ function buildLightShafts(st, group) {
     const emerge = T.smoothstep(6.0, 22.0, dist).mul(T.float(1).sub(T.smoothstep(110.0, 190.0, dist)));
     const flick = T.sin(T.time.mul(0.35).add(T.positionWorld.x.mul(0.07))).mul(0.25).add(0.85);
     m.colorNode = T.vec3(1.0, 0.93, 0.72);
-    m.opacityNode = along.mul(edge).mul(emerge).mul(flick).mul(0.26);
+    m.opacityNode = along.mul(edge).mul(emerge).mul(flick).mul(0.11);
     return m;
   });
   const rng = makeRng(st.seed ^ 0x5a17), pts = [];
@@ -3597,7 +3709,7 @@ class CarModel {
       const fall = T.pow(T.float(1).sub(t), 2.0);
       const edge = T.abs(T.dot(T.normalize(T.normalView), T.vec3(0, 0, 1)));
       coneMat.colorNode = T.vec3(1.0, 0.92, 0.78);
-      coneMat.opacityNode = fall.mul(edge).mul(this.night ? 0.085 : 0.04).mul(this.uCone);
+      coneMat.opacityNode = fall.mul(edge).mul(this.night ? 0.04 : 0.018).mul(this.uCone);
       const coneGeo = new THREE.CylinderGeometry(3.6, 0.1, Lc, 24, 1, true).rotateX(-Math.PI / 2).translate(0, 0, -Lc / 2);
       for (const x of [-0.52, 0.52]) {
         const cone = new THREE.Mesh(coneGeo, coneMat);
@@ -4176,8 +4288,8 @@ class Weather {
     const mat = mist
       ? new THREE.MeshStandardNodeMaterial({ roughness: 1, transparent: true, depthWrite: false })
       : new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
-    mat.colorNode = mist ? T.vec3(0.55, 0.6, 0.66) : T.vec3(1.4, 1.45, 1.5);
-    mat.opacityNode = T.texture(softTex, T.uv()).a.mul(mist ? 0.085 : 0.85);
+    mat.colorNode = mist ? T.vec3(0.42, 0.46, 0.5) : T.vec3(1.4, 1.45, 1.5);
+    mat.opacityNode = T.texture(softTex, T.uv()).a.mul(mist ? 0.04 : 0.85);
     this.mesh = new THREE.InstancedMesh(geo, mat, count);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.frustumCulled = false;
@@ -4397,7 +4509,7 @@ function makeHighChain(scene, camera, q) {
   const scenePass = T.pass(scene, camera, { samples: q.samples });
   const color = scenePass.getTextureNode('output');
   let out = color, bloomNode = null;
-  if (q.bloom) { bloomNode = bloom(color, 0.25, 0.45, 0.92); out = color.add(bloomNode); }
+  if (q.bloom) { bloomNode = bloom(color, 0.25, 0.4, 1.0); out = color.add(bloomNode); }
   return { output: T.vec4(vignette(out.rgb), 1.0), bloomNode, colorTransform: true };
 }
 
@@ -4431,7 +4543,7 @@ function makeSupremeChain(scene, camera) {
   const scenePass = T.pass(scene, camera, { samples: 4 });
   scenePass.contextNode = T.builtinAOContext(aoPass.getTextureNode().sample(T.screenUV).r);
   const color = scenePass.getTextureNode('output');
-  const bloomNode = bloom(color, 0.3, 0.5, 0.88);
+  const bloomNode = bloom(color, 0.3, 0.45, 0.98);
   const blurred = motionBlur(color, preVel.mul(POST.blur));
   let c = blurred.rgb.add(bloomNode.rgb).add(sunFlare());
   // gradacja kolorów (liniowo): nasycenie i kontrast wokół szarości 18%
@@ -5107,6 +5219,12 @@ const UI = {
     };
     const id = (v) => v, nop = () => {};
     seg('optLang', 'lang', id, nop);
+    // język interfejsu: pilot przechodzi na ten sam język (chyba że wyłączony), wszystko na ekranie tłumaczy się od razu
+    seg('optUi', 'ui', id, () => {
+      if (settings.lang !== 'off') settings.lang = settings.ui; saveSettings();
+      $('optLang').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === settings.lang)));
+      translateDom(); setQNote(); arcNote(); this.h.langChanged && this.h.langChanged();
+    });
     seg('optGear', 'gearbox', id, () => this.h.applySettings());
     seg('optAssist', 'assist', (v) => v === '1', () => this.h.applySettings());
     const qNote = { low: 'Niska: najpłynniej na telefonie', medium: 'Średnia: gęstszy las, oświetlony kurz, ostrzejszy obraz', high: 'Wysoka: pełny las, bloom, cienie drzew — na komputer', supreme: 'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna' };
@@ -5288,6 +5406,8 @@ const Menu = {
   },
 
   blip(k) { this.h.blip(k); },
+  // po zmianie języka: przebuduj teksty tworzone w kodzie (tytuł, karty, rajd, garaż)
+  relabel() { this.buildTitle(); this.drawCards(); if (this.screen === 'garage') this.renderGarage(); this.show(this.screen); },
 
   // ---------- ekrany ----------
   show(name) {
@@ -5651,7 +5771,7 @@ function applyLook(def) {
   const shK = L.shadowK ?? 0.62;
   sun.shadow.intensity = shK;
   if (csm) for (const l of csm.lights || []) if (l.shadow) l.shadow.intensity = shK;
-  if (bloomNode) bloomNode.strength.value = L.bloom;
+  if (bloomNode) bloomNode.strength.value = L.bloom * 0.5;
   // za końcem mgły wszystko jest w kolorze mgły — dalej nie ma sensu rysować
   camera.far = L.fogFar * fk * 1.05;
   camera.updateProjectionMatrix();
@@ -5682,7 +5802,7 @@ function updateEnv(st) {
 }
 
 function stageLabels(st) {
-  return { start: `OS · ${st.def.name}`, finish: `${st.def.country} · ${st.def.name}`, split: 'MIĘDZYCZAS', splitSub: st.def.name, stop: 'strefa stop' };
+  return { start: t(`OS · ${st.def.name}`), finish: t(`${st.def.country} · ${st.def.name}`), split: t('MIĘDZYCZAS'), splitSub: st.def.name, stop: t('strefa stop') };
 }
 
 // Modele aut: jeden na auto, porę dnia i jakość (reflektory i snopy światła zależą od pory), budowane raz
@@ -6319,7 +6439,7 @@ function frame() {
   // pilot + HUD
   if (game.state === 'race' || game.state === 'finish' || game.state === 'replay' || game.state === 'intro') {
     const s = game.state === 'replay' ? car.idx : currentS();
-    const lang = settings.lang === 'en' ? 'en' : 'pl';
+    const lang = settings.ui === 'en' ? 'en' : 'pl';
     if (game.state === 'race') {
       codriver.update(s, car.speed);
       const N = st.notes, called = codriver.callIdx;
@@ -6493,6 +6613,7 @@ const handlers = {
     else if (!game.parked && wasGarage) demoCar();
   },
   blip: (k) => sound.ui(k),
+  langChanged: () => { Menu.relabel(); },
   applySettings: () => {
     if (game.car) { game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade; }
     UI.touchMode();
@@ -6577,6 +6698,7 @@ async function boot() {
   makeSun();
   setupPipeline();
   input = new Input();
+  initI18n();
   UI.init(handlers);
   Menu.init(handlers);
   UI.loading(true, null, 'Wczytuję auta…');
