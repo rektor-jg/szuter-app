@@ -680,6 +680,13 @@ const CARS = [
     color: '#eef0f3', color2: '#141a2c', color3: '#19c3e6', rim: '#e3e6ea', caliper: '#d11f2a', num: 1, body: 'modern',
     stats: { grip: 0.93, handling: 0.88 },
   },
+  {
+    // rajdowy hatchback z przełomu wieków: 2.0 turbo, 4×4, sekwencyjna 6-biegowa
+    id: 'orkan', name: 'Orkan RS', drive: '4wd', front: 0.44, mass: 1230, torque: 455, redline: 7400, idle: 900,
+    gears: [3.15, 2.22, 1.72, 1.4, 1.16, 0.97], final: 4.75, brake: 15800, bias: 0.6, hb: 6200, steer: 0.59, steerHigh: 0.155, grip: 1.0,
+    color: '#123a8c', color2: '#f2f3f5', color3: '#ff6a13', rim: '#eceef0', caliper: '#e2a21b', num: 4, body: 'edge',
+    stats: { grip: 0.9, handling: 0.82 },
+  },
 ];
 
 const TORQUE_CURVE = [[0, 0.4], [0.12, 0.45], [0.35, 0.8], [0.55, 1.0], [0.8, 0.95], [1.0, 0.78], [1.1, 0.5]];
@@ -2751,7 +2758,24 @@ const PROFILES = {
 };
 const WHEEL_X = [0.8, 3.33];
 // nowoczesny hatchback R5: bryła z loftu przekrojów (wysoki poli), wymiary zbliżone do auta klasy B
-PROFILES.modern = { L: 4.06, W: 1.84, head: [0.13, 0.7], tail: [4.03, 0.98], wing: [3.9, 1.5], plate: 2.3 };
+PROFILES.modern = {
+  L: 4.06, W: 1.84, head: [0.13, 0.7], tail: [4.03, 0.98], wing: [3.9, 1.5], plate: 2.3, res: [100, 3],
+  top: [[0, 0.5], [0.06, 0.63], [0.18, 0.73], [0.5, 0.83], [0.95, 0.9], [1.35, 0.965], [1.47, 1.0], [1.8, 1.25], [2.12, 1.425], [2.4, 1.462], [3.2, 1.452], [3.56, 1.43], [3.74, 1.37], [3.9, 1.16], [3.99, 1.0], [4.04, 0.86], [4.06, 0.7]],
+  bot: [[0, 0.36], [0.3, 0.29], [0.6, 0.265], [3.6, 0.265], [3.85, 0.3], [4.06, 0.36]],
+  belt: [[0, 0.62], [0.6, 0.86], [1.4, 0.975], [2.5, 1.0], [3.5, 1.035], [3.9, 1.0], [4.06, 0.84]],
+  roofW: [[1.4, 0.72], [2.1, 0.65], [3.3, 0.64], [3.9, 0.6]], hw: 0.85, flare: [0.075, 0.085],
+  win: [1.56, 3.6], pillars: [[2.41, 2.5]], wind: [1.5, 2.09], rear: [3.64, 3.93], doors: [1.55, 2.46, 3.22],
+};
+// Orkan RS: hatchback w stylu „New Edge” z przełomu wieków — łukowy dach, wysoka linia okien, pionowe lampy w słupku D
+PROFILES.edge = {
+  L: 4.15, W: 1.82, head: [0.2, 0.74], tail: [4.06, 1.12], wing: [3.93, 1.53], plate: 2.2, res: [180, 5],
+  top: [[0, 0.47], [0.05, 0.6], [0.16, 0.7], [0.5, 0.8], [0.95, 0.89], [1.28, 0.95], [1.38, 0.99], [1.7, 1.22], [2.0, 1.41], [2.35, 1.475], [2.9, 1.482], [3.4, 1.455], [3.72, 1.4], [3.9, 1.27], [4.02, 1.1], [4.1, 0.95], [4.14, 0.8], [4.15, 0.62]],
+  bot: [[0, 0.37], [0.3, 0.3], [0.6, 0.27], [3.6, 0.27], [3.9, 0.32], [4.15, 0.4]],
+  belt: [[0, 0.6], [0.6, 0.83], [1.35, 0.955], [2.4, 1.0], [3.3, 1.055], [3.85, 1.09], [4.15, 0.88]],
+  roofW: [[1.3, 0.72], [2.0, 0.65], [3.2, 0.64], [3.9, 0.58]], hw: 0.855, flare: [0.07, 0.08],
+  win: [1.47, 3.74], pillars: [[2.47, 2.57], [3.3, 3.38]], wind: [1.37, 1.99], rear: [3.76, 4.03], doors: [1.44, 2.52, 3.33],
+  lamp: [0.06, 0.5],
+};
 
 // interpolacja Hermite'a po punktach [s, v] — gładkie sylwetki
 function spline1d(pts) {
@@ -2774,16 +2798,13 @@ const gauss = (x, c, w) => Math.exp(-((x - c) * (x - c)) / (w * w));
 // nadwozie z przekrojów: 100 stacji × 60 punktów na obwodzie, nadkola wycięte przez podniesienie wierzchołków
 function modernBodyGeo(P) {
   const L = P.L;
-  const top = spline1d([[0, 0.5], [0.06, 0.63], [0.18, 0.73], [0.5, 0.83], [0.95, 0.9], [1.35, 0.965], [1.47, 1.0], [1.8, 1.25], [2.12, 1.425], [2.4, 1.462], [3.2, 1.452], [3.56, 1.43], [3.74, 1.37], [3.9, 1.16], [3.99, 1.0], [4.04, 0.86], [4.06, 0.7]]);
-  const bot = spline1d([[0, 0.36], [0.3, 0.29], [0.6, 0.265], [3.6, 0.265], [3.85, 0.3], [4.06, 0.36]]);
-  const belt = spline1d([[0, 0.62], [0.6, 0.86], [1.4, 0.975], [2.5, 1.0], [3.5, 1.035], [3.9, 1.0], [4.06, 0.84]]);
+  const top = spline1d(P.top), bot = spline1d(P.bot), belt = spline1d(P.belt), roofW = spline1d(P.roofW);
   const hwS = (s) => {
-    let w = 0.85 + 0.075 * gauss(s, WHEEL_X[0], 0.5) + 0.085 * gauss(s, WHEEL_X[1], 0.5);
+    let w = P.hw + P.flare[0] * gauss(s, WHEEL_X[0], 0.5) + P.flare[1] * gauss(s, WHEEL_X[1], 0.5);
     w -= 0.13 * Math.pow(Math.max(0, 1 - s / 0.32), 2) + 0.1 * Math.pow(Math.max(0, 1 - (L - s) / 0.26), 2);
     return w;
   };
-  const roofW = spline1d([[1.4, 0.72], [2.1, 0.65], [3.3, 0.64], [3.9, 0.6]]);
-  const NS = 100, SUB = 3;
+  const [NS, SUB] = P.res;
   const stations = [];
   for (let i = 0; i < NS; i++) { const u = i / (NS - 1); stations.push(L * (0.5 - 0.5 * Math.cos(Math.PI * u)) * 0.985 + L * 0.0075); }
   // połowa przekroju (prawa), 11 punktów: spód → próg → bok → linia okien → dach / maska
@@ -2852,9 +2873,9 @@ function modernBodyGeo(P) {
 }
 
 // płat skrzydła (profil lotniczy) wyciągnięty na szerokość
-function airfoilGeo(chord, thick, span) {
+function airfoilGeo(chord, thick, span, n = 16) {
   const sh = new THREE.Shape();
-  const n = 16, up = [], lo = [];
+  const up = [], lo = [];
   for (let i = 0; i <= n; i++) {
     const x = i / n, yt = 5 * thick * (0.2969 * Math.sqrt(x) - 0.126 * x - 0.3516 * x * x + 0.2843 * x ** 3 - 0.1015 * x ** 4);
     const camber = 0.06 * x * (1 - x) * 2;
@@ -2880,6 +2901,13 @@ function liveryTexture(cfg) {
       g.fillStyle = cfg.color2; g.fillRect(0, h * 0.52, w, h * 0.48);
       g.fillStyle = '#d8232a'; g.fillRect(0, h * 0.46, w, h * 0.07);
       g.fillStyle = '#d8232a'; g.beginPath(); g.moveTo(w * 0.62, h * 0.46); g.lineTo(w * 0.8, h * 0.46); g.lineTo(w * 0.7, h * 0.05); g.lineTo(w * 0.62, h * 0.05); g.fill();
+    } else if (cfg.id === 'orkan') {
+      g.fillStyle = cfg.color2;
+      g.beginPath(); g.moveTo(0, h * 0.62); g.bezierCurveTo(w * 0.3, h * 0.66, w * 0.55, h * 0.3, w * 1.02, h * 0.2); g.lineTo(w * 1.02, h * 0.42);
+      g.bezierCurveTo(w * 0.6, h * 0.5, w * 0.34, h * 0.86, 0, h * 0.86); g.closePath(); g.fill();
+      g.strokeStyle = cfg.color3; g.lineWidth = 10;
+      g.beginPath(); g.moveTo(0, h * 0.58); g.bezierCurveTo(w * 0.3, h * 0.62, w * 0.55, h * 0.26, w * 1.02, h * 0.15); g.stroke();
+      g.lineWidth = 4; g.beginPath(); g.moveTo(0, h * 0.9); g.bezierCurveTo(w * 0.34, h * 0.9, w * 0.6, h * 0.55, w * 1.02, h * 0.47); g.stroke();
     } else if (cfg.id === 'pulso') {
       // grafitowo-biała z ostrymi klinami w kolorze akcentu
       g.fillStyle = cfg.color2; g.beginPath(); g.moveTo(0, h * 0.55); g.lineTo(w * 0.58, h * 0.55); g.lineTo(w * 0.78, h); g.lineTo(0, h); g.fill();
@@ -2945,7 +2973,7 @@ class CarModel {
     const tailMat = new THREE.MeshBasicNodeMaterial(); tailMat.colorNode = T.vec3(1.0, 0.06, 0.04).mul(this.uBrake);
     let paint, liv, glass, roofMat, numMat;
     const extra = [];
-    if (cfg.body === 'modern') {
+    if (cfg.body === 'modern' || cfg.body === 'edge') {
       ({ paint, liv, glass, roofMat, numMat } = this.buildModern(cfg, P, black, headMat, tailMat, extra));
     } else {
     // --- nadwozie
@@ -3094,9 +3122,9 @@ class CarModel {
     // --- koła
     const tireMat = new THREE.MeshStandardNodeMaterial({ color: '#141414', roughness: 0.92 });
     const rimMat = new THREE.MeshStandardNodeMaterial({ color: cfg.rim, roughness: 0.3, metalness: 0.85 });
-    const tireGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.235, 22).rotateZ(Math.PI / 2);
-    const modern = cfg.body === 'modern';
-    const rimGeo = modern ? new THREE.CylinderGeometry(0.225, 0.225, 0.245, 32, 1, true).rotateZ(Math.PI / 2) : new THREE.CylinderGeometry(0.215, 0.215, 0.245, 14).rotateZ(Math.PI / 2);
+    const tireGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.235, cfg.body === 'edge' ? 64 : 22, cfg.body === 'edge' ? 3 : 1).rotateZ(Math.PI / 2);
+    const modern = cfg.body === 'modern' || cfg.body === 'edge', hi = cfg.body === 'edge';
+    const rimGeo = modern ? new THREE.CylinderGeometry(0.225, 0.225, 0.245, hi ? 64 : 32, 1, true).rotateZ(Math.PI / 2) : new THREE.CylinderGeometry(0.215, 0.215, 0.245, 14).rotateZ(Math.PI / 2);
     const nSp = modern ? 10 : 5;
     const spokesFor = (s) => mergeColored(Array.from({ length: nSp }, (_, k) => ({ geo: (modern ? new THREE.BoxGeometry(0.02, 0.21, 0.034).translate(0, 0.11, 0) : new THREE.BoxGeometry(0.03, 0.4, 0.05)).rotateX(k / nSp * Math.PI * (modern ? 2 : 1)).translate(s * 0.125, 0, 0), color: col(modern ? cfg.rim : '#15171a') })));
     const spokeGeos = { '-1': spokesFor(-1), '1': spokesFor(1) };
@@ -3104,7 +3132,7 @@ class CarModel {
     spokeMat.colorNode = T.attribute('color', 'vec3');
     const discMat = new THREE.MeshStandardNodeMaterial({ color: '#8a8d92', roughness: 0.45, metalness: 0.9 });
     const calMat = new THREE.MeshStandardNodeMaterial({ color: cfg.caliper || '#c8201e', roughness: 0.4, metalness: 0.3 });
-    const discGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.028, 28).rotateZ(Math.PI / 2);
+    const discGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.028, hi ? 48 : 28).rotateZ(Math.PI / 2);
     const calGeo = new THREE.BoxGeometry(0.05, 0.12, 0.09);
     this.wheels = WHEEL_POS.map(([x, z], i) => {
       const pivot = new THREE.Group(); pivot.position.set(x, -0.15, z);
@@ -3127,24 +3155,36 @@ class CarModel {
   // nowoczesne nadwozie R5: jedna gładka bryła z szybami, uszczelkami i liniami drzwi liczonymi w shaderze
   buildModern(cfg, P, black, headMat, tailMat, extra) {
     const { geo, hwS, top, belt } = modernBodyGeo(P);
+    this.tris = geo.index.count / 3;
     const livery = liveryTexture(cfg); this.textures.push(livery);
     const sq = T.attribute('sq', 'vec2'), s = sq.x, q = sq.y;
     const band = (v, a, b, e = 0.012) => T.smoothstep(a - e, a + e, v).mul(T.float(1).sub(T.smoothstep(b - e, b + e, v)));
-    const sideWin = band(q, 7.14, 7.9, 0.02).mul(band(s, 1.56, 3.6)).mul(T.float(1).sub(band(s, 2.41, 2.5)));
-    const wind = T.smoothstep(8.26, 8.34, q).mul(band(s, 1.5, 2.09));
-    const rear = T.smoothstep(8.26, 8.34, q).mul(band(s, 3.64, 3.93));
+    let sideWin = band(q, 7.14, 7.9, 0.02).mul(band(s, P.win[0], P.win[1]));
+    for (const [a, b] of P.pillars) sideWin = sideWin.mul(T.float(1).sub(band(s, a, b)));
+    const wind = T.smoothstep(8.26, 8.34, q).mul(band(s, P.wind[0], P.wind[1]));
+    const rear = T.smoothstep(8.26, 8.34, q).mul(band(s, P.rear[0], P.rear[1]));
     const glassK = T.max(sideWin, T.max(wind, rear));
-    const trimK = T.max(band(q, 7.02, 7.98, 0.02).mul(band(s, 1.52, 3.64)), T.smoothstep(8.12, 8.2, q).mul(T.max(band(s, 1.46, 2.12), band(s, 3.6, 3.96)))).sub(glassK).clamp(0, 1);
-    const doorK = band(q, 2.2, 6.95, 0.02).mul(T.max(band(s, 1.545, 1.555, 0.002), T.max(band(s, 2.455, 2.465, 0.002), band(s, 3.215, 3.225, 0.002))));
+    const trimK = T.max(band(q, 7.02, 7.98, 0.02).mul(band(s, P.win[0] - 0.04, P.win[1] + 0.04)), T.smoothstep(8.12, 8.2, q).mul(T.max(band(s, P.wind[0] - 0.04, P.wind[1] + 0.03), band(s, P.rear[0] - 0.04, P.rear[1] + 0.03)))).sub(glassK).clamp(0, 1);
+    let doorK = T.float(0);
+    for (const d of P.doors) doorK = T.max(doorK, band(s, d - 0.005, d + 0.005, 0.002));
+    doorK = doorK.mul(band(q, 2.2, 6.95, 0.02));
+    // reflektory wtopione w bryłę (klin od narożnika w stronę błotnika)
+    let lampK = T.float(0);
+    if (P.lamp) {
+      const u = s.sub(P.lamp[0]).div(P.lamp[1] - P.lamp[0]);
+      lampK = band(s, P.lamp[0], P.lamp[1], 0.01).mul(T.smoothstep(5.55, 5.65, q)).mul(T.float(1).sub(T.smoothstep(T.mix(T.float(7.5), T.float(6.25), u), T.mix(T.float(7.58), T.float(6.33), u), q)));
+    }
     const sideK = T.smoothstep(0.55, 0.8, T.abs(T.normalGeometry.x));
     const paintCol = T.uniform(col(cfg.color));
     const base = T.mix(paintCol, T.texture(livery, T.uv()).rgb, sideK);
     let c = dirtyColor(base, this.uDirt, this.uDirtCol);
     c = T.mix(c, T.vec3(0.03, 0.035, 0.04), T.max(trimK, doorK.mul(0.85)));
     c = T.mix(c, T.vec3(0.035, 0.05, 0.06), glassK);
+    c = T.mix(c, T.vec3(0.72, 0.74, 0.76), lampK);
     const mat = new THREE.MeshPhysicalNodeMaterial({ roughness: 0.3, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.06 });
     mat.colorNode = c;
-    mat.roughnessNode = T.mix(T.mix(T.float(0.3), T.float(0.6), trimK), T.float(0.04), glassK);
+    if (P.lamp) mat.emissiveNode = T.vec3(1.0, 0.96, 0.88).mul(lampK).mul(this.uHead).mul(0.55);
+    mat.roughnessNode = T.mix(T.mix(T.float(0.3), T.float(0.6), trimK), T.float(0.04), T.max(glassK, lampK));
     mat.metalnessNode = T.mix(T.float(0.2), T.float(0.45), glassK);
     const body = new THREE.Mesh(geo, mat);
     body.castShadow = true; body.receiveShadow = true;
@@ -3155,37 +3195,56 @@ class CarModel {
     const carbon = new THREE.MeshPhysicalNodeMaterial({ color: '#16181b', roughness: 0.38, metalness: 0.3, clearcoat: 0.6 });
     extra.push(mat, paintMat, carbon);
     const add = (g, m, x, y, z, ry = 0, rx = 0, rz = 0) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); this.group.add(o); return o; };
-    // przód: splitter, wloty, grill, LED-y
-    add(new THREE.BoxGeometry(1.66, 0.03, 0.3), carbon, 0, Y(0.3), Z(0.12)).castShadow = true;
-    add(new THREE.BoxGeometry(1.08, 0.13, 0.08, 1, 1, 1), black, 0, Y(0.42), Z(0.03));
-    for (const sx of [-1, 1]) add(new THREE.BoxGeometry(0.26, 0.15, 0.06), black, sx * 0.64, Y(0.42), Z(0.06), sx * 0.3);
-    add(new THREE.BoxGeometry(0.84, 0.05, 0.04), black, 0, Y(0.6), Z(0.075), 0, -0.4);
+    const edge = cfg.body === 'edge';
+    // przód: splitter, wloty, grill, światła
+    add(new THREE.BoxGeometry(1.66, 0.03, 0.3, 8, 1, 4), carbon, 0, Y(0.3), Z(0.12)).castShadow = true;
+    if (edge) {
+      // duży centralny wlot, okrągłe halogeny w zderzaku, żaluzje na masce
+      add(new THREE.CapsuleGeometry(0.1, 0.72, 8, 24).rotateZ(Math.PI / 2).scale(1, 0.9, 0.5), black, 0, Y(0.45), Z(0.035));
+      add(new THREE.BoxGeometry(0.62, 0.07, 0.04, 6, 1, 1), black, 0, Y(0.64), Z(0.08), 0, -0.45);
+      for (const sx of [-1, 1]) {
+        const ring = add(new THREE.TorusGeometry(0.075, 0.018, 12, 40), carbon, sx * 0.6, Y(0.47), Z(0.06), sx * 0.25);
+        ring.castShadow = false;
+        add(new THREE.CircleGeometry(0.075, 40), headMat, sx * 0.6, Y(0.47), Z(0.058), Math.PI + sx * 0.25);
+        for (let k = 0; k < 5; k++) add(new THREE.BoxGeometry(0.26, 0.012, 0.035), black, sx * 0.3, Y(top(0.72 + k * 0.06) + 0.004), Z(0.72 + k * 0.06), 0, -0.22);
+        // pionowe lampy w słupku D
+        const tl = add(new THREE.CapsuleGeometry(0.035, 0.34, 8, 20).scale(1, 1, 0.55), tailMat, sx * (hwS(4.03) - 0.1), Y(P.tail[1]), Z(P.tail[0]), 0, -0.52);
+        tl.rotation.z = sx * 0.06;
+      }
+    } else {
+      add(new THREE.BoxGeometry(1.08, 0.13, 0.08, 1, 1, 1), black, 0, Y(0.42), Z(0.03));
+      for (const sx of [-1, 1]) add(new THREE.BoxGeometry(0.26, 0.15, 0.06), black, sx * 0.64, Y(0.42), Z(0.06), sx * 0.3);
+      add(new THREE.BoxGeometry(0.84, 0.05, 0.04), black, 0, Y(0.6), Z(0.075), 0, -0.4);
+    }
     for (const sx of [-1, 1]) {
-      add(new THREE.BoxGeometry(0.38, 0.055, 0.05), headMat, sx * 0.55, Y(P.head[1]), Z(P.head[0]), sx * 0.42, -0.25);
-      add(new THREE.BoxGeometry(0.16, 0.02, 0.03), headMat, sx * 0.42, Y(0.52), Z(0.05), sx * 0.2);
-      // tył: cienkie lampy + listwa świetlna
-      add(new THREE.BoxGeometry(0.34, 0.06, 0.04), tailMat, sx * 0.6, Y(P.tail[1]), Z(P.tail[0]), -sx * 0.35);
+      if (!edge) {
+        add(new THREE.BoxGeometry(0.38, 0.055, 0.05), headMat, sx * 0.55, Y(P.head[1]), Z(P.head[0]), sx * 0.42, -0.25);
+        add(new THREE.BoxGeometry(0.16, 0.02, 0.03), headMat, sx * 0.42, Y(0.52), Z(0.05), sx * 0.2);
+        // tył: cienkie lampy
+        add(new THREE.BoxGeometry(0.34, 0.06, 0.04), tailMat, sx * 0.6, Y(P.tail[1]), Z(P.tail[0]), -sx * 0.35);
+      }
       // lusterka
       const hw = hwS(1.62);
-      add(new THREE.SphereGeometry(1, 16, 10).scale(0.11, 0.065, 0.085), paintMat, sx * (hw + 0.02), Y(belt(1.62) + 0.1), Z(1.62)).castShadow = true;
+      const seg = edge ? [40, 24] : [16, 10];
+      add(new THREE.SphereGeometry(1, seg[0], seg[1]).scale(0.11, 0.065, 0.085), paintMat, sx * (hw + 0.02), Y(belt(1.62) + 0.1), Z(1.62)).castShadow = true;
       add(new THREE.BoxGeometry(0.1, 0.02, 0.04), black, sx * (hw - 0.04), Y(belt(1.62) + 0.07), Z(1.64));
       // chlapacze i progi
       add(new THREE.BoxGeometry(0.035, 0.07, 1.5), carbon, sx * (hwS(2.1) - 0.005), Y(0.3), Z(2.07));
       // numery na drzwiach
     }
-    add(new THREE.BoxGeometry(1.0, 0.02, 0.03), tailMat, 0, Y(P.tail[1] - 0.04), Z(4.045));
-    add(new THREE.BoxGeometry(1.5, 0.12, 0.08), black, 0, Y(0.4), Z(4.02));
-    add(new THREE.CylinderGeometry(0.045, 0.045, 0.12, 14).rotateX(Math.PI / 2), black, 0.45, Y(0.33), Z(4.05));
-    // skrzydło: płat, płetwy boczne, dwa mocowania „łabędzia szyja"
-    const span = 1.62;
-    const wing = add(airfoilGeo(0.36, 0.12, span), carbon, 0, Y(P.wing[1]), Z(P.wing[0]) - 0.18); wing.castShadow = true;
+    if (!edge) add(new THREE.BoxGeometry(1.0, 0.02, 0.03), tailMat, 0, Y(P.tail[1] - 0.04), Z(4.045));
+    add(new THREE.BoxGeometry(1.5, 0.12, 0.08, 6, 1, 1), black, 0, Y(0.4), Z(P.L - 0.04));
+    add(new THREE.CylinderGeometry(0.045, 0.045, 0.12, edge ? 40 : 14).rotateX(Math.PI / 2), black, 0.45, Y(0.34), Z(P.L - 0.01));
+    // skrzydło: płat, płetwy boczne, mocowania
+    const span = edge ? 1.7 : 1.62;
+    const wing = add(airfoilGeo(edge ? 0.42 : 0.36, 0.12, span, edge ? 40 : 16), carbon, 0, Y(P.wing[1]), Z(P.wing[0]) - 0.18); wing.castShadow = true;
     for (const sx of [-1, 1]) {
-      add(new THREE.BoxGeometry(0.012, 0.2, 0.42), carbon, sx * span / 2, Y(P.wing[1]) - 0.02, Z(P.wing[0]) - 0.02);
+      add(new THREE.BoxGeometry(0.012, edge ? 0.26 : 0.2, edge ? 0.5 : 0.42), carbon, sx * span / 2, Y(P.wing[1]) - 0.02, Z(P.wing[0]) - 0.02);
       add(new THREE.BoxGeometry(0.025, 0.2, 0.12), carbon, sx * 0.34, Y(P.wing[1]) - 0.1, Z(P.wing[0]) - 0.02, 0, -0.5);
     }
     add(new THREE.BoxGeometry(1.2, 0.025, 0.12), paintMat, 0, Y(top(3.72) + 0.012), Z(3.72), 0, 0.3);
     // wlot na dachu i antena
-    add(new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.19, 0.06, 0.28), paintMat, 0, Y(top(2.35)), Z(2.35));
+    add(new THREE.SphereGeometry(1, edge ? 48 : 20, edge ? 16 : 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(edge ? 0.22 : 0.19, 0.065, edge ? 0.34 : 0.28), paintMat, 0, Y(top(edge ? 2.25 : 2.35)), Z(edge ? 2.25 : 2.35));
     add(new THREE.CylinderGeometry(0.006, 0.01, 0.22, 6), black, 0, Y(top(3.0) + 0.11), Z(3.0), 0, -0.3);
     // numery startowe na drzwiach przednich
     const numTex = numberTexture(cfg.num, cfg.color3 || cfg.color); this.textures.push(numTex);
