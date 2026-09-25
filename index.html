@@ -3147,6 +3147,13 @@ class FX {
     this.clear();
   }
   clear() { this.smoke.clear(); this.glow.clear(); this.skids.reset(); }
+  dispose() {
+    for (const m of [this.smoke.mesh, this.glow.mesh, this.skids.mesh, this.weather && this.weather.mesh]) {
+      if (!m) continue;
+      this.scene.remove(m); m.geometry.dispose(); m.material.dispose(); m.dispose?.();
+    }
+    this.weather = null;
+  }
   // przed kompilacją: każdy materiał efektu musi być „widoczny", żeby shader nie kompilował się w trakcie jazdy
   prewarm(on) {
     for (const m of [this.smoke.mesh, this.glow.mesh, this.skids.mesh]) m.count = on ? 1 : 0;
@@ -4500,7 +4507,10 @@ async function loadStage(sel, force = false, quiet = false) {
   scene.add(game.world.group);
   applyLook(def);
   setupFog(def);
-  if (!game.fx) game.fx = new FX(scene, st); else game.fx.setStage(st);
+  if (!game.fx || game.fxRebuild) {
+    if (game.fx) game.fx.dispose();
+    game.fx = new FX(scene, st); game.fxRebuild = false;
+  } else game.fx.setStage(st);
   updateEnv(st);
   setupCar(game.sel.car);
   game.stageKey = key;
@@ -4510,6 +4520,7 @@ async function loadStage(sel, force = false, quiet = false) {
   game.fx.prewarm(true);
   try { await renderer.compileAsync(scene, camera); } catch (e) { console.warn(e); }
   game.fx.prewarm(false);
+  if (token !== game.loadToken) return false; // w międzyczasie ruszyło nowsze ładowanie — ono dokończy HUD i wskaźnik
   UI.setStageHud(st, `${def.code} · ${def.name}`);
   show(false);
   if (game.state === 'menu' && Menu.screen === 'garage') parkCar();
@@ -4546,6 +4557,7 @@ function enterMenu(screen = 'title') {
 }
 
 async function startGo(mode) {
+  clearTimeout(game.previewT); // start ma pierwszeństwo przed podglądem z karuzeli
   sound.init();
   codriver.prime();
   if (mode === 'rally') {
@@ -4700,7 +4712,7 @@ function replayUpdate(dt) {
   curQuat.set(a[3], a[4], a[5], a[6]).slerp(prevQuat.set(b[3], b[4], b[5], b[6]), k);
   car.q[0] = curQuat.x; car.q[1] = curQuat.y; car.q[2] = curQuat.z; car.q[3] = curQuat.w;
   car.updateBasis();
-  car.steerAngle = a[7]; car.rpm = a[8] + (b[8] - a[8]) * k; car.speed = a[10];
+  car.steerAngle = a[7]; car.rpm = a[8] + (b[8] - a[8]) * k; car.speed = a[10] + (b[10] - a[10]) * k;
   car.gear = a[16]; car.idx = a[15]; car.damage = a[17];
   car.vel[0] = (b[0] - a[0]) * 30; car.vel[1] = (b[1] - a[1]) * 30; car.vel[2] = (b[2] - a[2]) * 30;
   const st = game.stage, v = [0, 0, 0];
@@ -4787,6 +4799,8 @@ function simulate(dt, getInput, rules) {
     prevPos.copy(curPos); prevQuat.copy(curQuat);
     const inp = getInput();
     car.step(PHYS_DT, inp, st);
+    // zmiana biegu to zdarzenie jednorazowe — nie może trafić do kolejnych kroków tej samej klatki
+    if (inp.shiftUp || inp.shiftDown) { inp.shiftUp = false; inp.shiftDown = false; }
     const hit = st.collide(car);
     if (hit) onImpact(hit);
     st.track(car);
@@ -5169,7 +5183,7 @@ const handlers = {
     perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale);
     makeSun();
     sky.visible = true;
-    if (game.fx) { for (const m of [game.fx.smoke.mesh, game.fx.glow.mesh, game.fx.skids.mesh, game.fx.weather && game.fx.weather.mesh]) if (m) scene.remove(m); game.fx = null; }
+    game.fxRebuild = true; // nowe pule cząstek dopiero w loadStage — bez „dziury" w trakcie ładowania
     setupPipeline();
     const ok = await loadStage(game.sel, true);
     if (ok) enterMenu('opts');
@@ -5253,7 +5267,7 @@ async function boot() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
   last = performance.now();
   renderer.setAnimationLoop(frame);
-  globalThis.__szuter = { game, sound, settings }; // uchwyt do diagnostyki z konsoli
+  globalThis.__szuter = { game, sound, settings, Menu, input, codriver }; // uchwyt do diagnostyki i testów E2E
 }
 
 boot();
