@@ -1,5 +1,5 @@
 // Service worker Szuter Rally: gra działa offline po pierwszym uruchomieniu.
-const VERSION = 'szuter-a2c844e31d';
+const VERSION = 'szuter-ffc395989f';
 const FILES = ["./", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./index.html", "./manifest.webmanifest", "./vendor/LICENSES.txt", "./vendor/addons/csm/CSMFrustum.js", "./vendor/addons/csm/CSMShadowNode.js", "./vendor/addons/tsl/display/BloomNode.js", "./vendor/addons/tsl/display/ChromaticAberrationNode.js", "./vendor/addons/tsl/display/FilmNode.js", "./vendor/addons/tsl/display/MotionBlur.js", "./vendor/addons/tsl/display/SSAONode.js", "./vendor/addons/tsl/display/depthAwareBlur.js", "./vendor/fonts/MartianMono-normal-latin-ext.woff2", "./vendor/fonts/MartianMono-normal-latin.woff2", "./vendor/fonts/Saira-italic-latin-ext.woff2", "./vendor/fonts/Saira-italic-latin.woff2", "./vendor/fonts/Saira-normal-latin-ext.woff2", "./vendor/fonts/Saira-normal-latin.woff2", "./vendor/fonts/fonts.css", "./vendor/three.core.js", "./vendor/three.tsl.min.js", "./vendor/three.webgpu.min.js"];
 const FONTS = 'szuter-fonts';
 
