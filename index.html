@@ -241,7 +241,9 @@ body.touch .tile svg{width:50px;height:50px}
 body.touch .tile b{font-size:13px}
 body.touch .tile.next{width:60px}
 body.touch .tile.next svg{width:34px;height:34px}
-body.touch #tacho{width:100px;height:100px;left:50%;right:auto;top:auto;bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) - 6px);transform:translateX(-50%)}
+body.touch #tacho{display:none}
+#mini{display:none}
+body.touch #mini{display:block;position:absolute;left:50%;bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 4px);transform:translateX(-50%);width:240px;height:30px;pointer-events:none}
 body.touch .rail{bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 36px);left:calc(var(--sal,env(safe-area-inset-left,0px)) + 12px)}
 body.touch .hudbtn{width:40px;height:40px;top:calc(var(--sat,env(safe-area-inset-top,0px)) + 70px)}
 body.touch .hudbtn{width:48px;height:48px}
@@ -387,6 +389,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
         <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button><button data-v="supreme">SUPREME</button></div></div>
+        <div class="opt"><label>Antyaliasing<small id="optAaNote">FXAA: wygładza krawędzie i migotanie, prawie za darmo</small></label><div class="seg" id="optAa"><button data-v="fxaa">FXAA</button><button data-v="max">MAKS</button></div></div>
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
@@ -420,6 +423,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
   <button class="hudbtn" id="btnCam" type="button" aria-label="Kamera">CAM</button>
   <button class="hudbtn" id="btnReset" type="button" aria-label="Powrót na trasę">↺</button>
   <canvas id="tacho" width="420" height="420"></canvas>
+  <canvas id="mini" width="480" height="60"></canvas>
   <div id="banner"></div>
   <div id="perf" hidden></div>
   <div id="toast"></div>
@@ -484,6 +488,7 @@ import { ssao } from 'three/addons/tsl/display/SSAONode.js';
 import { motionBlur } from 'three/addons/tsl/display/MotionBlur.js';
 import { chromaticAberration } from 'three/addons/tsl/display/ChromaticAberrationNode.js';
 import { film } from 'three/addons/tsl/display/FilmNode.js';
+import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -1944,7 +1949,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7 },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fxaa' },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -1965,13 +1970,13 @@ const QUALITY = {
     smoke: 650, glow: 200, skids: 1400, litDust: true, emit: 0.7, snow: 800, mist: 40, fogK: 0.92, bakeSky: IS_TOUCH, beams: 2, ripple: true,
   },
   high: {
-    dprTouch: 2.5, dpr: 1.75, minScale: 0.8, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true, csm: true, cascades: 3, csmFar: 260,
+    dprTouch: 2.5, dpr: 1.75, minScale: 0.8, pipeline: true, bloom: true, samples: 0, shadowMap: 2048, softShadows: true, csm: true, cascades: 3, csmFar: 260,
     treeShadows: true, rockShadows: true, block: 1, lodNear: 75, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
     smoke: 1100, glow: 260, skids: 2400, litDust: true, emit: 1, snow: 1400, mist: 70, fogK: 1, bakeSky: false, beams: 3, ripple: true,
   },
   // wszystko na maksa + efekty tylko dla tego poziomu (komputer z mocną kartą)
   supreme: {
-    dprTouch: 3, dpr: 2, minScale: 0.9, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true,
+    dprTouch: 3, dpr: 2, minScale: 0.9, pipeline: true, bloom: true, samples: 0, shadowMap: 2048, softShadows: true,
     treeShadows: true, rockShadows: true, block: 1, lodNear: 120, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
     smoke: 2200, glow: 420, skids: 4000, litDust: true, emit: 1.35, snow: 2600, mist: 110, fogK: 1.15, bakeSky: false, beams: 3, ripple: true,
     supreme: true, csm: true, cascades: 4, csmFar: 420, grass: true, heightFog: true, cones: true, flare: true,
@@ -2181,6 +2186,7 @@ function vcMaterial({ rough = 0.9, metal = 0, sway = 0, bounce = 0, side = THREE
 // słownik całych tekstów + reguły dla tekstów złożonych, tłumaczenie po kawałkach rozdzielonych „ · ”.
 // Obserwator DOM tłumaczy każdy tekst, który pojawi się lub zmieni na ekranie.
 // ============================================================
+if (settings.aa !== 'fxaa' && settings.aa !== 'max') settings.aa = 'fxaa';
 if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en';
 const EN = {
   // nazwa i ekran tytułowy
@@ -2215,6 +2221,8 @@ const EN = {
   'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna': 'Supreme: cascaded shadows, SSAO, motion blur, grass, valley fog, lens flare — strong GPU',
   'Licznik klatek': 'Frame counter', 'FPS, rozdzielczość i obciążenie w rogu ekranu': 'FPS, resolution and load in the corner', 'Głośność': 'Volume',
   'Język': 'Language', 'Język interfejsu i pilota': 'Interface and co-driver language',
+  'Antyaliasing': 'Anti-aliasing', 'MAKS': 'MAX', 'FXAA: wygładza krawędzie i migotanie, prawie za darmo': 'FXAA: smooths edges and shimmer, almost free',
+  'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu': 'Max: FXAA and higher resolution on phones — prettiest, uses more battery',
   'Symulacja: czysta fizyka, pełne poślizgi i dachowania': 'Simulation: pure physics, full slides and rollovers',
   // jazda, pauza, wyniki
   'Czas OS': 'Stage time', 'Pauza': 'Pause', 'Wróć': 'Resume', 'Od nowa': 'Restart', 'Menu': 'Menu', 'Meta': 'Finish', 'Kamera': 'Camera',
@@ -4506,7 +4514,7 @@ function vignette(rgb, k = 0.38) {
 }
 
 function makeHighChain(scene, camera, q) {
-  const scenePass = T.pass(scene, camera, { samples: q.samples });
+  const scenePass = T.pass(scene, camera, { samples: 0 });
   const color = scenePass.getTextureNode('output');
   let out = color, bloomNode = null;
   if (q.bloom) { bloomNode = bloom(color, 0.25, 0.4, 1.0); out = color.add(bloomNode); }
@@ -4540,7 +4548,7 @@ function makeSupremeChain(scene, camera) {
   // SSAO przyciemnia światło otoczenia w zakamarkach (pod drzewami, wokół kół, w rowach)
   const aoPass = ssao(preDepth, preNormal, camera);
   aoPass.radius.value = 1.4; aoPass.intensity.value = 1.15; aoPass.samples.value = 16;
-  const scenePass = T.pass(scene, camera, { samples: 4 });
+  const scenePass = T.pass(scene, camera, { samples: 0 });
   scenePass.contextNode = T.builtinAOContext(aoPass.getTextureNode().sample(T.screenUV).r);
   const color = scenePass.getTextureNode('output');
   const bloomNode = bloom(color, 0.3, 0.45, 0.98);
@@ -5206,10 +5214,36 @@ function drawProfile(canvas, p, ink, w, h) {
   g.fillText(`↕ ${Math.round(p.maxY - p.minY)} m`, 2, 0);
 }
 
+// telefon: zamiast tarczy wąski pasek przy dolnej krawędzi — prędkość, diody zmiany biegu, bieg (kolor akcentu z licznika auta)
+class MiniGauge {
+  constructor(canvas) { this.c = canvas; this.g = canvas.getContext('2d'); this.blink = 0; }
+  draw(rpm, redline, kmh, gear, limiter, style) {
+    const g = this.g, W = this.c.width, H = this.c.height;
+    const acc = style === 'retro' ? '#ffb020' : style === 'r5' ? '#f4f6f8' : (GAUGES[style] || GAUGES.dial).needle;
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = 'rgba(10,13,11,0.55)'; g.beginPath(); g.roundRect(0, 0, W, H, H / 2); g.fill();
+    g.textBaseline = 'middle';
+    g.fillStyle = '#f2efe6'; g.textAlign = 'right'; g.font = `500 ${H * 0.56}px "Martian Mono", monospace`;
+    g.fillText(String(Math.round(kmh)), W * 0.2, H * 0.52);
+    g.font = `600 ${H * 0.24}px "Martian Mono", monospace`; g.fillStyle = 'rgba(242,239,230,0.65)'; g.textAlign = 'left';
+    g.fillText('km/h', W * 0.215, H * 0.56);
+    const frac = rpm / redline; this.blink = (this.blink + 1) % 8;
+    for (let i = 0; i < 10; i++) {
+      const on = limiter ? this.blink < 4 : frac > 0.55 + i * 0.045;
+      const c = limiter ? '#ff3b2f' : i < 4 ? '#35e05a' : i < 7 ? '#ffd21e' : i < 9 ? '#ff3b2f' : '#3d8bff';
+      g.fillStyle = on ? c : 'rgba(255,255,255,0.12)';
+      g.beginPath(); g.arc(W * (0.38 + i * 0.043), H / 2, H * 0.13, 0, Math.PI * 2); g.fill();
+    }
+    g.fillStyle = acc; g.textAlign = 'center'; g.font = `italic 900 ${H * 0.78}px Saira, sans-serif`;
+    g.fillText(gear === -1 ? 'R' : gear === 0 ? 'N' : String(gear), W * 0.9, H * 0.54);
+  }
+}
+
 const UI = {
   init(handlers) {
     this.h = handlers;
     this.tacho = new Tacho($('tacho'));
+    this.mini = new MiniGauge($('mini'));
     // opcje
     const seg = (id, key, conv, apply) => {
       const box = $(id);
@@ -5232,6 +5266,10 @@ const UI = {
     setQNote();
     seg('optQuality', 'quality', id, () => { setQNote(); this.h.qualityChanged(); });
     seg('optPerf', 'perf', (v) => v === '1', () => { $('perf').hidden = !settings.perf; });
+    const aaNote = { fxaa: 'FXAA: wygładza krawędzie i migotanie, prawie za darmo', max: 'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu' };
+    const setAaNote = () => { $('optAaNote').textContent = aaNote[settings.aa] || aaNote.fxaa; };
+    setAaNote();
+    seg('optAa', 'aa', id, () => { setAaNote(); this.h.aaChanged(); });
     $('perf').hidden = !settings.perf;
     if (IS_TOUCH) {
       $('optTouchRow').hidden = false;
@@ -5320,7 +5358,7 @@ const UI = {
       if (c.me !== me) { c.me = me; $('rMe').style.top = me; }
       if (c.ld !== ld) { c.ld = ld; $('rLead').style.top = ld; }
     }
-    if (now - this.tachoT >= 33) { this.tachoT = now; this.tacho.draw(d.rpm, d.redline, d.kmh, d.gear, d.limiter, d.gauge); }
+    if (now - this.tachoT >= 33) { this.tachoT = now; (document.body.classList.contains('touch') ? this.mini : this.tacho).draw(d.rpm, d.redline, d.kmh, d.gear, d.limiter, d.gauge); }
   },
   split(text, delta) {
     const box = $('hSplit');
@@ -5669,7 +5707,8 @@ const prevPos = new THREE.Vector3(), prevQuat = new THREE.Quaternion(), curPos =
 const renderPos = new THREE.Vector3(), renderQuat = new THREE.Quaternion();
 let physAcc = 0, alpha = 0;
 
-const pixelRatio = () => Math.min(devicePixelRatio || 1, IS_TOUCH ? Q().dprTouch : Q().dpr);
+// MAKS: telefon rysuje w wyższej rozdzielczości (bliżej natywnej), komputer co najmniej 2×
+const pixelRatio = () => Math.min(devicePixelRatio || 1, settings.aa === 'max' ? (IS_TOUCH ? Math.max(Q().dprTouch, 2.6) : Math.max(Q().dpr, 2)) : (IS_TOUCH ? Q().dprTouch : Q().dpr));
 const PORTRAIT = typeof matchMedia !== 'undefined' ? matchMedia('(orientation: portrait)') : null;
 let wakeLock = null;
 async function keepAwake(on) {
@@ -5682,16 +5721,25 @@ async function keepAwake(on) {
 function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
   pipeline = null; bloomNode = null;
-  const q = Q();
-  // niższe profile: bez post-processingu — render prosto na ekran (MSAA z renderera jest na GPU Apple prawie darmowe)
-  if (!q.pipeline) return;
+  const q = Q(), aa = true;
   pipeline = new THREE.RenderPipeline(renderer);
   let chain;
-  try { chain = q.supreme ? makeSupremeChain(scene, camera) : makeHighChain(scene, camera, q); }
-  catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high); }
-  pipeline.outputNode = chain.output;
-  pipeline.outputColorTransform = chain.colorTransform;
-  bloomNode = chain.bloomNode;
+  if (!q.pipeline) {
+    const sp = T.pass(scene, camera, { samples: 0 });
+    chain = { output: sp.getTextureNode('output'), colorTransform: true };
+  } else {
+    try { chain = q.supreme ? makeSupremeChain(scene, camera) : makeHighChain(scene, camera, q); }
+    catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high); }
+  }
+  if (aa) {
+    // FXAA na obrazie po mapowaniu tonów, w sRGB — wygładza drobne krawędzie (pnie, słupki, liście), których MSAA nie łapie
+    pipeline.outputNode = fxaa(chain.colorTransform ? T.renderOutput(chain.output) : chain.output);
+    pipeline.outputColorTransform = false;
+  } else {
+    pipeline.outputNode = chain.output;
+    pipeline.outputColorTransform = chain.colorTransform;
+  }
+  bloomNode = chain.bloomNode || null;
 }
 
 // słońce: przy zmianie jakości tworzone od nowa (CSM i zwykły cień nie przełączają się na tym samym świetle)
@@ -6518,7 +6566,7 @@ function adaptResolution(dt, now) {
   if (perf.t < 1.2 || window.SZUTER_NOADAPT) return;
   perf.t = 0;
   if (game.state === 'paused' || game.state === 'results') return;
-  const cap = pixelRatio(), min = Q().minScale;
+  const cap = pixelRatio(), min = settings.aa === 'max' ? Math.max(Q().minScale, cap * 0.75) : Q().minScale;
   if (perf.ema > 1 / 48 && perf.scale > min) {
     perf.scale = Math.max(min, +(perf.scale - 0.15).toFixed(2)); renderer.setPixelRatio(perf.scale);
     perf.lastDown = now; perf.good = 0;
@@ -6613,6 +6661,7 @@ const handlers = {
     else if (!game.parked && wasGarage) demoCar();
   },
   blip: (k) => sound.ui(k),
+  aaChanged: () => { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); setupPipeline(); },
   langChanged: () => { Menu.relabel(); },
   applySettings: () => {
     if (game.car) { game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade; }
@@ -6660,7 +6709,8 @@ async function boot() {
     await Promise.race([Promise.all([document.fonts.load('italic 900 64px Saira'), document.fonts.load('600 20px "Martian Mono"')]), sleep(2500)]);
   } catch { /* fonty opcjonalne */ }
   try {
-    renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
+    // bez MSAA (drogie na telefonie) — wygładzanie robi FXAA na końcu łańcucha
+    renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' });
     await renderer.init();
   } catch (e) {
     console.error(e);
