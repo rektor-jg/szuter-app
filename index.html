@@ -650,7 +650,29 @@ const STAGES = [
       road: '#6b5840', rut: '#4f4130', stone: '#8a7a60', dust: '#5a4a38', fx: 'mud', weather: 'mist', bloom: 0.35,
       water: '#2c4a55',
     },
+  },  {
+    id: 'bra', country: 'Brazylia', code: 'BRA', name: 'Serra da Mata', seed: 7717, length: 4300,
+    surface: 'gravel', surfaceLabel: 'czerwona ziemia · las deszczowy',
+    halfW: 3.1, ditch: 0.5, ditchW: 3.0, blendW: 16, corridor: 190,
+    terrain: { amp: 30, freq: 1 / 380, ridge: 0.25 },
+    grade: 0.1, rolling: [0.5, 100, 0.2, 55], jumps: 2, jumpH: [1.0, 1.6],
+    corners: { hairpin: 0.05, tight: 0.24, medium: 0.32, easy: 0.25, flat: 0.14 },
+    pStraight: 0.5, straightScale: 0.85, maxR: 800,
+    grip: { road: 0.66, verge: 0.55, ditch: 0.48, off: 0.48 },
+    crr: { road: 0.038, verge: 0.065, ditch: 0.15, off: 0.13 },
+    loose: 1, water: null,
+    // olbrzymie drzewa tuż przy drodze, korony nad trasą; palmy, paprocie drzewiaste i gęste poszycie
+    trees: { mix: [['giant', 0.34], ['palm', 0.18], ['jungle', 0.32], ['fern', 0.16]], density: 0.022, clear: 2.0, mid: 0.8, far: 0.45, scale: [0.95, 1.5] },
+    rocks: 0.0006, walls: 0, bales: 0, poles: 0, crowds: 6,
+    look: {
+      time: 'day', sunElev: 58, sunAz: 150, sun: '#fff0c4', sunI: 3.4, hemiSky: '#9dbf95', hemiGround: '#243217', hemiI: 0.75,
+      fog: '#98b08a', fogNear: 18, fogFar: 340, zenith: '#6c9fc4', horizon: '#c6d8bb', clouds: 0.35, stars: 0,
+      grass: '#2c461a', grass2: '#44622a', dirt: '#8a3e22', rock: '#6d6456', verge: '#743822',
+      road: '#a14f2c', rut: '#7a381f', stone: '#b56842', dust: '#b0633d', fx: 'dust', weather: 'mist', bloom: 0.32,
+      water: '#2c4a55', forest: true, rays: true,
+    },
   },
+
 ];
 
 // ------------------------------------------------------------
@@ -1204,7 +1226,8 @@ class Stage {
         const type = pickWeighted(rng, mixW);
         const sc = lerp(tr.scale[0], tr.scale[1], rng());
         this.trees[type].push(x, y - 0.1, z, sc, rng() * 6.283);
-        if (d < 42 && type !== 'shrub') this.addCollider(x, z, 0.3 * sc, y - 1, y + 9 * sc, 'tree');
+        const cr = type === 'giant' ? 0.9 : type === 'palm' ? 0.22 : 0.3;
+        if (d < 42 && type !== 'shrub' && type !== 'fern' && type !== 'jungle') this.addCollider(x, z, cr * sc, y - 1, y + 9 * sc, 'tree');
       }
       // głazy
       const nR = Math.round(CHUNK * CHUNK * def.rocks);
@@ -1931,17 +1954,17 @@ const col = (h) => new THREE.Color(h);
 // profile grafiki: niski (telefon), średni, wysoki (komputer)
 const QUALITY = {
   low: {
-    dprTouch: 1.5, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 1024, softShadows: false,
+    dprTouch: 1.5, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 2048, shadowExt: 60, softShadows: false,
     treeShadows: false, rockShadows: false, block: 2, lodNear: 28, lodFar: 110, treeNear: 2, treeFar: 5, treeMax: 150, rockMax: 120, bucket: 512,
     smoke: 300, glow: 120, skids: 700, litDust: false, emit: 0.38, snow: 350, mist: 20, fogK: 0.8, bakeSky: true, beams: 1, ripple: false,
   },
   medium: {
-    dprTouch: 2, dpr: 1.35, minScale: 0.7, pipeline: false, bloom: false, samples: 0, shadowMap: 2048, softShadows: true,
+    dprTouch: 2, dpr: 1.35, minScale: 0.7, pipeline: false, bloom: false, samples: 0, shadowMap: 2048, shadowExt: 80, softShadows: true,
     treeShadows: false, rockShadows: true, block: 2, lodNear: 45, lodFar: 150, treeNear: 1, treeFar: 3, treeMax: 190, rockMax: 170, bucket: 512,
     smoke: 650, glow: 200, skids: 1400, litDust: true, emit: 0.7, snow: 800, mist: 40, fogK: 0.92, bakeSky: IS_TOUCH, beams: 2, ripple: true,
   },
   high: {
-    dprTouch: 2.5, dpr: 1.75, minScale: 0.8, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true,
+    dprTouch: 2.5, dpr: 1.75, minScale: 0.8, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true, csm: true, cascades: 3, csmFar: 260,
     treeShadows: true, rockShadows: true, block: 1, lodNear: 75, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
     smoke: 1100, glow: 260, skids: 2400, litDust: true, emit: 1, snow: 1400, mist: 70, fogK: 1, bakeSky: false, beams: 3, ripple: true,
   },
@@ -1950,7 +1973,7 @@ const QUALITY = {
     dprTouch: 3, dpr: 2, minScale: 0.9, pipeline: true, bloom: true, samples: 4, shadowMap: 2048, softShadows: true,
     treeShadows: true, rockShadows: true, block: 1, lodNear: 120, lodFar: 1e9, treeNear: 1, treeFar: 1, treeMax: 1e9, rockMax: 1e9, bucket: 256,
     smoke: 2200, glow: 420, skids: 4000, litDust: true, emit: 1.35, snow: 2600, mist: 110, fogK: 1.15, bakeSky: false, beams: 3, ripple: true,
-    supreme: true, csm: true, grass: true, heightFog: true, cones: true, flare: true,
+    supreme: true, csm: true, cascades: 4, csmFar: 420, grass: true, heightFog: true, cones: true, flare: true,
   },
 };
 // pomiar zacięć: window.SZUTER_BENCH → etapy ładowania, długie klatki i kompilacje GPU lecą do konsoli
@@ -2419,6 +2442,20 @@ function treeGeo(type) {
       { geo: new THREE.ConeGeometry(1.9, 3.8, 9, 1, true).translate(0, 5.5, 0), color: snowy('#264530', 14) },
       { geo: new THREE.ConeGeometry(1.4, 3.3, 9, 1, true).translate(0, 7.4, 0), color: snowy('#223d29', 15) },
       { geo: new THREE.ConeGeometry(0.8, 2.8, 9, 1, true).translate(0, 9.2, 0), color: snowy('#264530', 16) }]; break;
+    // kapok (ceiba): wysoki pień z korzeniami przyporowymi, szeroka piętrowa korona
+    case 'giant': parts = [trunk(0.75, 0.42, 24, '#6f6250', 40),
+      ...[0, 1, 2, 3, 4].map((k) => ({ geo: new THREE.BoxGeometry(0.22, 3.2, 2.2).translate(0, 1.4, 1.1).rotateY(k / 5 * Math.PI * 2 + 0.3), color: jitterColor('#6a5c4a', 0.12, 41 + k) })),
+      blob(7.5, 0, 24.5, 0, 0.32, '#2f5a22', 46, 1), blob(5.2, 2.6, 26.8, 1.2, 0.34, '#3a6a28', 47, 1), blob(4.6, -3.0, 26.2, -1.6, 0.34, '#28501e', 48, 1),
+      blob(3.2, -1.2, 18.5, 2.4, 0.5, '#2e5621', 49), blob(2.6, 2.2, 16.5, -1.8, 0.5, '#335d24', 50)]; break;
+    // palma: cienki pień, pióropusz liści opadających na boki
+    case 'palm': parts = [trunk(0.18, 0.13, 13, '#7d7160', 51),
+      ...[0, 1, 2, 3, 4, 5, 6].map((k) => ({ geo: new THREE.ConeGeometry(0.45, 4.2, 4, 1).scale(1, 1, 0.25).rotateZ(-1.9).translate(2.1, 12.2, 0).rotateY(k / 7 * Math.PI * 2), color: jitterColor('#3f6e27', 0.2, 52 + k) })),
+      blob(0.5, 0, 13.1, 0, 1, '#4f7a2e', 60)]; break;
+    // gęste poszycie: niskie drzewo o ciemnych, szerokich liściach
+    case 'jungle': parts = [trunk(0.16, 0.1, 2.2, '#4f4535', 61), blob(1.9, 0, 3.2, 0, 0.8, '#2d5220', 62, 1), blob(1.4, 1.1, 2.4, 0.5, 0.8, '#37612a', 63), blob(1.3, -1.0, 2.6, -0.6, 0.8, '#284a1c', 64)]; break;
+    // paproć drzewiasta: krótki pień, rozeta liści
+    case 'fern': parts = [trunk(0.14, 0.1, 2.6, '#4d4232', 65),
+      ...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => ({ geo: new THREE.ConeGeometry(0.35, 2.6, 3, 1).scale(1, 1, 0.2).rotateZ(-1.6).translate(1.25, 2.7, 0).rotateY(k / 8 * Math.PI * 2 + 0.2), color: jitterColor('#4c7d2c', 0.2, 66 + k) }))]; break;
     case 'snowbirch': parts = [trunk(0.13, 0.08, 7.5, '#e4e1da', 35),
       { geo: new THREE.IcosahedronGeometry(1.2, 1).scale(0.85, 1.7, 0.85).translate(0, 6.9, 0), color: snowy('#a7a39c', 36) },
       { geo: new THREE.IcosahedronGeometry(0.85, 1).scale(0.8, 1.6, 0.8).translate(0.55, 8.2, 0.3), color: snowy('#b3afa8', 37) },
@@ -2457,6 +2494,7 @@ function buildTrees(st, group) {
     const keep = (i) => {
       if (qp.treeNear === 1 && qp.treeFar === 1 && qp.treeMax > 1e8) return true;
       const d = st.coarseDist(arr[i * 5], arr[i * 5 + 2]);
+      if (st.def.look.forest && d < 45) return true; // las deszczowy: przy drodze pełna gęstość na każdej jakości
       return d < 45 ? i % qp.treeNear === 0 : d < qp.treeMax ? i % qp.treeFar === 0 : false;
     };
     const buckets = bucketInstances(arr, 5, qp.bucket, keep);
@@ -2471,7 +2509,7 @@ function buildTrees(st, group) {
       });
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
-      mesh.castShadow = qp.treeShadows; mesh.receiveShadow = true;
+      mesh.castShadow = qp.treeShadows || !!st.def.look.forest; mesh.receiveShadow = true;
       group.add(mesh);
     }
   }
@@ -2722,6 +2760,38 @@ function buildTvCams(st) {
   return cams;
 }
 
+// snopy światła przebijające się przez korony (las deszczowy): wysokie, pochylone wzdłuż słońca, addytywne,
+// wyłaniają się, gdy się do nich zbliżasz, i gasną tuż przy kamerze
+function buildLightShafts(st, group) {
+  if (!st.def.look.rays) return;
+  const L = st.def.look, el = L.sunElev * Math.PI / 180, az = L.sunAz * Math.PI / 180;
+  const sun = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)).normalize();
+  const H = 34, geo = new THREE.CylinderGeometry(1, 1.35, H, 10, 1, true).translate(0, H / 2, 0);
+  const mat = wmat('shaft', () => {
+    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+    const t = T.positionGeometry.y.div(H);
+    const along = T.smoothstep(0.0, 0.18, t).mul(T.float(1).sub(T.smoothstep(0.55, 1.0, t)));
+    const edge = T.pow(T.abs(T.dot(T.normalize(T.normalView), T.vec3(0, 0, 1))), 2.4);
+    const dist = T.length(T.positionWorld.sub(T.cameraPosition));
+    const emerge = T.smoothstep(6.0, 22.0, dist).mul(T.float(1).sub(T.smoothstep(110.0, 190.0, dist)));
+    const flick = T.sin(T.time.mul(0.35).add(T.positionWorld.x.mul(0.07))).mul(0.25).add(0.85);
+    m.colorNode = T.vec3(1.0, 0.93, 0.72);
+    m.opacityNode = along.mul(edge).mul(emerge).mul(flick).mul(0.26);
+    return m;
+  });
+  const rng = makeRng(st.seed ^ 0x5a17), pts = [];
+  for (let s = LEAD + 30; s < st.N - 40; s += 14 + rng() * 20) {
+    const lat = (rng() - 0.5) * 2 * (st.def.halfW + 9);
+    const [x, z] = st.pointAt(Math.round(s), lat);
+    pts.push([x, st.heightAt(x, z) - 0.5, z, 1.1 + rng() * 1.9]);
+  }
+  const mesh = new THREE.InstancedMesh(geo, mat, pts.length);
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sun), m4 = new THREE.Matrix4(), sc = new THREE.Vector3(), p = new THREE.Vector3();
+  pts.forEach(([x, y, z, r], i) => { mesh.setMatrixAt(i, m4.compose(p.set(x, y, z), q, sc.set(r, 1, r))); });
+  mesh.frustumCulled = false; mesh.renderOrder = 5;
+  group.add(mesh);
+}
+
 class World {
   constructor(st, labels) {
     this.st = st;
@@ -2735,6 +2805,7 @@ class World {
     buildGrass(st, this.group);
     buildRocks(st, this.group);
     buildProps(st, this.group);
+    buildLightShafts(st, this.group);
     this.gantry = buildGantries(st, this.group, labels);
     this.tvCams = buildTvCams(st);
   }
@@ -5202,7 +5273,7 @@ const Menu = {
     STAGES.forEach((def, i) => $('rallyRows').append(el('div', { class: 'row' }, el('canvas'),
       el('div', { class: 'nm' }, el('b', {}, `${def.country} · ${def.name}`), el('span', {}, `${def.surfaceLabel} · ${kmStr(def.length)} · ${TIME_PL[def.look.time]}`)),
       el('div', { class: 'bt' }, `OS ${i + 1}`))));
-    $('rallyKm').textContent = `5 OS · ${kmStr(total)}`;
+    $('rallyKm').textContent = `${STAGES.length} OS · ${kmStr(total)}`;
     $('rallyGo').addEventListener('click', () => { this.mode = 'rally'; this.blip('ok'); this.show('garage'); });
     // opcje: klik w wiersz ustawia na nim kursor pada/klawiatury
     document.querySelectorAll('#scrOpts .opt').forEach((r) => r.addEventListener('pointerdown', () => {
@@ -5231,7 +5302,7 @@ const Menu = {
     else if (name === 'garage') {
       const back = this.screens.garage.querySelector('[data-back]');
       back.textContent = this.mode === 'rally' ? '◂ Rajd' : '◂ Odcinek';
-      this.screens.garage.querySelector('.step').textContent = this.mode === 'rally' ? 'Rajd · 5 OS' : '2 / 2';
+      this.screens.garage.querySelector('.step').textContent = this.mode === 'rally' ? `Rajd · ${STAGES.length} OS` : '2 / 2';
       $('garageGo').firstChild.textContent = this.mode === 'rally' ? 'Start rajdu ' : 'Na start ';
       this.renderGarage(); $('garageGo').focus({ preventScroll: true });
     } else if (name === 'rally') { this.drawRally(); $('rallyGo').focus({ preventScroll: true }); }
@@ -5252,7 +5323,7 @@ const Menu = {
     }
     const total = STAGES.reduce((a, s) => a + s.length, 0);
     items.push(['stage', 'Odcinek specjalny', 'jeden OS · rekordy i rywale'],
-      ['rally', 'Rajd', `5 OS · ${kmStr(total)} · klasyfikacja generalna`],
+      ['rally', 'Rajd', `${STAGES.length} OS · ${kmStr(total)} · klasyfikacja generalna`],
       ['opts', 'Opcje', 'prowadzenie · grafika · pilot · sterowanie']);
     for (const [id, label, sub] of items) {
       list.append(el('button', { class: 'main-item', type: 'button', onclick: () => this.pick(id) }, tulipIcon(), label, el('small', {}, sub)));
@@ -5505,6 +5576,7 @@ function setupPipeline() {
 
 // słońce: przy zmianie jakości tworzone od nowa (CSM i zwykły cień nie przełączają się na tym samym świetle)
 let csm = null, csmFov = 0;
+const _camFwd = new THREE.Vector3();
 function makeSun() {
   const q = Q();
   if (sun) { scene.remove(sun, sun.target); sun.dispose?.(); }
@@ -5516,12 +5588,13 @@ function makeSun() {
   if (q.csm) {
     try {
       Object.assign(sun.shadow.camera, { left: -400, right: 400, top: 400, bottom: -400, near: 1, far: 1500 });
-      csm = new CSMShadowNode(sun, { cascades: 4, maxFar: 340, mode: 'practical', lightMargin: 160 });
+      csm = new CSMShadowNode(sun, { cascades: q.cascades || 4, maxFar: q.csmFar || 340, mode: 'practical', lightMargin: 160 });
       csm.fade = true;
       sun.shadow.shadowNode = csm;
     } catch (e) { console.warn('csm', e); csm = null; sun.shadow.shadowNode = null; }
   }
-  if (!csm) Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 5, far: 320 });
+  const ext = q.shadowExt || 42;
+  if (!csm) Object.assign(sun.shadow.camera, { left: -ext, right: ext, top: ext, bottom: -ext, near: 5, far: 360 });
   sun.shadow.camera.updateProjectionMatrix();
   renderer.shadowMap.type = THREE.PCFShadowMap; // WebGPU w r186: PCFSoft usunięty, PCF i tak filtruje
   scene.add(sun, sun.target);
@@ -5816,7 +5889,7 @@ function beginIntro() {
   if (!game.rally) { settings.last = { stage: game.sel.stage, seed: game.sel.seed, car: game.sel.car }; saveSettings(); }
   UI.split(null); UI.penalty(0); UI.setNotes(null, null, null, 'pl'); UI.notesKey = '';
   const def = st.def;
-  const osNo = game.rally ? `OS ${game.rally.idx + 1}/5 · ` : '';
+  const osNo = game.rally ? `OS ${game.rally.idx + 1}/${STAGES.length} · ` : '';
   UI.banner(def.name, `${osNo}${def.country} · ${def.surfaceLabel} · ${(def.length / 1000).toFixed(1).replace('.', ',')} km`);
   $('hLabel').textContent = 'Czas OS';
   codriver.begin(st.notes);
@@ -5992,7 +6065,7 @@ function showResults() {
   let title = 'Meta', sub = `${st.def.country} · ${st.def.name} · ${cfg.name}`;
   if (game.rally) {
     const R = game.rally, last = R.idx >= STAGES.length - 1;
-    sub = `Rajd · OS ${R.idx + 1}/5 · ${st.def.country}`;
+    sub = `Rajd · OS ${R.idx + 1}/${STAGES.length} · ${st.def.country}`;
     const tot = Object.entries(R.totals).map(([name, t]) => ({ name, t })).sort((a, b) => a.t - b.t);
     const myPos = tot.findIndex(x => x.name === 'Ty') + 1;
     note.push([` · generalka: ${myPos}. (${fmtTime(R.totals['Ty'])})`]);
@@ -6260,7 +6333,11 @@ function frame() {
   // niebo i cień podążają za kamerą / autem
   sky.position.copy(camera.position);
   sky.scale.setScalar(camera.far * 0.92);
-  const fx = Math.round(renderPos.x * 2) / 2, fz = Math.round(renderPos.z * 2) / 2;
+  // bez kaskad: obszar cienia przesunięty przed auto, w stronę, w którą patrzy kamera (tam cienie są potrzebne),
+  // środek przyciągany do siatki tekseli, żeby krawędzie cieni nie migotały
+  const ext = csm ? 0 : (Q().shadowExt || 42), tex = csm ? 0.5 : 2 * ext / (Q().shadowMap || 2048) * 4;
+  camera.getWorldDirection(_camFwd); _camFwd.y = 0; _camFwd.normalize();
+  const fx = Math.round((renderPos.x + _camFwd.x * ext * 0.45) / tex) * tex, fz = Math.round((renderPos.z + _camFwd.z * ext * 0.45) / tex) * tex;
   sun.target.position.set(fx, renderPos.y, fz);
   sun.position.set(fx + sunDir.x * 150, renderPos.y + sunDir.y * 150, fz + sunDir.z * 150);
   if (Q().supreme) updatePost(dt, car, st);
