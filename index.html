@@ -389,6 +389,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
         <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button><button data-v="supreme">SUPREME</button></div></div>
+        <div class="opt"><label>Oszczędzanie baterii<small>30 kl./s i niższa rozdzielczość — dłużej na baterii</small></label><div class="seg" id="optSaver"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label>Antyaliasing<small id="optAaNote">FXAA: wygładza krawędzie i migotanie, prawie za darmo</small></label><div class="seg" id="optAa"><button data-v="fxaa">FXAA</button><button data-v="max">MAKS</button></div></div>
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
@@ -1971,7 +1972,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fxaa' },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fxaa', saver: false },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -1982,7 +1983,7 @@ const col = (h) => new THREE.Color(h);
 // profile grafiki: niski (telefon), średni, wysoki (komputer)
 const QUALITY = {
   low: {
-    dprTouch: 1.5, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 2048, shadowExt: 60, softShadows: false,
+    dprTouch: 1.5, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, samples: 0, shadowMap: 1024, shadowExt: 55, softShadows: false,
     treeShadows: false, rockShadows: false, block: 2, lodNear: 28, lodFar: 110, treeNear: 2, treeFar: 5, treeMax: 150, rockMax: 120, bucket: 512,
     smoke: 300, glow: 120, skids: 700, litDust: false, emit: 0.38, snow: 350, mist: 20, fogK: 0.8, bakeSky: true, beams: 1, ripple: false,
   },
@@ -2243,6 +2244,7 @@ const EN = {
   'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna': 'Supreme: cascaded shadows, SSAO, motion blur, grass, valley fog, lens flare — strong GPU',
   'Licznik klatek': 'Frame counter', 'FPS, rozdzielczość i obciążenie w rogu ekranu': 'FPS, resolution and load in the corner', 'Głośność': 'Volume',
   'Język': 'Language', 'Język interfejsu i pilota': 'Interface and co-driver language',
+  'Oszczędzanie baterii': 'Battery saver', '30 kl./s i niższa rozdzielczość — dłużej na baterii': '30 fps and lower resolution — longer battery life',
   'Antyaliasing': 'Anti-aliasing', 'MAKS': 'MAX', 'FXAA: wygładza krawędzie i migotanie, prawie za darmo': 'FXAA: smooths edges and shimmer, almost free',
   'Maks: FXAA i wyższa rozdzielczość na telefonie — najładniej, więcej prądu': 'Max: FXAA and higher resolution on phones — prettiest, uses more battery',
   'Symulacja: czysta fizyka, pełne poślizgi i dachowania': 'Simulation: pure physics, full slides and rollovers',
@@ -2664,7 +2666,7 @@ function buildTrees(st, group) {
       });
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
-      mesh.castShadow = qp.treeShadows || !!st.def.look.forest; mesh.receiveShadow = true;
+      mesh.castShadow = qp.treeShadows || (!!st.def.look.forest && settings.quality !== 'low'); mesh.receiveShadow = true;
       group.add(mesh);
     }
   }
@@ -5348,6 +5350,7 @@ const UI = {
     const setAaNote = () => { $('optAaNote').textContent = aaNote[settings.aa] || aaNote.fxaa; };
     setAaNote();
     seg('optAa', 'aa', id, () => { setAaNote(); this.h.aaChanged(); });
+    seg('optSaver', 'saver', (v) => v === '1', () => this.h.saverChanged());
     $('perf').hidden = !settings.perf;
     if (IS_TOUCH) {
       $('optTouchRow').hidden = false;
@@ -5786,7 +5789,7 @@ const renderPos = new THREE.Vector3(), renderQuat = new THREE.Quaternion();
 let physAcc = 0, alpha = 0;
 
 // MAKS: telefon rysuje w wyższej rozdzielczości (bliżej natywnej), komputer co najmniej 2×
-const pixelRatio = () => Math.min(devicePixelRatio || 1, settings.aa === 'max' ? (IS_TOUCH ? Math.max(Q().dprTouch, 2.6) : Math.max(Q().dpr, 2)) : (IS_TOUCH ? Q().dprTouch : Q().dpr));
+const pixelRatio = () => Math.min(devicePixelRatio || 1, settings.saver ? (IS_TOUCH ? 1.25 : 1) : settings.aa === 'max' ? (IS_TOUCH ? Math.max(Q().dprTouch, 2.6) : Math.max(Q().dpr, 2)) : (IS_TOUCH ? Q().dprTouch : Q().dpr));
 const PORTRAIT = typeof matchMedia !== 'undefined' ? matchMedia('(orientation: portrait)') : null;
 let wakeLock = null;
 async function keepAwake(on) {
@@ -6497,8 +6500,20 @@ function camFor(dt) {
 
 // ---------- klatka ----------
 let last = performance.now();
+// limit klatek: menu i garaż nie potrzebują 60 kl./s, pauza i wyniki jeszcze mniej; tryb oszczędzania baterii
+// ogranicza też jazdę do 30 kl./s (połowa pracy GPU i CPU)
+function frameCap() {
+  const s = game.state;
+  if (s === 'paused' || s === 'results') return 15;
+  if (s === 'menu' || s === 'boot') return IS_TOUCH || settings.saver ? 30 : 0;
+  return settings.saver ? 30 : 0;
+}
+let lastDraw = 0;
 function frame() {
   const now = performance.now();
+  const cap = frameCap();
+  if (cap && now - lastDraw < 1000 / cap - 3 && !warmReq) return;
+  lastDraw = now;
   if (PROF.on && now - last > 70) PROF.long.push([Math.round(now), Math.round(now - last), game.state === 'menu' ? Menu.screen : game.state, PROF.prevFrame]);
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   const car = game.car, st = game.stage;
@@ -6602,6 +6617,7 @@ function frame() {
     if (pipeline) pipeline.render(); else renderer.render(scene, camera);
     mark('  render', tr); warm();
   } else if (pipeline) pipeline.render(); else renderer.render(scene, camera);
+  game.draws = (game.draws || 0) + 1;
   if (PROF.on) { const e = performance.now(); PROF.prevFrame = [Math.round(tr - now), Math.round(e - tr)]; if (e - tr > 40) mark('render ' + (game.state === 'menu' ? Menu.screen : game.state), tr); }
   adaptResolution(dt, now);
 }
@@ -6740,6 +6756,7 @@ const handlers = {
   },
   blip: (k) => sound.ui(k),
   aaChanged: () => { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); setupPipeline(); },
+  saverChanged: () => { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); },
   langChanged: () => { Menu.relabel(); },
   applySettings: () => {
     if (game.car) { game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade; }
