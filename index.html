@@ -2580,6 +2580,20 @@ function treeGeo(type) {
   const trunk = (r0, r1, h, c, seed) => ({ geo: new THREE.CylinderGeometry(r1, r0, h, 7, 1, true).translate(0, h / 2, 0), color: jitterColor(c, 0.15, seed) });
   const cone = (r, h, y, c, seed) => ({ geo: new THREE.ConeGeometry(r, h, 9, 1, true).translate(0, y + h / 2, 0), color: jitterColor(c, 0.22, seed) });
   const blob = (r, x, y, z, sy, c, seed, det = 0) => ({ geo: new THREE.IcosahedronGeometry(r, lite ? 0 : det).scale(1, sy, 1).translate(x, y, z), color: jitterColor(c, 0.25, seed) });
+  // trójkątna płetwa (korzeń przyporowy) przy pniu
+  const fin = (len, h, t) => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(len, 0); sh.lineTo(0, h); sh.lineTo(0, 0); return new THREE.ExtrudeGeometry(sh, { depth: t, bevelEnabled: false }).translate(0, 0, -t / 2); };
+  // konar: walec wychodzący z punktu (0,0,0) skośnie w kierunku +x, pod kątem `tilt` od pionu
+  const limb = (r, len, tilt) => new THREE.CylinderGeometry(r * 0.6, r, len, 5, 1, true).translate(0, len / 2, 0).rotateZ(-tilt);
+  // liść-wstęga: z nasady w +x, lekko w górę, potem opada łukiem; zwęża się ku końcowi; dwustronny
+  const frond = (len, w, droop, lift) => {
+    const n = 6, pos = [];
+    const P = (t, sd) => { const x = t * len, y = lift * x * (1 - t) - droop * t * t * len * 0.5; const ww = w * Math.sin(Math.PI * Math.min(1, 0.15 + t * 0.95)) * (1 - 0.5 * t); return [x, y + Math.abs(sd) * ww * 0.15, sd * ww]; };
+    for (let i = 0; i < n; i++) {
+      const A = P(i / n, -1), B = P(i / n, 1), C = P((i + 1) / n, -1), D = P((i + 1) / n, 1);
+      pos.push(...A, ...C, ...B, ...B, ...C, ...D, ...A, ...B, ...C, ...B, ...D, ...C);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
+  };
   const snowy = (base, seed) => { const c = col(base), w = col('#eef3fa'), rng = makeRng(seed); return (out, x, y, z, nx, ny) => { out.copy(c).lerp(w, ny > 0.25 ? 0.82 : ny > -0.1 ? 0.35 : 0.05).multiplyScalar(0.9 + rng() * 0.2); }; };
   let parts;
   switch (type) {
@@ -2590,33 +2604,38 @@ function treeGeo(type) {
       { geo: new THREE.ConeGeometry(1.9, 3.8, 9, 1, true).translate(0, 5.5, 0), color: snowy('#264530', 14) },
       { geo: new THREE.ConeGeometry(1.4, 3.3, 9, 1, true).translate(0, 7.4, 0), color: snowy('#223d29', 15) },
       { geo: new THREE.ConeGeometry(0.8, 2.8, 9, 1, true).translate(0, 9.2, 0), color: snowy('#264530', 16) }]; break;
-    // kapok (ceiba): wysoki pień z korzeniami przyporowymi, szeroka piętrowa korona
-    case 'giant': parts = [trunk(0.75, 0.42, 24, '#6f6250', 40),
-      ...[0, 1, 2, 3, 4].map((k) => ({ geo: new THREE.BoxGeometry(0.22, 3.2, 2.2).translate(0, 1.4, 1.1).rotateY(k / 5 * Math.PI * 2 + 0.3), color: jitterColor('#6a5c4a', 0.12, 41 + k) })),
-      blob(7.5, 0, 24.5, 0, 0.32, '#2f5a22', 46, 1), blob(5.2, 2.6, 26.8, 1.2, 0.34, '#3a6a28', 47, 1), blob(4.6, -3.0, 26.2, -1.6, 0.34, '#28501e', 48, 1),
-      blob(3.2, -1.2, 18.5, 2.4, 0.5, '#2e5621', 49), blob(2.6, 2.2, 16.5, -1.8, 0.5, '#335d24', 50)]; break;
-    // palma: cienki pień, pióropusz liści opadających na boki
-    case 'palm': parts = [trunk(0.18, 0.13, 13, '#7d7160', 51),
-      ...[0, 1, 2, 3, 4, 5, 6].map((k) => ({ geo: new THREE.ConeGeometry(0.45, 4.2, 4, 1).scale(1, 1, 0.25).rotateZ(-1.9).translate(2.1, 12.2, 0).rotateY(k / 7 * Math.PI * 2), color: jitterColor('#3f6e27', 0.2, 52 + k) })),
-      blob(0.5, 0, 13.1, 0, 1, '#4f7a2e', 60)]; break;
+    // kapok (ceiba): prosty, wysoki pień, trójkątne korzenie przyporowe, konary rozchodzące się pod kopułą z wielu kęp
+    case 'giant': parts = [trunk(0.8, 0.5, 21, '#76695a', 40),
+      ...[0, 1, 2, 3, 4].map((k) => ({ geo: fin(2.4, 3.2, 0.2).rotateY(k / 5 * Math.PI * 2 + 0.3), color: jitterColor('#6f6252', 0.1, 41 + k) })),
+      ...[0, 1, 2, 3, 4, 5].map((k) => { const a = k / 6 * Math.PI * 2 + 0.4; return { geo: limb(0.26, 5.2, 0.95).rotateY(-a).translate(0, 19.5, 0), color: col('#6a5d4d') }; }),
+      ...[[0, 25.6, 0, 4.4], ...[0, 1, 2, 3, 4, 5, 6].map((k) => { const a = k / 7 * Math.PI * 2 + 0.2, r = 5.2 + (k % 2) * 0.9; return [Math.cos(a) * r, 23.4 + (k % 3) * 0.7, Math.sin(a) * r, 2.9 + (k % 3) * 0.5]; })]
+        .map(([x, y, z, r], k) => blob(r, x, y, z, 0.48, ['#2f5a22', '#386a28', '#2a5020', '#34622a'][k % 4], 46 + k, 1))]; break;
+    // palma: lekko wygięty pień, pióropusz wygiętych liści (wstęgi opadające łukiem)
+    case 'palm': parts = [
+      { geo: new THREE.CylinderGeometry(0.14, 0.18, 6.5, 7, 1, true).translate(0, 3.25, 0), color: col('#7d7160') },
+      { geo: new THREE.CylinderGeometry(0.12, 0.14, 6.5, 7, 1, true).translate(0, 3.25, 0).rotateZ(0.06).translate(0.2, 6.3, 0), color: col('#80735f') },
+      ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((k) => ({ geo: frond(3.8, 0.55, 1.05, 0.5).rotateY(k / 9 * Math.PI * 2).translate(0.55, 12.8, 0), color: jitterColor('#3f7228', 0.18, 52 + k) })),
+      ...[0, 1, 2].map((k) => ({ geo: frond(2.6, 0.4, 0.2, 1.0).rotateY(k / 3 * Math.PI * 2 + 0.5).translate(0.55, 12.9, 0), color: jitterColor('#5a8a33', 0.15, 62 + k) }))]; break;
     // gęste poszycie: niskie drzewo o ciemnych, szerokich liściach
     case 'jungle': parts = [trunk(0.16, 0.1, 2.2, '#4f4535', 61), blob(1.9, 0, 3.2, 0, 0.8, '#2d5220', 62, 1), blob(1.4, 1.1, 2.4, 0.5, 0.8, '#37612a', 63), blob(1.3, -1.0, 2.6, -0.6, 0.8, '#284a1c', 64)]; break;
-    // paproć drzewiasta: krótki pień, rozeta liści
-    case 'fern': parts = [trunk(0.14, 0.1, 2.6, '#4d4232', 65),
-      ...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => ({ geo: new THREE.ConeGeometry(0.35, 2.6, 3, 1).scale(1, 1, 0.2).rotateZ(-1.6).translate(1.25, 2.7, 0).rotateY(k / 8 * Math.PI * 2 + 0.2), color: jitterColor('#4c7d2c', 0.2, 66 + k) }))]; break;
-    // akacja (parasolowa): cienki, rozwidlony pień, płaska szeroka korona w dwóch warstwach
-    case 'acacia': parts = [trunk(0.2, 0.12, 3.2, '#5d4a37', 80),
-      { geo: new THREE.CylinderGeometry(0.08, 0.12, 2.6, 5).rotateZ(0.55).translate(0.75, 4.1, 0), color: col('#5d4a37') },
-      { geo: new THREE.CylinderGeometry(0.08, 0.12, 2.4, 5).rotateZ(-0.6).translate(-0.7, 4.0, 0.1), color: col('#57452f') },
-      { geo: new THREE.CylinderGeometry(4.6, 3.9, 0.7, 9).translate(0, 5.5, 0), color: jitterColor('#5f6b2c', 0.12, 81) },
-      { geo: new THREE.CylinderGeometry(3.0, 3.4, 0.55, 8).translate(0.6, 6.05, 0.3), color: jitterColor('#6c7733', 0.12, 82) }]; break;
+    // paproć drzewiasta: krótki włóknisty pień, rozeta długich, łukowato opadających liści
+    case 'fern': parts = [trunk(0.16, 0.12, 2.6, '#4d4232', 65),
+      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => ({ geo: frond(2.3, 0.38, 0.9, 0.55).rotateY(k / 10 * Math.PI * 2 + 0.2), color: jitterColor('#4c7d2c', 0.18, 66 + k) })).map((p) => { p.geo.translate(0, 2.6, 0); return p; })]; break;
+    // akacja parasolowa: krótki pień rozwidlony w kilka skośnych konarów, płaska nieregularna korona z kęp
+    case 'acacia': parts = [trunk(0.22, 0.16, 2.4, '#5d4a37', 80),
+      ...[0, 1, 2, 3].map((k) => { const a = k / 4 * Math.PI * 2 + 0.3; return { geo: limb(0.11, 3.4, 0.62).rotateY(-a).translate(0, 2.3, 0), color: col('#5a4733') }; }),
+      ...[[0, 5.35, 0, 2.3], ...[0, 1, 2, 3, 4, 5].map((k) => { const a = k / 6 * Math.PI * 2 + 0.3; return [Math.cos(a) * 2.6, 5.05 + (k % 2) * 0.35, Math.sin(a) * 2.6, 1.7 + (k % 3) * 0.3]; })]
+        .map(([x, y, z, r], k) => blob(r, x, y, z, 0.26, ['#5f6b2c', '#6b7633', '#56622a'][k % 3], 81 + k, 1))]; break;
     // kolczasty krzew: niski, szarozielony, poszarpany
     case 'thorn': parts = [blob(0.9, 0, 0.55, 0, 0.6, '#77744a', 83), blob(0.7, 0.7, 0.45, 0.2, 0.55, '#6b6a42', 84), blob(0.6, -0.6, 0.4, -0.3, 0.55, '#827d50', 85)]; break;
-    // wilczomlecz kandelabrowy: pień i pionowe ramiona jak świecznik
-    case 'euphorbia': parts = [trunk(0.22, 0.18, 2.4, '#5b5a36', 86),
-      ...[[-0.9, 0], [0.9, 0.3], [0, 0.95], [0.3, -0.85], [-0.5, -0.6]].flatMap(([x, z], k) => [
-        { geo: new THREE.CylinderGeometry(0.1, 0.1, Math.hypot(x, z), 5).rotateZ(Math.PI / 2).rotateY(-Math.atan2(z, x)).translate(x / 2, 2.3, z / 2), color: col('#4f6a2e') },
-        { geo: new THREE.CylinderGeometry(0.16, 0.18, 2.4 + (k % 3) * 0.5, 7).translate(x, 3.4 + (k % 3) * 0.25, z), color: jitterColor('#4d7131', 0.1, 87 + k) }])]; break;
+    // wilczomlecz kandelabrowy: gruby pień, nad nim gęsty świecznik ramion wyginających się ku górze
+    case 'euphorbia': parts = [trunk(0.28, 0.22, 2.2, '#5d5a3a', 86),
+      ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].flatMap((k) => {
+        const a = k / 12 * Math.PI * 2 + (k % 2) * 0.2, r = k % 2 ? 0.95 : 0.55, x = Math.cos(a) * r, z = Math.sin(a) * r, h = 1.6 + ((k * 7) % 5) * 0.25;
+        return [{ geo: limb(0.11, r * 1.25, 0.35).rotateY(-a).translate(0, 2.1, 0), color: col('#4f6a2e') },
+          { geo: new THREE.CylinderGeometry(0.13, 0.15, h, 6).translate(x, 2.2 + r * 0.45 + h / 2, z), color: jitterColor('#4d7131', 0.12, 88 + k) },
+          { geo: new THREE.ConeGeometry(0.13, 0.22, 6).translate(x, 2.2 + r * 0.45 + h + 0.11, z), color: col('#5b7c38') }];
+      })]; break;
     case 'snowbirch': parts = [trunk(0.13, 0.08, 7.5, '#e4e1da', 35),
       { geo: new THREE.IcosahedronGeometry(1.2, 1).scale(0.85, 1.7, 0.85).translate(0, 6.9, 0), color: snowy('#a7a39c', 36) },
       { geo: new THREE.IcosahedronGeometry(0.85, 1).scale(0.8, 1.6, 0.8).translate(0.55, 8.2, 0.3), color: snowy('#b3afa8', 37) },
