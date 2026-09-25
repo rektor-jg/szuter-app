@@ -681,11 +681,12 @@ const CARS = [
     stats: { grip: 0.93, handling: 0.88 },
   },
   {
-    // rajdowy hatchback z przełomu wieków: 2.0 turbo, 4×4, sekwencyjna 6-biegowa
-    id: 'orkan', name: 'Orkan RS', drive: '4wd', front: 0.44, mass: 1230, torque: 455, redline: 7400, idle: 900,
-    gears: [3.15, 2.22, 1.72, 1.4, 1.16, 0.97], final: 4.75, brake: 15800, bias: 0.6, hb: 6200, steer: 0.59, steerHigh: 0.155, grip: 1.0,
-    color: '#123a8c', color2: '#f2f3f5', color3: '#ff6a13', rim: '#eceef0', caliper: '#e2a21b', num: 4, body: 'edge',
-    stats: { grip: 0.9, handling: 0.82 },
+    // hot hatch odwzorowany z prawdziwego auta: 2.3 turbo, 4×4, 6 biegów, rozstaw osi 2,647 m
+    id: 'orkan', name: 'Orkan RS', drive: '4wd', front: 0.42, mass: 1230, torque: 455, redline: 7000, idle: 850,
+    gears: [3.2, 2.2, 1.65, 1.3, 1.07, 0.9], final: 4.6, brake: 16000, bias: 0.62, hb: 6200, steer: 0.59, steerHigh: 0.155, grip: 1.0,
+    color: '#1f6fd6', color2: '#141414', color3: '#1f6fd6', rim: '#2a2d32', caliper: '#1f5fd8', num: 4, body: 'rs',
+    wheelPos: [[-0.77, -1.3235], [0.77, -1.3235], [-0.77, 1.3235], [0.77, 1.3235]],
+    stats: { grip: 0.9, handling: 0.84 },
   },
 ];
 
@@ -1516,7 +1517,7 @@ class Car {
     this.I = [cfg.mass / 12 * (L * L + Hh * Hh), cfg.mass / 12 * (L * L + W * W), cfg.mass / 12 * (W * W + Hh * Hh)];
     this.pos = [0, 0, 0]; this.vel = [0, 0, 0]; this.q = [0, 0, 0, 1]; this.w = [0, 0, 0];
     this.R = [1, 0, 0]; this.U = [0, 1, 0]; this.F = [0, 0, -1];
-    this.wheels = WHEEL_POS.map(([x, z], i) => ({
+    this.wheels = (cfg.wheelPos || WHEEL_POS).map(([x, z], i) => ({
       x, z, front: i < 2, comp: 0, prevComp: 0, contact: false, rot: 0, omega: 0,
       slip: 0, lat: 0, spin: 0, load: 0, surf: null, cp: [0, 0, 0], y: -0.15,
     }));
@@ -2766,16 +2767,6 @@ PROFILES.modern = {
   roofW: [[1.4, 0.72], [2.1, 0.65], [3.3, 0.64], [3.9, 0.6]], hw: 0.85, flare: [0.075, 0.085],
   win: [1.56, 3.6], pillars: [[2.41, 2.5]], wind: [1.5, 2.09], rear: [3.64, 3.93], doors: [1.55, 2.46, 3.22],
 };
-// Orkan RS: hatchback w stylu „New Edge” z przełomu wieków — łukowy dach, wysoka linia okien, pionowe lampy w słupku D
-PROFILES.edge = {
-  L: 4.15, W: 1.82, head: [0.2, 0.74], tail: [4.06, 1.12], wing: [3.93, 1.53], plate: 2.2, res: [180, 5],
-  top: [[0, 0.47], [0.05, 0.6], [0.16, 0.7], [0.5, 0.8], [0.95, 0.89], [1.28, 0.95], [1.38, 0.99], [1.7, 1.22], [2.0, 1.41], [2.35, 1.475], [2.9, 1.482], [3.4, 1.455], [3.72, 1.4], [3.9, 1.27], [4.02, 1.1], [4.1, 0.95], [4.14, 0.8], [4.15, 0.62]],
-  bot: [[0, 0.37], [0.3, 0.3], [0.6, 0.27], [3.6, 0.27], [3.9, 0.32], [4.15, 0.4]],
-  belt: [[0, 0.6], [0.6, 0.83], [1.35, 0.955], [2.4, 1.0], [3.3, 1.055], [3.85, 1.09], [4.15, 0.88]],
-  roofW: [[1.3, 0.72], [2.0, 0.65], [3.2, 0.64], [3.9, 0.58]], hw: 0.855, flare: [0.07, 0.08],
-  win: [1.47, 3.74], pillars: [[2.47, 2.57], [3.3, 3.38]], wind: [1.37, 1.99], rear: [3.76, 4.03], doors: [1.44, 2.52, 3.33],
-  lamp: [0.06, 0.5],
-};
 
 // interpolacja Hermite'a po punktach [s, v] — gładkie sylwetki
 function spline1d(pts) {
@@ -2866,6 +2857,89 @@ function modernBodyGeo(P) {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('sq', new THREE.Float32BufferAttribute(sq, 2));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  return { geo: g, hwS, top, belt };
+}
+
+// ---------- Orkan RS: hot hatch odwzorowany z rysunku bocznego i zdjęć (wymiary 4,39 × 1,82 × 1,47 m) ----------
+PROFILES.rs = {
+  L: 4.28, Lfull: 4.39, com: 2.2785, axles: [0.955, 3.602], res: [280, 6],
+  top: [[0, 0.6], [0.012, 0.7], [0.054, 0.758], [0.108, 0.794], [0.217, 0.848], [0.433, 0.916], [0.65, 0.966], [0.866, 1.006], [1.0, 1.025], [1.1, 1.045], [1.3, 1.119], [1.516, 1.218], [1.733, 1.309], [1.895, 1.372], [1.977, 1.426], [2.089, 1.458], [2.315, 1.489], [2.6, 1.498], [2.879, 1.489], [3.105, 1.476], [3.33, 1.462], [3.5, 1.445], [3.65, 1.41], [3.85, 1.33], [4.0, 1.25], [4.12, 1.165], [4.2, 1.115], [4.25, 1.09], [4.28, 1.075]],
+  bot: [[0, 0.2], [0.02, 0.175], [0.1, 0.16], [0.47, 0.135], [0.6, 0.13], [1.3, 0.14], [2.5, 0.16], [3.1, 0.162], [3.85, 0.17], [3.94, 0.2], [4.2, 0.23], [4.28, 0.25]],
+  shoulder: [[0, 0.66], [0.3, 0.78], [0.8, 0.9], [1.19, 0.952], [1.7, 0.972], [2.4, 0.99], [3.0, 1.02], [3.5, 1.055], [3.9, 1.075], [4.28, 1.06]],
+  dlo: [[1.1, 0.96], [1.19, 0.962], [1.7, 0.982], [2.4, 1.0], [3.0, 1.03], [3.4, 1.07], [3.62, 1.13], [3.745, 1.2], [3.8, 1.25], [4.28, 1.25]],
+  rail: [[1.1, 0.99], [1.19, 1.0], [1.5, 1.15], [1.8, 1.29], [1.95, 1.355], [2.2, 1.375], [3.0, 1.37], [3.3, 1.355], [3.5, 1.3], [3.745, 1.21], [3.9, 1.3], [4.28, 1.2]],
+  roofW: [[1.0, 0.74], [1.95, 0.6], [2.6, 0.625], [3.4, 0.61], [3.8, 0.56], [4.1, 0.52], [4.28, 0.5]],
+  hw: [[0, 0.6], [0.03, 0.72], [0.08, 0.8], [0.16, 0.855], [0.3, 0.888], [0.55, 0.903], [0.955, 0.912], [1.4, 0.9], [2.4, 0.895], [3.1, 0.9], [3.602, 0.912], [4.0, 0.9], [4.2, 0.875], [4.28, 0.85]],
+  head: [0.2, 0.78], tail: [4.27, 1.0],
+};
+
+function rsBodyGeo(P) {
+  const L = P.L, CF = P.com;
+  const top = spline1d(P.top), bot = spline1d(P.bot), belt = spline1d(P.shoulder), dlo = spline1d(P.dlo), rail = spline1d(P.rail), roofW = spline1d(P.roofW), hwS = spline1d(P.hw);
+  const [NS, SUB] = P.res;
+  const stations = [];
+  for (let i = 0; i < NS; i++) { const u = i / (NS - 1); stations.push(L * (0.5 - 0.5 * Math.cos(Math.PI * u)) * 0.994 + L * 0.003); }
+  // połowa przekroju: 13 punktów (spód, próg, boczek, bark nad nadkolem, linia okien, szyba, dach)
+  const half = (s) => {
+    const hw = hwS(s), t = top(s), b = bot(s);
+    const be = Math.min(belt(s), t - 0.02), d = be - b;
+    const gh = clamp((t - be - 0.04) / 0.22, 0, 1);
+    const rw = roofW(s), ra = clamp(rail(s), be + 0.03, t - 0.03);
+    // dolna krawędź szyby: nad barkiem, a przy tylnej szybce bocznej wspina się do szpica
+    const gy = clamp(Math.max(be + 0.01, dlo(s)), be + 0.01, ra - 0.004);
+    const gx = lerp(hw - 0.075, rw + 0.05, (gy - be - 0.01) / Math.max(0.01, ra - be - 0.01));
+    const G = (hood, cab) => [lerp(hood[0], cab[0], gh), lerp(hood[1], cab[1], gh)];
+    return [
+      [0, b], [hw - 0.12, b], [hw - 0.045, b + Math.min(0.05, 0.1 * d)], [hw - 0.028, b + 0.18 * d], [hw - 0.006, b + 0.45 * d],
+      [hw, b + 0.72 * d], [hw - 0.014, b + 0.88 * d], [hw - 0.05, be - 0.012],
+      G([hw - 0.1, lerp(be, t, 0.5)], [gx, gy]),
+      G([hw * 0.7, t - 0.03], [rw + 0.05, ra]),
+      G([hw * 0.45, t - 0.014], [rw, t - 0.035]),
+      G([hw * 0.22, t - 0.004], [rw * 0.55, t - 0.008]),
+      [0, t],
+    ];
+  };
+  const ring = (s) => { const r = half(s), pts = r.slice(); for (let k = r.length - 2; k >= 1; k--) pts.push([-r[k][0], r[k][1]]); return pts; };
+  const N0 = 24, NR = N0 * SUB, NH = 13;
+  const pos = [], sq = [];
+  for (const s of stations) {
+    const pts = ring(s);
+    for (let k = 0; k < N0; k++) {
+      const p0 = pts[(k - 1 + N0) % N0], p1 = pts[k], p2 = pts[(k + 1) % N0], p3 = pts[(k + 2) % N0];
+      for (let j = 0; j < SUB; j++) {
+        const t = j / SUB, t2 = t * t, t3 = t2 * t;
+        const cr = (a, b, c, d) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+        let x = cr(p0[0], p1[0], p2[0], p3[0]), y = cr(p0[1], p1[1], p2[1], p3[1]);
+        const q = k < NH ? k + t : (N0 - k - t);
+        for (const ax of P.axles) {
+          const R = 0.395, dz = s - ax;
+          if (Math.abs(dz) < R && q > 0.5 && q < 6.2) {
+            const ya = 0.324 + Math.sqrt(R * R - dz * dz);
+            if (y < ya) { const k2 = clamp((ya - y) / 0.1, 0, 1); y = ya; x *= 1 - 0.06 * k2; }
+          }
+        }
+        pos.push(x, y - COM_H, s - CF);
+        sq.push(s, q);
+      }
+    }
+  }
+  const idx = [];
+  for (let i = 0; i < NS - 1; i++) for (let k = 0; k < NR; k++) {
+    const a = i * NR + k, b = i * NR + (k + 1) % NR, c = a + NR, d = b + NR;
+    idx.push(a, b, c, b, d, c);
+  }
+  for (const [i, front] of [[0, true], [NS - 1, false]]) {
+    const c = pos.length / 3; let cx = 0, cy = 0, cz = 0;
+    for (let k = 0; k < NR; k++) { cx += pos[(i * NR + k) * 3]; cy += pos[(i * NR + k) * 3 + 1]; cz += pos[(i * NR + k) * 3 + 2]; }
+    pos.push(cx / NR, cy / NR, cz / NR); sq.push(stations[i], 12);
+    for (let k = 0; k < NR; k++) { const a = i * NR + k, b = i * NR + (k + 1) % NR; if (front) idx.push(c, b, a); else idx.push(c, a, b); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('sq', new THREE.Float32BufferAttribute(sq, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
   g.computeBoundingSphere();
@@ -2973,7 +3047,9 @@ class CarModel {
     const tailMat = new THREE.MeshBasicNodeMaterial(); tailMat.colorNode = T.vec3(1.0, 0.06, 0.04).mul(this.uBrake);
     let paint, liv, glass, roofMat, numMat;
     const extra = [];
-    if (cfg.body === 'modern' || cfg.body === 'edge') {
+    if (cfg.body === 'rs') {
+      ({ paint, liv, glass, roofMat, numMat } = this.buildRS(cfg, P, black, headMat, tailMat, extra));
+    } else if (cfg.body === 'modern') {
       ({ paint, liv, glass, roofMat, numMat } = this.buildModern(cfg, P, black, headMat, tailMat, extra));
     } else {
     // --- nadwozie
@@ -3071,11 +3147,11 @@ class CarModel {
       // listwa rajdowych lamp + reflektory
       if (this.night) {
         const pod = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.05, 0.12), black);
-        pod.position.set(0, P.head[1] - COM_H + 0.19, P.head[0] - COM_FROM_FRONT + 0.26);
+        pod.position.set(0, P.head[1] - COM_H + 0.19, P.head[0] - (P.com ?? COM_FROM_FRONT) + 0.26);
         this.group.add(pod);
         for (let k = 0; k < 4; k++) {
           const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 14).rotateX(Math.PI / 2), headMat);
-          lamp.position.set(-0.51 + k * 0.34, P.head[1] - COM_H + 0.3, P.head[0] - COM_FROM_FRONT + 0.2);
+          lamp.position.set(-0.51 + k * 0.34, P.head[1] - COM_H + 0.3, P.head[0] - (P.com ?? COM_FROM_FRONT) + 0.2);
           this.group.add(lamp);
         }
       }
@@ -3111,7 +3187,7 @@ class CarModel {
       const coneGeo = new THREE.CylinderGeometry(3.6, 0.1, Lc, 24, 1, true).rotateX(-Math.PI / 2).translate(0, 0, -Lc / 2);
       for (const x of [-0.52, 0.52]) {
         const cone = new THREE.Mesh(coneGeo, coneMat);
-        cone.position.set(x, P.head[1] - COM_H, P.head[0] - COM_FROM_FRONT - 0.06);
+        cone.position.set(x, P.head[1] - COM_H, P.head[0] - (P.com ?? COM_FROM_FRONT) - 0.06);
         cone.rotation.x = -0.05;
         cone.renderOrder = 4;
         this.group.add(cone);
@@ -3120,13 +3196,15 @@ class CarModel {
     }
 
     // --- koła
+    const hi0 = cfg.body === 'rs';
     const tireMat = new THREE.MeshStandardNodeMaterial({ color: '#141414', roughness: 0.92 });
     const rimMat = new THREE.MeshStandardNodeMaterial({ color: cfg.rim, roughness: 0.3, metalness: 0.85 });
-    const tireGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.235, cfg.body === 'edge' ? 64 : 22, cfg.body === 'edge' ? 3 : 1).rotateZ(Math.PI / 2);
-    const modern = cfg.body === 'modern' || cfg.body === 'edge', hi = cfg.body === 'edge';
+    const tireGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.235, hi0 ? 72 : 22, hi0 ? 4 : 1).rotateZ(Math.PI / 2);
+    const modern = cfg.body === 'modern' || cfg.body === 'rs', hi = cfg.body === 'rs';
     const rimGeo = modern ? new THREE.CylinderGeometry(0.225, 0.225, 0.245, hi ? 64 : 32, 1, true).rotateZ(Math.PI / 2) : new THREE.CylinderGeometry(0.215, 0.215, 0.245, 14).rotateZ(Math.PI / 2);
     const nSp = modern ? 10 : 5;
-    const spokesFor = (s) => mergeColored(Array.from({ length: nSp }, (_, k) => ({ geo: (modern ? new THREE.BoxGeometry(0.02, 0.21, 0.034).translate(0, 0.11, 0) : new THREE.BoxGeometry(0.03, 0.4, 0.05)).rotateX(k / nSp * Math.PI * (modern ? 2 : 1)).translate(s * 0.125, 0, 0), color: col(modern ? cfg.rim : '#15171a') })));
+    const spokeAng = (k) => hi ? (Math.floor(k / 2) / 5 * Math.PI * 2 + (k % 2 ? 0.11 : -0.11)) : k / nSp * Math.PI * (modern ? 2 : 1);
+    const spokesFor = (s) => mergeColored(Array.from({ length: nSp }, (_, k) => ({ geo: (modern ? new THREE.BoxGeometry(0.022, 0.215, hi ? 0.03 : 0.034, 1, 4, 1).translate(0, 0.115, 0) : new THREE.BoxGeometry(0.03, 0.4, 0.05)).rotateX(spokeAng(k)).translate(s * 0.125, 0, 0), color: col(modern ? cfg.rim : '#15171a') })));
     const spokeGeos = { '-1': spokesFor(-1), '1': spokesFor(1) };
     const spokeMat = new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.8 });
     spokeMat.colorNode = T.attribute('color', 'vec3');
@@ -3134,7 +3212,7 @@ class CarModel {
     const calMat = new THREE.MeshStandardNodeMaterial({ color: cfg.caliper || '#c8201e', roughness: 0.4, metalness: 0.3 });
     const discGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.028, hi ? 48 : 28).rotateZ(Math.PI / 2);
     const calGeo = new THREE.BoxGeometry(0.05, 0.12, 0.09);
-    this.wheels = WHEEL_POS.map(([x, z], i) => {
+    this.wheels = (cfg.wheelPos || WHEEL_POS).map(([x, z], i) => {
       const pivot = new THREE.Group(); pivot.position.set(x, -0.15, z);
       const spin = new THREE.Group(); pivot.add(spin);
       const tire = new THREE.Mesh(tireGeo, tireMat); tire.castShadow = true;
@@ -3255,6 +3333,141 @@ class CarModel {
     }
     for (const [x, z] of WHEEL_POS) add(new THREE.BoxGeometry(0.3, 0.24, 0.015), black, x * 0.95, -0.31, z + 0.48);
     return { paint: paintMat, liv: mat, glass: null, roofMat: carbon, numMat };
+  }
+  // Orkan RS: lakier, szyby, lampy, grille i szczeliny rysowane maskami po (s, wysokość, x) na jednej bryle
+  buildRS(cfg, P, black, headMat, tailMat, extra) {
+    const { geo, hwS, top } = rsBodyGeo(P);
+    this.tris = geo.index.count / 3;
+    const CF = P.com, Y = (h) => h - COM_H, Z = (s0) => s0 - CF;
+    const sq = T.attribute('sq', 'vec2'), s = sq.x, q = sq.y;
+    const h = T.positionGeometry.y.add(COM_H), ax = T.abs(T.positionGeometry.x);
+    const nx = T.abs(T.normalGeometry.x), nz = T.normalGeometry.z;
+    const one = T.float(1);
+    const off = (a, e) => (typeof a === 'number' ? a + e : a.add(e));
+    const band = (v, a, b, e = 0.004) => T.smoothstep(off(a, -e), off(a, e), v).mul(one.sub(T.smoothstep(off(b, -e), off(b, e), v)));
+    const lin = (v, a, b, va, vb) => T.mix(T.float(va), T.float(vb), T.clamp(v.sub(a).div(b - a), 0, 1));
+    const side = T.smoothstep(0.25, 0.45, nx), front = T.smoothstep(0.35, 0.6, nz.negate()), rearF = T.smoothstep(0.35, 0.6, nz);
+    // szyby: boczne między linią okien a dachem, przednia i tylna na grzbiecie
+    let sideWin = band(q, 8.1, 8.93, 0.02).mul(band(s, 1.24, 3.73, 0.006));
+    for (const [a, b] of [[2.43, 2.6], [3.24, 3.31]]) sideWin = sideWin.mul(one.sub(band(s, a, b, 0.004)));
+    const wind = T.smoothstep(9.18, 9.3, q).mul(band(s, 1.1, 1.95, 0.008));
+    const rearWin = T.smoothstep(9.2, 9.32, q).mul(band(s, 3.46, 4.2, 0.008));
+    const glassK = T.max(sideWin, T.max(wind, rearWin));
+    // czarne obramowanie szyb, słupek B, trójkąt przy lusterku, progi
+    const frameK = T.max(band(q, 7.98, 9.05, 0.015).mul(band(s, 1.14, 3.76, 0.006)), T.smoothstep(9.05, 9.15, q).mul(T.max(band(s, 1.07, 1.98, 0.006), band(s, 3.43, 4.23, 0.006)))).sub(glassK).clamp(0, 1);
+    const chromeK = band(q, 7.9, 8.0, 0.006).mul(band(s, 1.22, 3.7, 0.006));
+    const sillK = band(q, 1.2, 3.25, 0.02).mul(band(s, 1.36, 3.2, 0.01));
+    let gap = T.float(0);
+    for (const d of [1.26, 2.44, 3.29]) gap = T.max(gap, band(s, d - 0.0035, d + 0.0035, 0.0015));
+    gap = gap.mul(band(q, 3.0, 7.95, 0.02)).mul(side);
+    const hoodGap = band(q, 8.36, 8.44, 0.01).mul(band(s, 0.05, 1.05, 0.01));
+    // reflektory: bok (klin wzdłuż błotnika) i przód (skośny równoległobok)
+    const hlSide = band(s, 0.07, 0.5, 0.006).mul(band(h, lin(s, 0.07, 0.5, 0.72, 0.83), lin(s, 0.07, 0.5, 0.8, 0.865), 0.004)).mul(side);
+    const hlFront = band(ax, 0.47, 0.86, 0.006).mul(band(h, lin(ax, 0.47, 0.86, 0.71, 0.76), lin(ax, 0.47, 0.86, 0.78, 0.83), 0.004)).mul(front).mul(T.step(s, T.float(0.45)));
+    const headK = T.max(hlSide, hlFront);
+    const drl = headK.mul(band(h, lin(ax, 0.47, 0.86, 0.71, 0.76), lin(ax, 0.47, 0.86, 0.73, 0.78), 0.003).max(band(h, lin(s, 0.07, 0.5, 0.72, 0.83), lin(s, 0.07, 0.5, 0.74, 0.845), 0.003).mul(side)));
+    // tylne lampy: bok (klin do przodu) i tył (klin do środka)
+    const tlSide = band(s, 3.68, 4.26, 0.006).mul(band(h, lin(s, 3.68, 4.25, 1.0, 0.94), lin(s, 3.68, 4.2, 1.02, 1.075), 0.004)).mul(side);
+    const tlRear = band(ax, 0.6, 0.93, 0.006).mul(band(h, lin(ax, 0.6, 0.9, 0.955, 0.94), lin(ax, 0.6, 0.9, 1.0, 1.07), 0.004)).mul(rearF).mul(T.step(T.float(4.2), s));
+    const tailK = T.max(tlSide, tlRear);
+    // przód: górny grill, szary panel z tablicą, dolny wlot, boczne wloty ze światłami LED
+    const fr = front.mul(T.step(s, T.float(0.12)));
+    const upperG = band(h, 0.64, 0.71, 0.004).mul(T.step(ax, lin(h, 0.64, 0.71, 0.4, 0.47))).mul(fr);
+    const panel = band(h, 0.4, 0.62, 0.004).mul(T.step(ax, lin(h, 0.4, 0.62, 0.46, 0.58))).mul(fr);
+    const panelMesh = band(h, 0.53, 0.605, 0.004).mul(T.step(ax, T.float(0.5))).mul(fr);
+    const lowerG = band(h, 0.24, 0.37, 0.004).mul(T.step(ax, T.float(0.45))).mul(fr);
+    const sideInt = band(ax, 0.62, 0.84, 0.006).mul(band(h, 0.22, lin(ax, 0.62, 0.84, 0.43, 0.4), 0.004)).mul(T.max(fr, front.mul(0.0)));
+    const fog = band(ax, 0.72, 0.745, 0.002).mul(band(h, 0.29, 0.38, 0.003)).mul(fr);
+    // tył: dyfuzor, odblaski, wnęka tablicy
+    const rr = rearF.mul(T.step(T.float(4.22), s));
+    const diff = T.float(0), refl = T.float(0);
+    const plate = band(ax, -1, 0.27, 0.004).mul(band(h, 0.78, 0.88, 0.004)).mul(rr);
+    // siatka grilla (plaster miodu)
+    const hx = T.fract(T.positionGeometry.x.mul(55)), hy = T.fract(T.positionGeometry.y.mul(62).add(T.floor(T.positionGeometry.x.mul(55)).mul(0.5)));
+    const meshPat = T.smoothstep(0.08, 0.2, hx).mul(T.smoothstep(0.08, 0.2, hy)).mul(T.float(1).sub(T.smoothstep(0.8, 0.92, hx)));
+    const meshK = T.max(T.max(upperG, panelMesh), T.max(lowerG, sideInt));
+    const paintCol = T.uniform(col(cfg.color));
+    let c = dirtyColor(paintCol, this.uDirt, this.uDirtCol);
+    c = T.mix(c, T.vec3(0.03, 0.032, 0.036), T.max(frameK, T.max(sillK, T.max(diff, gap.mul(0.9)))));
+    c = T.mix(c, T.vec3(0.02, 0.022, 0.025), hoodGap.mul(0.8));
+    c = T.mix(c, T.vec3(0.16, 0.17, 0.19), panel.sub(panelMesh).clamp(0, 1));
+    c = T.mix(c, T.vec3(0.11, 0.115, 0.125), plate);
+    c = T.mix(c, T.mix(T.vec3(0.012, 0.013, 0.015), T.vec3(0.05, 0.052, 0.058), meshPat), meshK);
+    c = T.mix(c, T.vec3(0.75, 0.77, 0.8), chromeK);
+    c = T.mix(c, T.vec3(0.04, 0.055, 0.07), glassK);
+    c = T.mix(c, T.mix(T.vec3(0.05, 0.055, 0.065), T.vec3(0.55, 0.57, 0.6), T.smoothstep(0.0, 0.02, h.sub(lin(ax, 0.47, 0.86, 0.745, 0.795)).abs().negate().add(0.02))), headK);
+    c = T.mix(c, T.vec3(0.42, 0.02, 0.03), tailK);
+    c = T.mix(c, T.vec3(0.5, 0.03, 0.03), refl);
+    const mat = new THREE.MeshPhysicalNodeMaterial({ roughness: 0.25, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.03 });
+    mat.colorNode = c;
+    const darkK = T.max(T.max(frameK, sillK), T.max(meshK, diff));
+    mat.roughnessNode = T.mix(T.mix(T.float(0.26), T.float(0.55), darkK), T.float(0.03), T.max(glassK, T.max(headK, tailK)));
+    mat.metalnessNode = T.mix(T.mix(T.float(0.55), T.float(0.1), darkK), T.float(0.9), chromeK);
+    mat.emissiveNode = T.vec3(1.0, 0.97, 0.9).mul(T.max(drl.mul(1.4), fog.mul(1.2)).mul(this.uHead))
+      .add(T.vec3(1.0, 0.05, 0.03).mul(tailK).mul(this.uBrake).mul(0.8));
+    const body = new THREE.Mesh(geo, mat);
+    body.castShadow = true; body.receiveShadow = true;
+    this.group.add(body);
+    const paintMat = new THREE.MeshPhysicalNodeMaterial({ roughness: 0.26, metalness: 0.55, clearcoat: 1, clearcoatRoughness: 0.03 });
+    paintMat.colorNode = dirtyColor(paintCol, this.uDirt, this.uDirtCol);
+    const gloss = new THREE.MeshPhysicalNodeMaterial({ color: '#0d0e10', roughness: 0.2, metalness: 0.2, clearcoat: 1 });
+    const chrome = new THREE.MeshStandardNodeMaterial({ color: '#c9ccd1', roughness: 0.18, metalness: 1 });
+    extra.push(mat, paintMat, gloss, chrome);
+    const add = (g, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); this.group.add(o); return o; };
+    // splitter z zaokrąglonymi końcami
+    const spl = new THREE.Shape(); spl.moveTo(-0.8, 0); spl.lineTo(0.8, 0); spl.quadraticCurveTo(0.86, 0.1, 0.78, 0.2); spl.lineTo(-0.78, 0.2); spl.quadraticCurveTo(-0.86, 0.1, -0.8, 0);
+    const splG = new THREE.ExtrudeGeometry(spl, { depth: 0.022, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 24 }).rotateX(Math.PI / 2);
+    add(splG, gloss, 0, Y(0.205), Z(0.005)).castShadow = true;
+    // zderzak tylny: zaokrąglony prostokąt w rzucie z góry, wyciągnięty w pionie z fazowanymi krawędziami
+    const bs = new THREE.Shape(), bw = 0.86, r0 = 0.2, s0 = 4.17, s1 = P.Lfull;
+    bs.moveTo(-bw, -Z(s0)); bs.lineTo(bw, -Z(s0)); bs.lineTo(bw, -Z(s1 - r0)); bs.quadraticCurveTo(bw, -Z(s1), bw - r0, -Z(s1));
+    bs.lineTo(-bw + r0, -Z(s1)); bs.quadraticCurveTo(-bw, -Z(s1), -bw, -Z(s1 - r0)); bs.lineTo(-bw, -Z(s0));
+    const bg = new THREE.ExtrudeGeometry(bs, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.035, bevelSegments: 6, curveSegments: 32 }).rotateX(-Math.PI / 2);
+    const bump = add(bg, paintMat, 0, Y(0.26), 0); bump.castShadow = true; bump.receiveShadow = true;
+    const dg = new THREE.BoxGeometry(1.58, 0.17, 0.14, 8, 2, 2);
+    add(dg, gloss, 0, Y(0.3), Z(s1 - 0.05));
+    for (let k = -3; k <= 3; k++) add(new THREE.BoxGeometry(0.012, 0.13, 0.12), gloss, k * 0.2, Y(0.29), Z(s1 - 0.02));
+    for (const sx of [-1, 1]) add(new THREE.BoxGeometry(0.3, 0.018, 0.01), tailMat, sx * 0.7, Y(0.47), Z(s1 + 0.012));
+    add(new THREE.BoxGeometry(0.07, 0.05, 0.02), tailMat, 0, Y(0.3), Z(s1 + 0.02));
+    // skrzydło dachowe: profil boczny wyciągnięty na szerokość + płetwy
+    const wp = new THREE.Shape();
+    const wpts = [[3.42, 1.468], [3.7, 1.46], [3.9, 1.452], [4.07, 1.432], [4.075, 1.405], [3.95, 1.4], [3.75, 1.405], [3.55, 1.425], [3.44, 1.45]];
+    wp.moveTo(Z(wpts[0][0]), Y(wpts[0][1])); for (const [a, b] of wpts.slice(1)) wp.lineTo(Z(a), Y(b));
+    const wg = new THREE.ExtrudeGeometry(wp, { depth: 1.14, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.01, bevelSegments: 4, curveSegments: 12 });
+    wg.translate(0, 0, -0.57); wg.rotateY(-Math.PI / 2);
+    const wing = add(wg, paintMat, 0, 0, 0); wing.castShadow = true;
+    // płat pod skrzydłem (czarny) i trzecie światło stop
+    // płetwy boczne schodzące po słupku D
+    for (const sx of [-1, 1]) {
+      const fs = new THREE.Shape(); fs.moveTo(Z(3.62), Y(1.44)); fs.lineTo(Z(4.07), Y(1.43)); fs.lineTo(Z(4.08), Y(1.38)); fs.lineTo(Z(3.9), Y(1.3)); fs.lineTo(Z(3.7), Y(1.36));
+      const fg = new THREE.ExtrudeGeometry(fs, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2 }).rotateY(-Math.PI / 2);
+      add(fg, paintMat, sx * 0.57 + (sx < 0 ? 0.03 : 0), 0, 0);
+    }
+    add(new THREE.BoxGeometry(0.36, 0.018, 0.03), tailMat, 0, Y(1.402), Z(4.05));
+    // lusterka: obudowa w kolorze nadwozia, czarna stopka, szkło
+    for (const sx of [-1, 1]) {
+      const hw = hwS(1.52);
+      const cap = add(new THREE.SphereGeometry(1, 48, 24).scale(0.1, 0.075, 0.12), paintMat, sx * (hw + 0.11), Y(1.07), Z(1.5));
+      cap.castShadow = true;
+      add(new THREE.BoxGeometry(0.1, 0.035, 0.07, 3, 1, 3), gloss, sx * (hw + 0.03), Y(1.02), Z(1.47));
+      add(new THREE.CircleGeometry(1, 32).scale(0.075, 0.05, 1), chrome, sx * (hw + 0.11), Y(1.07), Z(1.5) + 0.105, 0, 0, 0);
+      // klamki
+      for (const [ds, dh] of [[2.33, 0.865], [3.17, 0.93]]) {
+        const hwd = hwS(ds);
+        add(new THREE.CapsuleGeometry(0.017, 0.15, 6, 16).rotateX(Math.PI / 2), paintMat, sx * (hwd + 0.004), Y(dh), Z(ds));
+      }
+      // wydechy w dyfuzorze
+      add(new THREE.CylinderGeometry(0.056, 0.052, 0.16, 48, 1, true).rotateX(Math.PI / 2), chrome, sx * 0.47, Y(0.29), Z(P.Lfull - 0.04));
+      add(new THREE.CircleGeometry(0.048, 40), black, sx * 0.47, Y(0.29), Z(P.Lfull - 0.07));
+      // żaluzje na masce
+      for (let k = 0; k < 4; k++) {
+        const ss = 0.4 + k * 0.045, slope = Math.atan2(top(ss + 0.05) - top(ss - 0.05), 0.1);
+        add(new THREE.BoxGeometry(0.2, 0.008, 0.018), gloss, sx * 0.33, Y(top(ss) - 0.004 - 0.02 * (0.33 / 0.45) ** 2), Z(ss), -slope);
+      }
+    }
+    // antena
+    add(new THREE.CylinderGeometry(0.004, 0.007, 0.36, 8), black, 0, Y(1.47) + 0.14, Z(3.45), -0.5);
+    return { paint: paintMat, liv: mat, glass: null, roofMat: gloss, numMat: chrome };
   }
   setLights(on) { for (const s of this.spots) s.intensity = on ? s.userData.I : 0; this.uHead.value = on ? 3.2 : 1.1; this.uCone.value = on ? 1 : 0; }
   sync(pos, quat, car, dt) {
