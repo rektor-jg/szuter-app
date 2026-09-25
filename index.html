@@ -5801,6 +5801,8 @@ async function startGo(mode) {
 function beginIntro() {
   const st = game.stage;
   game.state = 'intro'; game.introT = 0; game.beeps = 0;
+  // każdy start odcinka w pełnej rozdzielczości — obniży się tylko przy trwałym obciążeniu
+  if (!game.autoCap) { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); perf.ema = 1 / 60; perf.lastDown = 0; perf.good = 0; }
   game.time = 0; game.penalty = 0; game.splitDone = [false, false]; game.finishTime = null; game.finishT = 0;
   game.car.damage = 0; game.model.uDirt.value = 0;
   game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade;
@@ -6416,7 +6418,8 @@ function updatePost(dt, car, st) {
 // ---------- dynamiczna rozdzielczość + licznik ----------
 const perf = { ema: 1 / 60, t: 0, scale: 1, lastDown: 0, good: 0, frames: 0, ft: 0, hot: 0 };
 function adaptResolution(dt, now) {
-  perf.ema += (dt - perf.ema) * 0.06;
+  // pojedyncze przycięcia (ładowanie, kompilacja shaderów) to nie obciążenie — nie obniżają rozdzielczości
+  if (dt < 0.1) perf.ema += (Math.min(dt, 0.05) - perf.ema) * 0.06;
   perf.frames++; perf.ft += dt;
   if (settings.perf && perf.ft >= 0.5) {
     const info = renderer.info.render;
@@ -6426,7 +6429,8 @@ function adaptResolution(dt, now) {
   perf.t += dt;
   if (perf.t < 1.2 || window.SZUTER_NOADAPT) return;
   perf.t = 0;
-  if (game.state === 'paused' || game.state === 'results') return;
+  // przy limicie klatek (menu na telefonie, oszczędzanie, 30 kl./s z gorąca) czas klatki mierzy limit, nie obciążenie
+  if (frameCap()) return;
   const cap = pixelRatio(), min = settings.aa === 'max' ? Math.max(Q().minScale, cap * 0.75) : Q().minScale;
   if (IS_TOUCH && !game.autoCap && !settings.saver && game.state === 'race' && perf.scale <= min + 0.01 && perf.ema > 1 / 50) {
     if (++perf.hot >= 4) { game.autoCap = 30; UI.toast('Telefon się grzeje · 30 kl./s', false, 2.5); }
@@ -6435,7 +6439,7 @@ function adaptResolution(dt, now) {
     perf.scale = Math.max(min, +(perf.scale - 0.15).toFixed(2)); renderer.setPixelRatio(perf.scale);
     perf.lastDown = now; perf.good = 0;
   } else if (perf.ema < 1 / 56) {
-    if (++perf.good >= 4 && now - perf.lastDown > 12000 && perf.scale < cap) {
+    if (++perf.good >= 2 && now - perf.lastDown > 6000 && perf.scale < cap) {
       perf.scale = Math.min(cap, +(perf.scale + 0.1).toFixed(2)); renderer.setPixelRatio(perf.scale); perf.good = 0;
     }
   } else perf.good = 0;
