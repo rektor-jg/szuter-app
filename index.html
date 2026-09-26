@@ -6296,15 +6296,16 @@ function bladeMask(p, pivot, ang) {
   return T.max(blade, arm.mul(0.9));
 }
 // jedna warstwa kropel w komórkach: vec4(przesunięcie xy, maska, połysk)
-function dropLayer(p, grid, seed, dens, rMin, rMax, slide) {
+function dropLayer(p, grid, seed, dens, rMin, rMax, slide, melt = T.float(0)) {
   const g = p.mul(grid), cell = T.floor(g), f = T.fract(g).sub(0.5);
   const h = fhash2(cell.add(seed));
   const life = T.fract(RAIN.clock.mul(0.13).add(h.mul(7.0)));
-  const r = T.mix(T.float(rMin), T.float(rMax), fhash(h.mul(31.7)));
+  // topnienie (śnieg): płatek stoi w miejscu, kurczy się i blednie z czasem
+  const r = T.mix(T.float(rMin), T.float(rMax), fhash(h.mul(31.7))).mul(T.mix(T.float(1), T.float(1).sub(life.mul(0.55)), melt));
   const c0 = T.vec2(fhash(h.mul(17.3)), fhash(h.mul(5.9))).sub(0.5).mul(T.float(1).sub(r.mul(2.2)));
   const c = T.vec2(c0.x, T.clamp(c0.y.add(slide.mul(life)), r.sub(0.5), T.float(0.5).sub(r)));
   const d = f.sub(c).div(r), l = T.length(d.mul(T.vec2(1.0, 0.85)));
-  const vis = T.step(fhash(h.mul(3.3)), dens).mul(T.float(1).sub(T.smoothstep(0.75, 1.0, life)));
+  const vis = T.step(fhash(h.mul(3.3)), dens).mul(T.float(1).sub(T.smoothstep(0.75, 1.0, life))).mul(T.mix(T.float(1), T.float(1).sub(T.smoothstep(0.25, 0.95, life)), melt));
   const m = T.float(1).sub(T.smoothstep(0.82, 1.0, l)).mul(vis);
   const spec = T.pow(T.max(T.dot(T.normalize(d.add(0.0001)), T.vec2(-0.6, 0.8)), 0.0), 6.0).mul(T.smoothstep(0.35, 0.85, l)).mul(m);
   return T.vec4(d.mul(r).mul(m).div(grid).mul(-1.6), m, spec);
@@ -6321,12 +6322,12 @@ function rainLens(src) {
   const lensK = T.min(RAIN.lens.mul(T.mix(T.float(1), RAIN.snowK, RAIN.snow)), 1.2); // przy pełnej komórce płatki układają się w siatkę
   const dSmall = lensK.mul(0.2).add(RAIN.shield.mul(0.75)).mul(wet);
   const dBig = lensK.mul(0.3).add(RAIN.shield.mul(0.45)).mul(wet);
-  const slide = RAIN.shield.mul(RAIN.speed.mul(0.012)).sub(RAIN.lens.mul(0.25)); // na szybie pęd pcha krople w górę, na obiektywie spływają
+  const slide = RAIN.shield.mul(RAIN.speed.mul(0.012)).sub(RAIN.lens.mul(0.25)).mul(T.float(1).sub(RAIN.snow)); // na szybie pęd pcha krople w górę, na obiektywie spływają; płatki śniegu stoją
   // na obiektywie całe pole kropel spływa w dół (na szybie z maski — nie)
-  const pl = p.add(RAIN.drift.mul(T.float(1).sub(RAIN.shield)));
+  const pl = p.add(RAIN.drift.mul(T.float(1).sub(RAIN.shield)).mul(T.float(1).sub(RAIN.snow)));
   const a = dropLayer(pl, 6.0, 3.1, dBig.mul(T.float(1).sub(RAIN.snow)), 0.16, 0.34, slide);
-  const b = dropLayer(pl, 17.0, 11.7, dSmall.mul(T.float(1).sub(RAIN.snow.mul(0.4))), 0.12, 0.3, slide.mul(0.5));
-  const f = dropLayer(pl.add(0.61), 36.0, 41.3, lensK.mul(0.26).mul(RAIN.snow), 0.16, 0.36, slide);
+  const b = dropLayer(pl, 17.0, 11.7, dSmall.mul(T.float(1).sub(RAIN.snow.mul(0.4))), 0.12, 0.3, slide.mul(0.5), RAIN.snow);
+  const f = dropLayer(pl.add(0.61), 36.0, 41.3, lensK.mul(0.26).mul(RAIN.snow), 0.16, 0.36, slide, RAIN.snow);
   const c = dropLayer(p.add(0.37), 29.0, 23.9, dSmall.mul(RAIN.shield), 0.14, 0.32, T.float(0));
   const off = a.xy.add(b.xy).add(c.xy).mul(T.float(1).sub(RAIN.snow.mul(0.85))); // płatek nie załamuje światła jak kropla
   const m = T.clamp(a.z.add(b.z).add(c.z), 0.0, 1.0);
@@ -6418,7 +6419,7 @@ function updateRain(dt) {
     // zaspa sypie śniegiem niezależnie od narastania
     RAIN.lens.value = Math.max(lensAmount(dt, hood ? 0.25 : chase ? 0.5 : 0.3), (RAIN.snowK.value - 1) / 4 * 0.5);
     RAIN.clock.value += dt * 2.5; // płatki szybko topnieją
-    driftLens(dt, 0.22);
+    // płatki nie zjeżdżają po obiektywie — osiadają i topnieją
     if (rainSound) rainSound.update(false, 0, false, 0, dt);
     return;
   }
