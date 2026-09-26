@@ -429,7 +429,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
   <section class="scr" id="scrRally" hidden aria-label="Rajd">
     <header class="scr-head"><button class="back" type="button" data-back>◂ Menu</button><h2>Rajd</h2><span class="step" id="rallyKm"></span></header>
     <div class="sheet-wrap"><div class="sheet">
-      <p class="note-p">Osiem odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia, Kenia i Włochy</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
+      <p class="note-p">Dziewięć odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia, Kenia, Włochy i Anglia w deszczu</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
       <div class="rows" id="rallyRows"></div>
     </div></div>
     <footer class="scr-foot"><span class="keys"><kbd>Enter</kbd> dalej · <kbd>Esc</kbd> wstecz</span><button class="go" id="rallyGo" type="button">Wybierz auto <span>▸</span></button></footer>
@@ -765,7 +765,7 @@ const STAGES = [
     // i wioska w zatoce. Trasa nie jest losowana, tylko składana z planu (plan), teren układa się wokół niej (coast).
     id: 'ita', country: 'Włochy', code: 'ITA', name: "Costa d'Oro", seed: 1957, length: 5200,
     surface: 'tarmac', surfaceLabel: 'asfalt · klify nad morzem',
-    halfW: 3.2, ditch: 0.1, ditchW: 2.2, blendW: 11, corridor: 210,
+    halfW: 3.2, ditch: 0.1, ditchW: 2.2, blendW: 11, corridor: 170,
     terrain: { amp: 30, freq: 1 / 420, ridge: 0.9 },
     grade: 0.095, rolling: [0.2, 110, 0.08, 50], jumps: 0, jumpH: [1, 1],
     corners: { hairpin: 0.08, tight: 0.3, medium: 0.32, easy: 0.2, flat: 0.1 },
@@ -793,11 +793,35 @@ const STAGES = [
     look: {
       // złota godzina: niskie słońce nad morzem przed autem po prawej, ciepła mgiełka, długie cienie
       time: 'dusk', timeLabel: 'sunset', sunElev: 9, sunAz: 58, sun: '#ffc587', sunI: 3.0, hemiSky: '#a9b9d8', hemiGround: '#7d6450', hemiI: 1.0,
-      fog: '#d9bea6', fogNear: 380, fogFar: 2800, shadowK: 0.55, zenith: '#2c5a9c', horizon: '#f0b68a', clouds: 0.22, stars: 0,
-      grass: '#838a45', grass2: '#a69a58', dirt: '#9c6a45', rock: '#a9a193', verge: '#958a70',
+      fog: '#e2b48a', fogNear: 380, fogFar: 2800, shadowK: 0.55, zenith: '#1d4c92', horizon: '#ffae66', clouds: 0.22, stars: 0,
+      grass: '#838a45', grass2: '#a69a58', dirt: '#9c6a45', rock: '#a39e94', verge: '#958a70',
       road: '#55565a', rut: '#434448', stone: '#76777b', dust: '#b9b3aa', fx: 'smoke', weather: null, bloom: 0.3,
       exposure: 1.0, sat: 1.15, contrast: 1.1,
       water: '#1d4d6e', sea: true,
+    },
+  },
+  {
+    // Anglia w ulewie: las świerkowy (jak Kielder), wrzosowisko z murkami z kamienia na sucho i owcami,
+    // wioska z pubem, kościółkiem i czerwoną budką, pastwiska z żywopłotami, na koniec mieszany las
+    id: 'eng', country: 'Anglia', code: 'ENG', name: 'Ravensdale', seed: 7070, length: 4600,
+    surface: 'gravel', surfaceLabel: 'mokry szuter · ulewa',
+    halfW: 3.2, ditch: 0.3, ditchW: 2.2, blendW: 18, corridor: 240,
+    terrain: { amp: 30, freq: 1 / 470, ridge: 0.3 },
+    grade: 0.085, rolling: [0.5, 110, 0.2, 55], jumps: 3, jumpH: [1.1, 1.7],
+    corners: { hairpin: 0.04, tight: 0.2, medium: 0.32, easy: 0.27, flat: 0.17 },
+    pStraight: 0.56, straightScale: 0.95, maxR: 950,
+    // mokro: trochę mniej przyczepności niż na suchym szutrze
+    grip: { road: 0.64, verge: 0.54, ditch: 0.47, off: 0.47 },
+    crr: { road: 0.037, verge: 0.062, ditch: 0.15, off: 0.13 },
+    loose: 1, water: null,
+    trees: { mix: [['sitka', 0.46], ['oak', 0.2], ['birch', 0.14], ['hawthorn', 0.2]], density: 0.013, clear: 3.6, mid: 0.6, far: 0.32, scale: [0.85, 1.3] },
+    rocks: 0.0005, walls: 0, bales: 0.3, poles: 0, crowds: 7,
+    look: {
+      time: 'day', sunElev: 30, sunAz: 200, sun: '#c9d2dc', sunI: 1.0, hemiSky: '#aab4be', hemiGround: '#3a4230', hemiI: 1.3,
+      fog: '#848d95', fogNear: 25, fogFar: 430, shadowK: 0.22, zenith: '#4f575f', horizon: '#8d959c', clouds: 0.9, cloudDark: 1, stars: 0,
+      grass: '#3d5a28', grass2: '#58732f', dirt: '#4a3d2e', rock: '#6f6d67', verge: '#56493a',
+      road: '#6c5f4c', rut: '#463b2e', stone: '#8a7f6f', dust: '#3f3326', fx: 'mud', weather: 'rain', bloom: 0.25,
+      water: '#3a4a52', england: true,
     },
   },
 ];
@@ -1540,6 +1564,7 @@ class Stage {
     const def = this.def, rng = makeRng(this.seed ^ 0x51ee), hw = def.halfW, tr = def.trees;
     const nrm = [0, 0, 0];
     if (def.coast) this.placeCoastStructures();
+    const eng = def.look.england ? englandPrep(this) : null; // Anglia: strefy, wioska, murki (przed lasem — las je omija)
     // drzewa
     const mixW = {}; for (const [t, w] of tr.mix) mixW[t] = w;
     this.trees = {}; for (const [t] of tr.mix) this.trees[t] = [];
@@ -1557,7 +1582,8 @@ class Stage {
         if (this.water != null && y < this.water + 0.5) continue;
         this.normalAt(x, z, nrm);
         if (nrm[1] < 0.74) continue;
-        const type = pickWeighted(rng, mixW);
+        let type = pickWeighted(rng, mixW);
+        if (eng) { type = eng.tree(x, z, d, type); if (!type) continue; }
         const sc = lerp(tr.scale[0], tr.scale[1], rng());
         if (this.keepOut && this.keepOut(x, z, 1.5)) continue;
         const wide = type === 'shrub' || type === 'thorn' || type === 'jungle' || type === 'fern';
@@ -1572,6 +1598,7 @@ class Stage {
         const x = x0 + rng() * CHUNK, z = z0 + rng() * CHUNK;
         const d = this.roadDist(x, z);
         if (d < hw + 2.2 || d > def.corridor) continue;
+        if (eng && eng.blocked(x, z)) continue;
         const y = this.heightAt(x, z);
         if (this.water != null && y < this.water + 0.2) continue;
         const sc = 0.5 + rng() * rng() * 2.2;
@@ -1653,6 +1680,7 @@ class Stage {
         const s = sp.s + (rng() - 0.5) * 18;
         const lat = sp.side * (hw + 6 + rng() * 6);
         const [x, z] = this.pointAt(s, lat);
+        if (eng && eng.blocked(x, z)) continue;
         const y = this.heightAt(x, z);
         if (this.water != null && y < this.water + 0.3) continue;
         if (this.keepOut && (this.keepOut(x, z, 0.5) || Math.abs(y - this.y[clamp(Math.round(s), 0, this.N - 1)]) > 3.5)) continue;
@@ -1660,7 +1688,16 @@ class Stage {
         this.crowd.push(x, y, z, Math.atan2(rx - x, rz - z), (rng() * 8) | 0, rng());
       }
     }
-    if (def.coast) for (let i = 0; i < this.shoreRocks.length; i++) this.rocks.push(this.shoreRocks[i]);
+    if (def.coast) {
+      for (let i = 0; i < this.shoreRocks.length; i++) this.rocks.push(this.shoreRocks[i]);
+      // kibice na placu przed kościołem
+      for (let p = 0; p < 26; p++) {
+        const s = this.churchS - 9 + rng() * 18, lat = -(hw + 1.6 + rng() * 5.5), [x, z] = this.pointAt(s, lat);
+        if (this.keepOut(x, z, 0)) continue;
+        const [rx, rz] = this.pointAt(s, 0);
+        this.crowd.push(x, this.heightAt(x, z), z, Math.atan2(rx - x, rz - z), (rng() * 8) | 0, rng());
+      }
+    }
     // bramy
     this.gantries = [
       { s: this.startS, kind: 'start' },
@@ -1669,6 +1706,7 @@ class Stage {
       { s: this.finishS, kind: 'finish' },
       { s: Math.min(this.N - 30, this.finishS + 170), kind: 'stop' },
     ];
+    if (eng) englandProps(this, eng);
   }
 
   // --- Włochy: ściany skalne nad drogą, kamienne balustrady nad przepaściami, głazy w wodzie pod klifem.
@@ -1701,6 +1739,7 @@ class Stage {
     this.houses = [];
     const zt = this.zones.find(z => z.kind === 'town');
     const churchS = Math.round(zt.s0 + (zt.s1 - zt.s0) * 0.42);
+    this.churchS = churchS;
     const footprint = (h, shrink) => {
       const ca = Math.cos(h.rot), sa = Math.sin(h.rot), pts = [];
       for (let u = -h.w / 2 + shrink; u <= h.w / 2 - shrink + 0.01; u += Math.max(1, (h.w - 2 * shrink) / 4)) for (let v = -h.d / 2 + shrink; v <= h.d / 2 - shrink + 0.01; v += Math.max(1, (h.d - 2 * shrink) / 4)) pts.push([h.x + u * ca - v * sa, h.z + u * sa + v * ca]);
@@ -1921,6 +1960,350 @@ function SURF_CACHE(def, zone) {
     SURF_TABLE.set(key, s);
   }
   return s;
+}
+
+// ------------------------------------------------------------
+// Anglia: strefy krajobrazu wzdłuż trasy, wioska, murki z kamienia na sucho, żywopłoty, owce, stodoły.
+// Tu same dane (i kolizje); grafika w g2b_england.js. Własne losowanie — inne odcinki bez zmian.
+// ------------------------------------------------------------
+const ENG_FOREST = 0, ENG_MOOR = 1, ENG_PASTURE = 2, ENG_VILLAGE = 3;
+// deterministyczny skrót całkowity (bez Math.sin — ten sam wynik w każdym silniku JS)
+function hash2i(a, b, k = 0) {
+  let h = Math.imul(a | 0, 0x27d4eb2d) ^ Math.imul(b | 0, 0x165667b1) ^ Math.imul(k | 0, 0x9e3779b1);
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+const hashXZ = (x, z, k) => hash2i(Math.floor(x * 8), Math.floor(z * 8), k);
+
+function englandPrep(st) {
+  const def = st.def, N = st.N, hw = def.halfW, L = def.length, S0 = st.startS;
+  const rng = makeRng((st.seed ^ 0xe41a) >>> 0);
+  // --- wioska: najspokojniejszy odcinek ~250 m w środkowej części trasy, bez hopy
+  const VW = 250;
+  let best = null;
+  for (let a = S0 + Math.round(L * 0.45); a < S0 + Math.round(L * 0.64) - VW; a += 5) {
+    if (st.jumpsAt.some(j => j > a - 50 && j < a + VW + 50)) continue;
+    let mk = 0, mg = 0;
+    for (let i = a; i < a + VW; i++) { mk = Math.max(mk, Math.abs(st.k[i])); mg = Math.max(mg, Math.abs(st.y[i + 1] - st.y[i])); }
+    const score = mk + mg * 0.02;
+    if (!best || score < best.score) best = { a, score };
+  }
+  const va = best ? best.a : S0 + Math.round(L * 0.5), vb = va + VW;
+  // --- strefy wzdłuż trasy i ich płynne wagi
+  const code = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    const t = (i - S0) / L;
+    code[i] = i >= va - 12 && i <= vb + 12 ? ENG_VILLAGE : t < 0.2 ? ENG_FOREST : t < 0.43 ? ENG_MOOR : t < 0.8 ? ENG_PASTURE : ENG_FOREST;
+  }
+  const W = [0, 1, 2, 3].map(z => boxSmooth(Array.from(code, c => (c === z ? 1 : 0)), 22));
+  // --- najbliższy indeks trasy dla dowolnego punktu (siatka zgrubna 8 m, propagacja jak w polu odległości)
+  const cnx = st.cnx, cnz = st.cnz, NI = new Int32Array(cnx * cnz).fill(-1), ND = new Float32Array(cnx * cnz).fill(1e9);
+  const cellD = (c, i) => { const X = c % cnx, Z = (c / cnx) | 0; return Math.hypot(st.x0 + X * COARSE - st.x[i], st.z0 + Z * COARSE - st.z[i]); };
+  for (let i = 0; i < N; i += 2) {
+    const ix = Math.round((st.x[i] - st.x0) / COARSE), iz = Math.round((st.z[i] - st.z0) / COARSE);
+    for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
+      const X = ix + dx, Z = iz + dz; if (X < 0 || Z < 0 || X >= cnx || Z >= cnz) continue;
+      const c = Z * cnx + X, d = cellD(c, i); if (d < ND[c]) { ND[c] = d; NI[c] = i; }
+    }
+  }
+  const relax = (c, o) => { const j = NI[o]; if (j < 0) return; const d = cellD(c, j); if (d < ND[c]) { ND[c] = d; NI[c] = j; } };
+  for (let z = 0; z < cnz; z++) for (let x = 0; x < cnx; x++) { const c = z * cnx + x; if (x > 0) relax(c, c - 1); if (z > 0) { relax(c, c - cnx); if (x > 0) relax(c, c - cnx - 1); if (x < cnx - 1) relax(c, c - cnx + 1); } }
+  for (let z = cnz - 1; z >= 0; z--) for (let x = cnx - 1; x >= 0; x--) { const c = z * cnx + x; if (x < cnx - 1) relax(c, c + 1); if (z < cnz - 1) { relax(c, c + cnx); if (x < cnx - 1) relax(c, c + cnx + 1); if (x > 0) relax(c, c + cnx - 1); } }
+  const idxAt = (x, z) => {
+    const fx = Math.round((x - st.x0) / GRID), fz = Math.round((z - st.z0) / GRID);
+    if (fx >= 0 && fz >= 0 && fx < st.nx && fz < st.nz && st.bidx[fz * st.nx + fx] >= 0 && st.dist[fz * st.nx + fx] < 1e3) return st.bidx[fz * st.nx + fx];
+    const X = clamp(Math.round((x - st.x0) / COARSE), 0, cnx - 1), Z = clamp(Math.round((z - st.z0) / COARSE), 0, cnz - 1);
+    const i = NI[Z * cnx + X]; return i < 0 ? 0 : i;
+  };
+  const wAt = (i) => [W[0][i], W[1][i], W[2][i], W[3][i]];
+  // --- zajętość (siatka 2 m): budynki, murki — las, głazy i kibice je omijają
+  const occ = new Uint8Array(st.nx * st.nz);
+  const mark = (x, z, r) => {
+    const r2 = Math.ceil(r / GRID), ix = Math.round((x - st.x0) / GRID), iz = Math.round((z - st.z0) / GRID);
+    for (let dz = -r2; dz <= r2; dz++) for (let dx = -r2; dx <= r2; dx++) {
+      const X = ix + dx, Z = iz + dz; if (X < 0 || Z < 0 || X >= st.nx || Z >= st.nz) continue;
+      if (dx * dx + dz * dz <= (r2 + 0.5) ** 2) occ[Z * st.nx + X] = 1;
+    }
+  };
+  const blocked = (x, z) => { const X = Math.round((x - st.x0) / GRID), Z = Math.round((z - st.z0) / GRID); return X >= 0 && Z >= 0 && X < st.nx && Z < st.nz && occ[Z * st.nx + X] === 1; };
+  const inChunk = (x, z) => { const i = Math.floor((x - st.x0) / CHUNK), j = Math.floor((z - st.z0) / CHUNK); return i >= 0 && j >= 0 && i < st.cX && j < st.cZ && st.chunkInc[j * st.cX + i] === 1; };
+  const heading = (s) => st.hd[clamp(Math.round(s), 0, N - 1)];
+  // obrót bryły tak, by jej przód (+z) patrzył na drogę
+  const faceRoad = (s, side) => { const h = heading(s); return Math.atan2(side * Math.sin(h), -side * Math.cos(h)); };
+  const eng = { va, vb, W, code, idxAt, wAt, blocked, mark, occ, NI };
+  const addRect = (cx, cz, rot, w, d, y0, y1, kind, pad = 0.4) => {
+    // obwód prostokąta obsadzony kołami kolizji (co ≤ 1,8 m) + zajętość
+    const ca = Math.cos(rot), sa = Math.sin(rot); // lokalne x → (ca, -sa), lokalne z → (sa, ca)
+    const r = 1.0, nx = Math.max(1, Math.ceil((w - 2 * r) / 1.7)), nz = Math.max(1, Math.ceil((d - 2 * r) / 1.7));
+    for (let a = 0; a <= nx; a++) for (let b = 0; b <= nz; b++) {
+      if (a > 0 && a < nx && b > 0 && b < nz) continue;
+      const lx = -w / 2 + r + (w - 2 * r) * (a / nx), lz = -d / 2 + r + (d - 2 * r) * (b / nz);
+      const x = cx + lx * ca + lz * sa, z = cz - lx * sa + lz * ca;
+      if (st.roadDist(x, z) < 42) st.addCollider(x, z, r, y0, y1, kind);
+    }
+    for (let a = -w / 2 - pad; a <= w / 2 + pad; a += 1.5) for (let b = -d / 2 - pad; b <= d / 2 + pad; b += 1.5) mark(cx + a * ca + b * sa, cz - a * sa + b * ca, 1.2);
+  };
+  const groundSpan = (cx, cz, rot, w, d) => {
+    const ca = Math.cos(rot), sa = Math.sin(rot); let lo = Infinity, hi = -Infinity;
+    for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]]) { const y = st.heightAt(cx + a * w / 2 * ca + b * d / 2 * sa, cz - a * w / 2 * sa + b * d / 2 * ca); lo = Math.min(lo, y); hi = Math.max(hi, y); }
+    return [lo, hi];
+  };
+
+  // --- wioska: pub z budką telefoniczną po jednej stronie, kościółek z cmentarzem po drugiej, domy dookoła
+  const vil = eng.village = { houses: [], church: null, pub: null, phone: null, sign: null, benches: [], stones: [], lamps: [], garden: [] };
+  const pubSide = rng() < 0.5 ? -1 : 1, chSide = -pubSide;
+  const pubS = va + Math.round(VW * (0.3 + rng() * 0.1)), chS = va + Math.round(VW * (0.58 + rng() * 0.08));
+  const reserved = [[pubSide, pubS - 6, pubS + 16], [chSide, chS - 2, chS + 36]];
+  const setback = hw + 3.4;
+  // pub: dwie kondygnacje, bielony, szyld na słupie, ławki przed wejściem
+  {
+    const w = 12, d = 7.5, sc = pubS + w / 2, lat = pubSide * (setback + 1.2 + d / 2), [x, z] = st.pointAt(sc, lat), rot = faceRoad(sc, pubSide);
+    const [lo, hi] = groundSpan(x, z, rot, w, d);
+    vil.pub = [x, hi, z, rot, w, d, lo];
+    addRect(x, z, rot, w, d, lo - 1, hi + 8, 'wall');
+    const [px, pz] = st.pointAt(pubS - 3.2, pubSide * (hw + 2.6));
+    vil.phone = [px, st.heightAt(px, pz), pz, faceRoad(pubS - 3.2, pubSide)];
+    st.addCollider(px, pz, 0.72, vil.phone[1] - 0.5, vil.phone[1] + 2.6, 'wall'); mark(px, pz, 1.2);
+    const [gx, gz] = st.pointAt(pubS + w + 1.5, pubSide * (hw + 2.4));
+    vil.sign = [gx, st.heightAt(gx, gz), gz, faceRoad(pubS + w + 1.5, pubSide) + Math.PI / 2];
+    st.addCollider(gx, gz, 0.3, vil.sign[1] - 0.5, vil.sign[1] + 4, 'wall'); mark(gx, gz, 0.8);
+    for (const k of [0.25, 0.7]) {
+      const [bx, bz] = st.pointAt(pubS + w * k, pubSide * (hw + 3.2));
+      vil.benches.push(bx, st.heightAt(bx, bz), bz, faceRoad(pubS + w * k, pubSide));
+      mark(bx, bz, 1.2);
+    }
+  }
+  // kościółek: nawa, wieża z blankami, cmentarz za niskim murkiem z furtką
+  {
+    const len = 22, d = 8, sc = chS + 3 + len / 2, lat = chSide * (hw + 2.2 + 10 + d / 2), [x, z] = st.pointAt(sc, lat), rot = faceRoad(sc, chSide);
+    const [lo, hi] = groundSpan(x, z, rot, len, d);
+    vil.church = [x, hi, z, rot, len, d, lo];
+    addRect(x, z, rot, len, d, lo - 1, hi + 18, 'wall', 0.8);
+    // nagrobki między murkiem a kościołem
+    for (let a = 0; a < 5; a++) for (let b = 0; b < 3; b++) {
+      if (rng() < 0.25) continue;
+      const s = chS + 2 + a * 5.5 + rng() * 1.5, l = chSide * (hw + 5 + b * 2.6 + rng() * 0.6);
+      const [tx, tz] = st.pointAt(s, l);
+      vil.stones.push(tx, st.heightAt(tx, tz), tz, faceRoad(s, chSide) + (rng() - 0.5) * 0.25, (rng() * 4) | 0);
+      mark(tx, tz, 0.8);
+    }
+  }
+  // domy: szeregowce, chaty i wolnostojące, z ogródkami i niskim murkiem od drogi
+  for (const side of [-1, 1]) {
+    let s = va + 4 + rng() * 5;
+    while (s < vb - 8) {
+      const r = rng();
+      const kind = r < 0.42 ? 0 : r < 0.78 ? 1 : 2; // 0 szeregowiec, 1 chata, 2 wolnostojący
+      const units = kind === 0 ? 2 + ((rng() * 3) | 0) : 1;
+      const w = kind === 0 ? units * 4.8 : kind === 1 ? 6.5 + rng() * 1.5 : 8.2 + rng() * 1.2;
+      const d = kind === 0 ? 6.2 : kind === 1 ? 5.6 + rng() * 0.8 : 7.2;
+      const res = reserved.find(([sd, a, b]) => sd === side && s + w > a && s < b);
+      if (res) { s = res[2] + 2; continue; }
+      const back = setback + (kind === 2 ? 2.5 + rng() * 2 : rng() * 1.2);
+      const sc = s + w / 2, [x, z] = st.pointAt(sc, side * (back + d / 2)), rot = faceRoad(sc, side);
+      const [lo, hi] = groundSpan(x, z, rot, w, d);
+      if (hi - lo < 2.6 && st.roadDist(x, z) > back + d / 2 - 2) {
+        const style = kind === 0 ? (rng() < 0.55 ? 2 : (rng() < 0.5 ? 0 : 1)) : (r * 7 % 1 < 0.2 ? 3 : (rng() * 3) | 0); // 0 jasny kamień, 1 ciemny kamień, 2 cegła, 3 bielony
+        vil.houses.push(x, hi, z, rot, w, d, kind, style, units, (rng() * 6) | 0, lo);
+        addRect(x, z, rot, w, d, lo - 1, hi + 9, 'wall');
+        // murek ogródka od drogi, z furtką
+        for (let t = s; t < s + w; t += 1.5) {
+          if (Math.abs(t - sc) < 0.9) continue;
+          vil.garden.push(side, t);
+        }
+      }
+      s += w + (kind === 0 ? 2 : 1.5) + rng() * (kind === 2 ? 7 : 4);
+    }
+  }
+  // latarnie wzdłuż wioski
+  for (let s = va + 10; s < vb - 5; s += 34 + rng() * 10) {
+    const side = rng() < 0.5 ? -1 : 1, [x, z] = st.pointAt(s, side * (hw + 1.9));
+    if (blocked(x, z)) continue;
+    vil.lamps.push(x, st.heightAt(x, z), z, faceRoad(s, side));
+    st.addCollider(x, z, 0.2, st.heightAt(x, z) - 0.5, st.heightAt(x, z) + 4, 'wall'); mark(x, z, 0.8);
+  }
+
+  // --- murki z kamienia i żywopłoty przy drodze
+  // segmenty: [x, y, z, yaw, len, pitch, typ]  typ: 0 murek przy drodze, 1 murek w polu, 2 niski murek ogródka, 3 żywopłot
+  const segs = eng.segs = [];
+  const inside = new Uint8Array(N * 2); // wnętrze ciasnych zakrętów (strona -1 / +1) — tam bez murków
+  const outside = new Uint8Array(N * 2);
+  for (const c of st.route.corners) {
+    if (c.cls !== 'hairpin' && c.cls !== 'tight' && c.cls !== 'medium') continue;
+    for (let i = Math.max(0, c.s0 - 10); i <= Math.min(N - 1, c.s1 + 10); i++) {
+      inside[i * 2 + (c.dir > 0 ? 1 : 0)] = 1;
+      if (c.cls !== 'medium') outside[i * 2 + (c.dir > 0 ? 0 : 1)] = 1;
+    }
+  }
+  const gantryNear = (s) => st.splits.some(g => Math.abs(g - s) < 10) || Math.abs(s - S0) < 25 || Math.abs(s - st.finishS) < 25;
+  const pushSeg = (x0, z0, x1, z1, type, col = true) => {
+    const y0 = st.heightAt(x0, z0), y1 = st.heightAt(x1, z1), len = Math.hypot(x1 - x0, z1 - z0);
+    if (len < 0.3) return;
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, cy = (y0 + y1) / 2;
+    segs.push(cx, cy, cz, Math.atan2(x1 - x0, z1 - z0), len, Math.atan2(y1 - y0, len), type);
+    mark(cx, cz, type === 3 ? 1.6 : 1.0);
+    if (col && st.roadDist(cx, cz) < 40) {
+      const kind = type === 3 ? 'tree' : 'wall', hgt = type === 2 ? 0.9 : type === 3 ? 2.0 : 1.35;
+      st.addCollider(x0, z0, type === 3 ? 0.7 : 0.5, Math.min(y0, y1) - 0.5, Math.max(y0, y1) + hgt, kind);
+    }
+  };
+  eng.gates = [];
+  eng.hedgeTrees = [];
+  const roadLine = [];
+  for (const side of [-1, 1]) {
+    let prev = null, nextGate = S0 + 30 + rng() * 60, gateEnd = -1, run = [];
+    for (let s = S0 - 60; s < st.finishS + 80; s += 1.6) {
+      const i = Math.round(s), w = wAt(i), t = (i - S0) / L;
+      const open = w[ENG_MOOR] + w[ENG_PASTURE];
+      const hedge = code[i] === ENG_PASTURE && (i < va || i < vb + L * 0.1);
+      let on = open > 0.55 && code[i] !== ENG_VILLAGE && !inside[i * 2 + (side > 0 ? 1 : 0)] && !gantryNear(s) && t > -0.01;
+      if (on && s >= nextGate) { gateEnd = s + 3.6; nextGate = s + 50 + rng() * 90; }
+      const gate = s < gateEnd;
+      if (gate && prev && !prev.gate) { // brama: pięć żerdzi w przerwie murka
+        const [gx, gz] = st.pointAt(s + 1.8, side * (hw + 2.5)), h = heading(s + 1.8);
+        eng.gates.push(gx, st.heightAt(gx, gz), gz, -h); // lokalne x wzdłuż drogi
+        st.addCollider(gx, gz, 0.6, st.heightAt(gx, gz) - 0.5, st.heightAt(gx, gz) + 1.3, 'wall');
+      }
+      if (gate) on = false;
+      const lat = hw + (hedge ? 2.7 : 2.5) + (outside[i * 2 + (side > 0 ? 1 : 0)] ? 1.6 : 0);
+      const [x, z] = st.pointAt(s, side * lat);
+      if (on && prev && prev.on) pushSeg(prev.x, prev.z, x, z, hedge ? 3 : 0);
+      if (on) run.push([s, x, z]);
+      else if (run.length) { roadLine.push({ side, pts: run, hedge }); run = []; }
+      if (on && hedge && rng() < 0.02) eng.hedgeTrees.push(x + (rng() - 0.5), z + (rng() - 0.5), rng() < 0.6 ? 'oak' : 'hawthorn');
+      prev = { x, z, on, gate };
+    }
+    if (run.length) roadLine.push({ side, pts: run, hedge: false });
+  }
+  // murki ogródków w wiosce
+  for (let k = 0; k < vil.garden.length; k += 2) {
+    const side = vil.garden[k], s = vil.garden[k + 1];
+    const [x0, z0] = st.pointAt(s, side * (hw + 2.1)), [x1, z1] = st.pointAt(s + 1.5, side * (hw + 2.1));
+    pushSeg(x0, z0, x1, z1, 2);
+  }
+  // murek cmentarza z furtką
+  for (let s = chS; s < chS + 34; s += 1.5) {
+    if (Math.abs(s - (chS + 14)) < 1.2) continue;
+    const [x0, z0] = st.pointAt(s, chSide * (hw + 2.1)), [x1, z1] = st.pointAt(s + 1.5, chSide * (hw + 2.1));
+    pushSeg(x0, z0, x1, z1, 2);
+  }
+  // murki w polu: od murka przy drodze w bok (poprzeczne) i łączące je równoległe — szachownica pól na zboczach
+  const walk = (x, z, dx, dz, maxLen) => {
+    const pts = [[x, z]]; let ang = Math.atan2(dz, dx);
+    for (let l = 0; l < maxLen; l += 2.2) {
+      ang += (rng() - 0.5) * 0.08;
+      x += Math.cos(ang) * 2.2; z += Math.sin(ang) * 2.2;
+      if (!inChunk(x, z) || st.coarseDist(x, z) > def.corridor - 15) break;
+      if (l > 14 && st.roadDist(x, z) < 14) break;
+      pts.push([x, z]);
+    }
+    return pts;
+  };
+  for (const ln of roadLine) {
+    if (ln.hedge) continue;
+    const pts = ln.pts; let lastK = -1e9;
+    const perp = [];
+    for (let k = 0; k < pts.length; k++) {
+      const [s, x, z] = pts[k];
+      if (s - lastK < 55 + rng() * 60) continue;
+      lastK = s;
+      if (rng() < 0.2) continue;
+      const h = heading(s), rx = -Math.sin(h) * ln.side, rz = Math.cos(h) * ln.side, j = (rng() - 0.5) * 0.7;
+      const dx = rx * Math.cos(j) - rz * Math.sin(j), dz = rx * Math.sin(j) + rz * Math.cos(j);
+      const p = walk(x, z, dx, dz, 60 + rng() * 150);
+      for (let q = 1; q < p.length; q++) pushSeg(p[q - 1][0], p[q - 1][1], p[q][0], p[q][1], 1);
+      perp.push([s, p.length * 2.2]);
+    }
+    // równoległe między poprzecznymi
+    for (let k = 1; k < perp.length; k++) {
+      if (rng() < 0.4) continue;
+      const [s1, l1] = perp[k - 1], [s2, l2] = perp[k];
+      const D = 30 + rng() * Math.max(10, Math.min(l1, l2) - 30);
+      let prev = null;
+      for (let s = s1; s <= s2; s += 1.4) {
+        const [x, z] = st.pointAt(s, ln.side * D);
+        const ok = inChunk(x, z) && st.roadDist(x, z) > D - 6;
+        if (ok && prev) pushSeg(prev[0], prev[1], x, z, 1);
+        prev = ok ? [x, z] : null;
+      }
+    }
+  }
+  // kolizje murków przy drodze gęściej (co punkt, nie co segment) — auto nie może się przecisnąć
+  // (pushSeg dodaje koło na początku każdego segmentu, segmenty co 1,6 m — wystarczy)
+
+  // --- stodoły z kamienia w polach
+  eng.barns = [];
+  for (let tries = 0; tries < 60 && eng.barns.length < 6; tries++) {
+    const s = S0 + L * (0.22 + rng() * 0.56), i = Math.round(s), w = wAt(i);
+    if (w[ENG_MOOR] + w[ENG_PASTURE] < 0.8) continue;
+    const side = rng() < 0.5 ? -1 : 1, lat = side * (26 + rng() * 70), [x, z] = st.pointAt(s, lat);
+    const rot = heading(s) + (rng() < 0.5 ? 0 : Math.PI / 2) + (rng() - 0.5) * 0.3, bw = 11 + rng() * 4, bd = 6.5;
+    if (!inChunk(x, z) || st.roadDist(x, z) < Math.abs(lat) - 4) continue;
+    let bad = false; for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (blocked(x + a * 5, z + b * 5)) bad = true;
+    if (bad) continue;
+    const [lo, hi] = groundSpan(x, z, rot, bw, bd);
+    if (hi - lo > 3.5) continue;
+    eng.barns.push(x, hi, z, rot, bw, bd, lo);
+    addRect(x, z, rot, bw, bd, lo - 1, hi + 7, 'wall');
+  }
+  // --- stosy bali drewna przy drodze w lesie
+  eng.logs = [];
+  for (let s = S0 + 40; s < st.finishS - 20; s += 70 + rng() * 120) {
+    const i = Math.round(s);
+    if (wAt(i)[ENG_FOREST] < 0.9 || rng() < 0.3) continue;
+    const side = rng() < 0.5 ? -1 : 1;
+    if (inside[i * 2 + (side > 0 ? 1 : 0)] || outside[i * 2 + (side > 0 ? 1 : 0)]) continue;
+    const [x, z] = st.pointAt(s, side * (hw + 4.4)), h = heading(s);
+    const y = st.heightAt(x, z);
+    eng.logs.push(x, y, z, -h);
+    for (const o of [-2.2, 0, 2.2]) { const [cx, cz] = st.pointAt(s + o, side * (hw + 4.4)); st.addCollider(cx, cz, 1.1, y - 0.5, y + 1.6, 'wall'); }
+    mark(x, z, 3.5);
+  }
+  // --- kratki dla bydła na granicach wrzosowiska
+  eng.grids = [];
+  for (let i = S0; i < st.finishS; i++) if (code[i] !== code[i - 1] && (code[i] === ENG_MOOR || code[i - 1] === ENG_MOOR)) eng.grids.push(i);
+  // --- owce: stadka na wrzosowisku i pastwiskach, za murkami
+  eng.sheep = [];
+  for (let s = S0 + L * 0.19; s < S0 + L * 0.8; s += 40 + rng() * 50) {
+    const i = Math.round(s), w = wAt(i);
+    if (w[ENG_MOOR] + w[ENG_PASTURE] < 0.7 || rng() < 0.25) continue;
+    const side = rng() < 0.5 ? -1 : 1, lat = side * (16 + rng() * 80), [cx, cz] = st.pointAt(s, lat);
+    const n = 3 + ((rng() * 9) | 0), dir = rng() * 6.283;
+    for (let k = 0; k < n; k++) {
+      const x = cx + (rng() - 0.5) * 22, z = cz + (rng() - 0.5) * 22;
+      if (!inChunk(x, z) || blocked(x, z) || st.roadDist(x, z) < hw + 7) continue;
+      eng.sheep.push(x, st.heightAt(x, z), z, dir + (rng() - 0.5) * 1.6, 0.85 + rng() * 0.3, rng() < 0.55 ? 1 : 0);
+    }
+  }
+
+  // --- las: zależnie od strefy; w polach kępy drzew (zagajniki) z szumu
+  const nD = st.noiseDetail;
+  eng.tree = (x, z, d, type) => {
+    if (blocked(x, z)) return null;
+    const i = idxAt(x, z), w = wAt(i), t = (i - S0) / L;
+    const copse = nD(x * 0.0065 + 3.1, z * 0.0065 - 7.7);
+    const keep = w[ENG_FOREST] + w[ENG_MOOR] * (copse > 0.42 ? 0.55 : 0.02) + w[ENG_PASTURE] * (copse > 0.3 ? 0.6 : 0.05) + w[ENG_VILLAGE] * (d > 28 ? 0.3 : 0.02);
+    if (hashXZ(x, z, 1) > keep) return null;
+    const h = hashXZ(x, z, 2);
+    const zc = w[ENG_FOREST] > 0.5 ? ENG_FOREST : w[ENG_MOOR] >= w[ENG_PASTURE] && w[ENG_MOOR] >= w[ENG_VILLAGE] ? ENG_MOOR : w[ENG_PASTURE] >= w[ENG_VILLAGE] ? ENG_PASTURE : ENG_VILLAGE;
+    if (zc === ENG_FOREST) return t < 0.5 ? (h < 0.84 ? 'sitka' : h < 0.95 ? 'birch' : 'oak') : (h < 0.4 ? 'sitka' : h < 0.72 ? 'oak' : 'birch');
+    if (zc === ENG_MOOR) return copse > 0.5 ? (h < 0.8 ? 'sitka' : 'birch') : (h < 0.75 ? 'hawthorn' : 'birch');
+    if (zc === ENG_PASTURE) return h < 0.55 ? 'oak' : h < 0.85 ? 'hawthorn' : 'birch';
+    return h < 0.55 ? 'oak' : h < 0.75 ? 'sitka' : 'birch';
+  };
+  return eng;
+}
+
+// po lesie: drzewa w żywopłotach i gotowe tablice dla grafiki
+function englandProps(st, eng) {
+  for (let k = 0; k < eng.hedgeTrees.length; k += 3) {
+    const x = eng.hedgeTrees[k], z = eng.hedgeTrees[k + 1], type = eng.hedgeTrees[k + 2];
+    if (!st.trees[type]) continue;
+    const y = st.heightAt(x, z), sc = 0.9 + hash2i(k, 7) * 0.35;
+    st.trees[type].push(x, y - 0.1, z, sc, hash2i(k, 9) * 6.283);
+    if (st.roadDist(x, z) < 42) st.addCollider(x, z, 0.35 * sc, y - 1, y + 9 * sc, 'tree');
+  }
+  st.eng = eng;
 }
 
 // szybki podgląd do menu: trasa, profil wysokości, hopy, nawroty, czas idealny i rywale — bez terenu i lasu
@@ -2642,7 +3025,7 @@ const EN = {
   'jeden OS · rekordy i rywale': 'one stage · records and rivals', 'prowadzenie · grafika · pilot · sterowanie': 'handling · graphics · co-driver · controls',
   'klasyfikacja generalna': 'overall standings', 'Wybór odcinka': 'Stage select', 'Wybierz auto': 'Choose car', 'Garaż': 'Garage', 'Na start': 'To the start',
   'Start rajdu': 'Start rally', '◂ Odcinek': '◂ Stage', '◂ Rajd': '◂ Rally', 'Następne auto': 'Next car', 'Poprzednie auto': 'Previous car',
-  'Osiem odcinków po kolei:': 'Eight stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia, Kenia i Włochy': 'Finland, Greece, Sweden, Corsica, Wales at night, Brazil, Kenya and Italy',
+  'Dziewięć odcinków po kolei:': 'Nine stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia, Kenia, Włochy i Anglia w deszczu': 'Finland, Greece, Sweden, Corsica, Wales at night, Brazil, Kenya, Italy and England in the rain',
   '. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.': '. Times add up and the overall standings against rivals update after every stage. The service crew repairs the car between stages.',
   // skróty klawiszy
   'wybór ·': 'select ·', 'dalej · pad:': 'next · pad:', 'dalej ·': 'next ·', 'odcinek ·': 'stage ·', 'losuj ·': 'shuffle ·', 'wstecz': 'back', 'auto ·': 'car ·', 'start ·': 'start ·', 'opcja ·': 'option ·', 'zmiana ·': 'change ·',
@@ -2651,6 +3034,7 @@ const EN = {
   'Hopy i garby': 'Jumps & crests', 'Przewyższenie': 'Elevation', 'Lider': 'Leader', 'Rekord': 'Record', 'Losowy odcinek': 'Random stage', 'Losowy': 'Random', 'LOS': 'RND',
   'dzień': 'day', 'zmierzch': 'dusk', 'noc': 'night', 'sucho': 'dry', 'mgła': 'mist', 'śnieżyca': 'snowfall', 'szuter': 'gravel', 'asfalt': 'tarmac', 'śnieg': 'snow',
   'Finlandia': 'Finland', 'Grecja': 'Greece', 'Szwecja': 'Sweden', 'Korsyka': 'Corsica', 'Walia': 'Wales', 'Brazylia': 'Brazil', 'Kenia': 'Kenya', 'czerwony pył': 'red dust', 'sawanna': 'savanna',
+  'Anglia': 'England', 'mokry szuter': 'wet gravel', 'ulewa': 'downpour',
   'hopy': 'jumps', 'kamienisty szuter': 'rocky gravel', 'upał': 'heat', 'bandy': 'snow banks', 'serpentyny': 'hairpins', 'błoto': 'mud',
   'czerwona ziemia': 'red dirt', 'las deszczowy': 'rainforest',
   'Włochy': 'Italy', 'klify nad morzem': 'sea cliffs', 'zachód słońca': 'sunset',
@@ -2761,6 +3145,7 @@ const ATM = {
   night: T.uniform(0),
   water: T.uniform(new THREE.Color('#2c4a55')),
   detail: T.uniform(1),
+  cloudDark: T.uniform(0), // 1 = ciężkie, ciemne chmury deszczowe (Anglia)
 };
 
 function makeSky() {
@@ -2778,7 +3163,7 @@ function makeSky() {
   const cl = T.smoothstep(0.05, 0.6, n.add(ATM.clouds.sub(0.45))).mul(T.smoothstep(0.02, 0.22, dir.y));
   const lit = T.max(T.dot(dir, ATM.sunDir), 0.0).mul(0.35).add(0.75);
   const cloudCol = T.mix(ATM.horizon, T.vec3(1, 1, 1), 0.6).mul(lit).mul(T.float(1).sub(ATM.night.mul(0.88)));
-  c = T.mix(c, cloudCol, cl.mul(0.9));
+  c = T.mix(c, T.mix(cloudCol, ATM.horizon.mul(0.62), ATM.cloudDark), cl.mul(0.9));
   // gwiazdy
   const cell = T.floor(dir.mul(300)).add(400.0);
   const hs = T.hash(cell.x.add(cell.y.mul(733.0)).add(cell.z.mul(1511.0)));
@@ -2826,6 +3211,7 @@ function terrainColorFn(st) {
     const a = n(x * 0.012, z * 0.012) * 0.5 + 0.5, b = n(x * 0.07 + 17, z * 0.07 - 5) * 0.5 + 0.5;
     tmp.copy(cg).lerp(cg2, smoothstep(0.3, 0.8, a));
     tmp.lerp(cd, smoothstep(0.62, 0.92, b) * 0.55);
+    if (L.england) englandTint(st, x, z, tmp);
     tmp.lerp(cr, smoothstep(0.88, 0.66, ny));
     if (d < hw + 1.2) tmp.lerp(cv, 0.95);
     else if (d < ditchEnd + 2.5) tmp.lerp(cv, 0.6 * (1 - smoothstep(hw + 1.2, ditchEnd + 2.5, d)));
@@ -2952,13 +3338,13 @@ function buildRoad(st, group, tex) {
   const hw = st.def.halfW, E = ROAD_EDGE, W = 2 * (hw + E);
   const lats = [-(hw + E), -(hw + 1.05), -hw, -hw * 0.5, 0, hw * 0.5, hw, hw + 1.05, hw + E];
   const nL = lats.length;
-  const mat = wmat('road', () => new THREE.MeshStandardNodeMaterial({
+  const mat = st.def.look.weather === 'rain' ? roadWetMaterial(st, tex) : wmat('road', () => new THREE.MeshStandardNodeMaterial({
     map: tex, roughness: 0.95, metalness: 0,
     polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4,
   }));
   mat.map = tex;
   mat.roughness = st.def.surface === 'tarmac' ? 0.8 : st.def.surface === 'snow' ? 0.72 : 0.95;
-  const SEG = 200;
+  const SEG = st.def.look.sea ? 400 : 200;
   for (let a = 0; a < st.N - 1; a += SEG) {
     const b = Math.min(st.N - 1, a + SEG), n = b - a + 1;
     const pos = new Float32Array(n * nL * 3), uv = new Float32Array(n * nL * 2);
@@ -3036,6 +3422,7 @@ function treeGeo(type) {
   const snowy = (base, seed) => { const c = col(base), w = col('#eef3fa'), rng = makeRng(seed); return (out, x, y, z, nx, ny) => { out.copy(c).lerp(w, ny > 0.25 ? 0.82 : ny > -0.1 ? 0.35 : 0.05).multiplyScalar(0.9 + rng() * 0.2); }; };
   let parts;
   switch (type) {
+    case 'sitka': case 'oak': case 'hawthorn': parts = engTreeParts(type, { trunk, cone, blob, limb, lite }); break;
     case 'pine': parts = [trunk(0.2, 0.12, 8.5, '#6e4a33', 1), blob(1.7, 0, 8.6, 0, 0.75, '#2f4a24', 2), blob(1.3, 0.8, 9.8, 0.3, 0.7, '#34522a', 3), blob(1.2, -0.7, 10.4, -0.4, 0.7, '#2b4421', 4), blob(1.0, 0.1, 11.3, 0, 0.8, '#355329', 5)]; break;
     case 'spruce': parts = [trunk(0.24, 0.14, 2.4, '#4d3626', 6), cone(2.5, 4.2, 1.2, '#1f3a26', 7), cone(2.0, 3.8, 3.6, '#22402a', 8), cone(1.55, 3.4, 5.8, '#1e3924', 9), cone(1.1, 3.0, 7.9, '#234329', 10), cone(0.6, 2.6, 9.8, '#1f3b25', 11)]; break;
     case 'snowpine': parts = [trunk(0.22, 0.13, 2.2, '#4d3626', 12),
@@ -3131,7 +3518,8 @@ function buildTrees(st, group) {
       if (st.def.look.forest && d < 45) return true; // las deszczowy: przy drodze pełna gęstość na każdej jakości
       return d < 45 ? i % qp.treeNear === 0 : d < qp.treeMax ? i % qp.treeFar === 0 : false;
     };
-    const buckets = bucketInstances(arr, 5, st.def.look.forest ? 128 : qp.bucket, keep);
+    // Włochy: daleki widok — większe kubełki, mniej poleceń rysowania
+    const buckets = bucketInstances(arr, 5, st.def.look.forest ? 128 : qp.bucket * (st.def.look.sea ? 2 : 1), keep);
     for (const list of buckets.values()) {
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
       list.forEach((i, k) => {
@@ -3236,7 +3624,7 @@ function buildRocks(st, group) {
   const mat = wmat('rock', () => vcMaterial({ rough: 0.95 }));
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), e = new THREE.Euler();
   const qp = Q();
-  const buckets = bucketInstances(arr, 5, qp.bucket, (i) => qp.rockMax > 1e8 || st.coarseDist(arr[i * 5], arr[i * 5 + 2]) < qp.rockMax);
+  const buckets = bucketInstances(arr, 5, qp.bucket * (st.def.look.sea ? 2 : 1), (i) => qp.rockMax > 1e8 || st.coarseDist(arr[i * 5], arr[i * 5 + 2]) < qp.rockMax);
   for (const list of buckets.values()) {
     const mesh = new THREE.InstancedMesh(geo, mat, list.length);
     list.forEach((i, k) => {
@@ -3483,6 +3871,7 @@ class World {
     buildProps(st, this.group);
     buildLightShafts(st, this.group);
     buildWildlife(st, this.group);
+    buildEngland(st, this.group);
     this.gantry = buildGantries(st, this.group, labels);
     this.tvCams = buildTvCams(st);
   }
@@ -3517,7 +3906,7 @@ function seaMaterial() {
     const m = new THREE.MeshBasicNodeMaterial();
     const P = T.positionWorld, t = T.time;
     const rel = P.sub(T.cameraPosition), vd = T.normalize(rel);
-    const fade = T.float(1).div(T.length(rel.xz).mul(0.0035).add(1));
+    const fade = T.float(1).div(T.length(rel.xz).mul(0.008).add(1));
     let gx = T.float(0), gz = T.float(0);
     for (const [dx, dz, k, w, a] of [[0.8, 0.6, 0.23, 1.1, 0.07], [-0.45, 0.89, 0.41, 1.6, 0.05], [0.96, -0.28, 0.9, 2.3, 0.035], [0.25, 0.97, 1.9, 3.4, 0.022]]) {
       const c = T.cos(P.x.mul(dx * k).add(P.z.mul(dz * k)).add(t.mul(w))).mul(a);
@@ -3526,13 +3915,13 @@ function seaMaterial() {
     const n = T.normalize(T.vec3(gx.mul(fade).negate(), 1, gz.mul(fade).negate()));
     const r0 = T.reflect(vd, n), refl = T.vec3(r0.x, T.abs(r0.y), r0.z);
     const fres = T.float(0.02).add(T.pow(T.float(1).sub(T.clamp(T.dot(vd.negate(), n), 0.0, 1.0)), 5.0).mul(0.98));
-    const sky = T.mix(ATM.horizon, ATM.zenith, T.pow(T.clamp(refl.y, 0.0, 1.0), 0.6));
+    const sky = T.mix(T.mix(ATM.zenith, ATM.horizon, 0.45), ATM.zenith, T.pow(T.clamp(refl.y, 0.0, 1.0), 0.6));
     const sd = T.max(T.dot(refl, ATM.sunDir), 0.0);
-    const path = T.pow(sd, 14.0).mul(0.55).add(T.pow(sd, 120.0).mul(1.6));
+    const path = T.pow(sd, 32.0).mul(0.35).add(T.pow(sd, 160.0).mul(1.4));
     const glint = T.pow(sd, 1400.0).mul(fade).mul(38.0);
     const vc = T.attribute('color', 'vec3');
     const body = T.mix(ATM.water, T.vec3(0.12, 0.42, 0.44), vc.r.mul(0.75));
-    let c = T.mix(body, sky.mul(0.8), fres.mul(0.75)).add(ATM.sunCol.mul(path.add(glint)));
+    let c = T.mix(body, sky.mul(0.75), fres.mul(0.55)).add(ATM.sunCol.mul(path.add(glint)));
     const surf = T.sin(P.x.mul(0.31).add(t.mul(1.2))).add(T.sin(P.z.mul(0.37).sub(t.mul(0.9)))).mul(0.12);
     const foam = T.smoothstep(0.45, 0.85, vc.g.add(surf));
     c = T.mix(c, T.vec3(0.93, 0.9, 0.84), foam.mul(0.8));
@@ -3583,14 +3972,30 @@ function buildSea(st, group) {
 function staticMaterial() { return wmat('static', () => vcMaterial({ rough: 0.9 })); }
 
 // kolor wapienia: poziome warstwy, ciemne szczeliny, mokro przy wodzie, zieleń na półkach
-const ROCK = { base: col('#a9a193'), light: col('#d3cab8'), dark: col('#7a6f60'), moss: col('#626b3e'), wet: col('#4a443d'), grime: col('#6b6255') };
+const ROCK = { base: col('#9e9a92'), light: col('#d4cfc4'), dark: col('#66615a'), moss: col('#626b3e'), wet: col('#4a443d'), grime: col('#6b6255') };
 function rockColor(c, y, s, n, water) {
   const band = Math.sin(y * 1.45 + n(s * 0.015, y * 0.08) * 3);
-  c.copy(ROCK.base).lerp(band > 0.25 ? ROCK.light : ROCK.dark, Math.min(1, Math.abs(band) * 0.55));
+  c.copy(ROCK.base).lerp(band > 0.1 ? ROCK.light : ROCK.dark, Math.min(1, Math.abs(band) * 0.8));
   const k = n(s * 0.35, y * 0.45);
   if (k > 0.5) c.lerp(ROCK.dark, 0.55); else if (k < -0.62) c.lerp(ROCK.moss, 0.6);
   if (water != null) c.lerp(ROCK.wet, smoothstep(water + 2.2, water + 0.2, y) * 0.8);
   return c;
+}
+
+// cała statyczna geometria (skały, mury, domy) zbierana w bloki 256 m: kilka poleceń rysowania zamiast kilkudziesięciu
+function makeBatch() {
+  const blocks = new Map();
+  return {
+    add(pos, clr, idx) {
+      if (!idx.length) return;
+      const k = Math.floor(pos[0] / 256) + ':' + Math.floor(pos[2] / 256);
+      let b = blocks.get(k); if (!b) { b = { pos: [], clr: [], idx: [] }; blocks.set(k, b); }
+      const o = b.pos.length / 3;
+      for (let i = 0; i < pos.length; i++) { b.pos.push(pos[i]); b.clr.push(clr[i]); }
+      for (let i = 0; i < idx.length; i++) b.idx.push(idx[i] + o);
+    },
+    flush(group) { for (const b of blocks.values()) group.add(flatMesh(b.pos, b.clr, b.idx, staticMaterial(), { shadow: true })); },
+  };
 }
 
 // płaskie cieniowanie: siatka z indeksami → osobne trójkąty z normalnymi ścian
@@ -3607,8 +4012,8 @@ function flatMesh(pos, clr, idx, mat, { shadow = false } = {}) {
 }
 
 // ściany skalne w wykopach: kurtyna od pobocza do krawędzi terenu, warstwy wapienia, nawisy, u góry zieleń
-function buildRockFaces(st, group) {
-  const hw = st.def.halfW, n = st.noiseDetail, K = 9, mat = staticMaterial(), c = new THREE.Color();
+function buildRockFaces(st, batch) {
+  const hw = st.def.halfW, n = st.noiseDetail, K = 9, c = new THREE.Color();
   for (const f of st.faces) {
     for (let a = f.s0; a < f.s1; a += 150) {
       const b = Math.min(f.s1, a + 150), pos = [], clr = [], idx = [];
@@ -3636,14 +4041,14 @@ function buildRockFaces(st, group) {
         const v0 = q * (K + 1) + k, v1 = v0 + 1, v2 = v0 + K + 1, v3 = v2 + 1;
         if (f.side < 0) idx.push(v0, v2, v1, v1, v2, v3); else idx.push(v0, v1, v2, v1, v3, v2);
       }
-      group.add(flatMesh(pos, clr, idx, mat));
+      batch.add(pos, clr, idx);
     }
   }
 }
 
 // klif pod balustradą: kurtyna skalna od drogi do wody, dopasowana do stoku terenu i lekko przed nim
-function buildSeaCliffs(st, group) {
-  const hw = st.def.halfW, n = st.noiseDetail, K = 10, W = st.water, mat = staticMaterial(), c = new THREE.Color();
+function buildSeaCliffs(st, batch) {
+  const hw = st.def.halfW, n = st.noiseDetail, K = 10, W = st.water, c = new THREE.Color();
   for (const p of st.parapets) {
     if (p.side < 0 || p.s1 < st.coastS[0]) continue;
     for (let a = Math.max(p.s0, st.coastS[0] - 10); a < p.s1; a += 150) {
@@ -3668,14 +4073,14 @@ function buildSeaCliffs(st, group) {
         const v0 = q * (K + 1) + k, v1 = v0 + 1, v2 = v0 + K + 1, v3 = v2 + 1;
         idx.push(v0, v1, v2, v1, v3, v2);
       }
-      group.add(flatMesh(pos, clr, idx, mat));
+      batch.add(pos, clr, idx);
     }
   }
 }
 
 // kamienne balustrady: murek z bloków z ciemnymi spoinami i jaśniejszym daszkiem, co kilkanaście metrów słupek
-function buildParapets(st, group) {
-  const hw = st.def.halfW, mat = staticMaterial(), stone = col('#b9ab90'), cap = col('#e4dac6'), joint = col('#6d6453'), c = new THREE.Color();
+function buildParapets(st, batch) {
+  const hw = st.def.halfW, stone = col('#b9ab90'), cap = col('#e4dac6'), joint = col('#6d6453'), c = new THREE.Color();
   const X = [[1.18, -0.15], [1.18, 0.6], [1.22, 0.72], [1.8, 0.72], [1.84, 0.6], [1.84, null]];
   for (const p of st.parapets) {
     for (let a = p.s0; a < p.s1; a += 160) {
@@ -3707,13 +4112,13 @@ function buildParapets(st, group) {
         for (let v = 0; v < pa.length; v += 18) { const vv = pos.length / 3; for (let r = 0; r < 6; r++) { pos.push(pa[v + r * 3], pa[v + r * 3 + 1], pa[v + r * 3 + 2]); clr.push(cap.r * 0.93, cap.g * 0.93, cap.b * 0.93); } idx.push(vv, vv + 1, vv + 2, vv + 3, vv + 4, vv + 5); }
         g.dispose();
       }
-      group.add(flatMesh(pos, clr, idx, mat));
+      batch.add(pos, clr, idx);
     }
   }
 }
 
 // skały w morzu (faraglioni): kilka wysokich baszt wapienia na tle zachodu, z zielenią na szczycie
-function buildSeaStacks(st, group) {
+function buildSeaStacks(st, batch) {
   const rng = makeRng((st.seed ^ 0xfa7a) >>> 0), [c0] = st.coastS, c1 = st.villageS[0], n = st.noiseDetail;
   const pos = [], clr = [], idx = [], green = col('#56613a'), c = new THREE.Color();
   const spots = [[0.36, 150, 20, 34], [0.4, 105, 9, 16], [0.78, 230, 26, 44], [0.83, 170, 11, 20]];
@@ -3739,16 +4144,18 @@ function buildSeaStacks(st, group) {
     }
     for (let q = 0; q < seg; q++) idx.push(v0 + rows * seg + q, top, v0 + rows * seg + (q + 1) % seg);
   }
-  group.add(flatMesh(pos, clr, idx, staticMaterial(), { shadow: false }));
+  batch.add(pos, clr, idx);
 }
 
 function buildItaly(st, group) {
   buildSea(st, group);
-  buildRockFaces(st, group);
-  buildSeaCliffs(st, group);
-  buildParapets(st, group);
-  buildSeaStacks(st, group);
-  buildTowns(st, group);
+  const batch = makeBatch();
+  buildRockFaces(st, batch);
+  buildSeaCliffs(st, batch);
+  buildParapets(st, batch);
+  buildSeaStacks(st, batch);
+  buildTowns(st, batch);
+  batch.flush(group);
 }
 
 // kolory terenu: sucha trawa i makia, terakotowa ziemia, wapień w warstwach na stromiznach, mokra skała przy wodzie
@@ -3775,14 +4182,12 @@ function italyColorFn(st) {
 
 // ---------- miasteczko i wioska: kolorowe kamienice (ochra, róż, terakota), zielone okiennice, dachówka, dzwonnica ----------
 const HOUSE_COLORS = ['#d9a456', '#e5bf6a', '#d98c73', '#e3a07e', '#c4694a', '#e8d6b0', '#d8b48a', '#ce7f5c', '#e6c79a', '#b85d45'];
-function buildTowns(st, group) {
+function buildTowns(st, batch) {
   if (!st.houses || !st.houses.length) return;
-  const mat = staticMaterial(), rng = makeRng((st.seed ^ 0x40a5e) >>> 0);
+  const rng = makeRng((st.seed ^ 0x40a5e) >>> 0);
   const shutter = col('#3f6a45'), shutter2 = col('#2f5a3f'), glass = col('#2b2a2c'), frame = col('#f1e7d2'), roofT = col('#a9573c'), roofS = col('#6e6a67'), c = new THREE.Color();
-  const blocks = new Map();
-  const buf = (x, z) => { const k = Math.floor(x / 160) + ':' + Math.floor(z / 160); let b = blocks.get(k); if (!b) { b = { pos: [], clr: [], idx: [] }; blocks.set(k, b); } return b; };
   for (const h of st.houses) {
-    const B = buf(h.x, h.z), ca = Math.cos(h.rot), sa = Math.sin(h.rot);
+    const B = { pos: [], clr: [], idx: [] }, ca = Math.cos(h.rot), sa = Math.sin(h.rot);
     // lokalne (u wzdłuż fasady, v w głąb, y w górę) → świat
     const P = (u, y, v) => [h.x + u * ca - v * sa, h.y0 + y, h.z + u * sa + v * ca];
     const quad = (a, b, cc, d, color) => { const v0 = B.pos.length / 3; B.pos.push(...a, ...b, ...cc, ...d); for (let r = 0; r < 4; r++) B.clr.push(color.r, color.g, color.b); B.idx.push(v0, v0 + 1, v0 + 2, v0 + 2, v0 + 1, v0 + 3); };
@@ -3857,10 +4262,340 @@ function buildTowns(st, group) {
       c.set(rng() < 0.5 ? '#c43d7a' : '#d9567f');
       quad(Q(-1, y0 + 0.12, -0.95), Q(-1, y0 + 0.9, -0.95), Q(1, y0 + 0.12, -0.95), Q(1, y0 + 0.9, -0.95), c);
     }
+    batch.add(B.pos, B.clr, B.idx);
   }
-  for (const b of blocks.values()) {
-    const m = flatMesh(b.pos, b.clr, b.idx, mat, { shadow: true });
-    group.add(m);
+}
+
+// ============================================================
+// Anglia: mokra droga (kałuże, kręgi kropel, odbicie nieba), murki z kamienia na sucho, żywopłoty,
+// wioska (domy, pub, kościółek, czerwona budka), stodoły, stosy bali, kratki dla bydła, owce, parasole kibiców.
+// Dane (pozycje, kolizje) liczy sim.js → englandPrep; tu tylko bryły. Wszystkie bryły w jednym materiale
+// z kolorami wierzchołków (mokre = ciemne powierzchnie błyszczą), rysowane jako instancje — jeden shader.
+// ============================================================
+
+// materiał brył Anglii: ciemne (łupek, szyby, farba) błyszczą jak mokre, ciepłe okna świecą
+function engMaterial() {
+  return wmat('engBuild', () => {
+    const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.7, metalness: 0 });
+    const c = T.attribute('color', 'vec3');
+    m.colorNode = c;
+    const lum = T.dot(c, T.vec3(0.2126, 0.7152, 0.0722));
+    m.roughnessNode = T.mix(T.float(0.18), T.float(0.72), T.smoothstep(0.015, 0.2, lum));
+    const lamp = T.step(0.97, c.r).mul(T.step(c.b, 0.6)).mul(T.step(0.08, c.b));
+    m.emissiveNode = c.mul(lamp).mul(1.6);
+    return m;
+  });
+}
+const LAMP = '#ffcf70';
+
+// ---------- mokra nawierzchnia ----------
+const RWET = { W: T.uniform(13.8) };
+function roadWetMaterial(st, tex) {
+  RWET.W.value = 2 * (st.def.halfW + ROAD_EDGE);
+  const m = wmat('roadWet', () => {
+    const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.5, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+    const mapN = T.texture(tex, T.uv());
+    m.userData.mapN = mapN;
+    const lat = T.abs(T.uv().x.sub(0.5).mul(RWET.W));
+    const hw = RWET.W.mul(0.5).sub(ROAD_EDGE);
+    const wp = T.positionWorld.xz;
+    const n1 = T.texture(detailTex, wp.mul(0.019)).r, n2 = T.texture(detailTex, wp.mul(0.085).add(0.37)).r;
+    const rut = T.float(1).sub(T.smoothstep(0.15, 0.7, T.abs(lat.sub(1.45))));
+    const edge = T.smoothstep(hw.sub(0.7), hw.add(0.1), lat).mul(T.float(1).sub(T.smoothstep(hw.add(0.9), hw.add(1.5), lat)));
+    const pv = n1.mul(0.62).add(n2.mul(0.3)).add(rut.mul(0.2)).add(edge.mul(0.16));
+    const pud = T.smoothstep(0.66, 0.7, pv); // kałuża
+    const damp = T.smoothstep(0.5, 0.66, pv); // ciemniejsza, mokrzejsza obwódka
+    // kręgi kropel: komórki 0,45 m, w każdej kropla co ~0,8 s — rozchodzący się pierścień jako zaburzenie normalnej
+    const ring = (p, k) => {
+      const cell = T.floor(p), f = T.fract(p).sub(0.5);
+      const h = T.hash(cell.x.add(cell.y.mul(57.31)).add(k));
+      const c = T.vec2(T.hash(h.mul(13.7)), T.hash(h.mul(7.3))).sub(0.5).mul(0.5);
+      const ph = T.fract(T.time.mul(1.25).add(h.mul(9.1)));
+      const dv = f.sub(c), d = T.length(dv);
+      const x = d.sub(ph.mul(0.48)).mul(26.0);
+      const amp = T.sin(T.clamp(x, -3.1416, 0.0)).mul(T.pow(T.float(1).sub(ph), 2.0));
+      return dv.div(T.max(d, 0.001)).mul(amp);
+    };
+    const pr = wp.mul(2.2);
+    const g = ring(pr, 0).add(ring(pr.mul(1.37).add(0.5), 17));
+    const bump = T.mix(T.float(0.18), T.float(0.55), pud);
+    const nW = T.normalize(T.normalWorldGeometry.add(T.vec3(g.x, 0, g.y).mul(bump)));
+    m.normalNode = T.cameraViewMatrix.mul(T.vec4(nW, 0)).xyz;
+    const base = mapN.rgb;
+    const wet = base.mul(base).mul(1.25); // mokre = ciemniej i bardziej nasycone
+    const water = T.mix(wet.mul(0.45), T.vec3(0.05, 0.045, 0.035), 0.55);
+    m.colorNode = T.mix(T.mix(wet, wet.mul(0.8), damp), water, pud);
+    m.roughnessNode = T.mix(T.mix(T.float(0.42), T.float(0.28), damp), T.float(0.03), pud);
+    // odbicie nieba w kałużach i na mokrym (własne — scena nie ma mapy otoczenia); nisko nad horyzontem ciemny pas lasu
+    const V = T.normalize(T.positionWorld.sub(T.cameraPosition));
+    const R = T.reflect(V, nW);
+    let sky = T.mix(ATM.horizon, ATM.zenith, T.pow(T.max(R.y, 0.0), 0.6));
+    sky = T.mix(ATM.horizon.mul(0.22), sky, T.smoothstep(0.03, 0.2, R.y));
+    const fres = T.pow(T.float(1).sub(T.max(T.dot(V.negate(), nW), 0.0)), 5.0).mul(0.95).add(0.05);
+    m.emissiveNode = sky.mul(fres).mul(T.mix(T.mix(T.float(0.1), T.float(0.22), damp), T.float(0.85), pud));
+    return m;
+  });
+  m.userData.mapN.value = tex;
+  return m;
+}
+
+// ---------- kolory terenu wg strefy ----------
+const ENG_C = { forest: col('#2f3321'), heather: col('#5a4a44'), bracken: col('#6e5431'), pasture: col('#3f6d27'), pasture2: col('#56802f') };
+const _tm = new THREE.Color(), _tp = new THREE.Color(), _tt = new THREE.Color();
+function englandTint(st, x, z, tmp) {
+  const e = st.eng; if (!e) return;
+  const w = e.wAt(e.idxAt(x, z)), n = st.noiseDetail(x * 0.03 + 5, z * 0.03 - 2) * 0.5 + 0.5, f = ENG_C.forest;
+  _tm.copy(ENG_C.heather).lerp(ENG_C.bracken, smoothstep(0.35, 0.75, n));
+  _tp.copy(ENG_C.pasture).lerp(ENG_C.pasture2, n);
+  const wp = w[2] + w[3];
+  _tt.setRGB(f.r * w[0] + _tm.r * w[1] + _tp.r * wp, f.g * w[0] + _tm.g * w[1] + _tp.g * wp, f.b * w[0] + _tm.b * w[1] + _tp.b * wp);
+  tmp.lerp(_tt, 0.62);
+}
+
+// ---------- drzewa Anglii (wołane z treeGeo) ----------
+function engTreeParts(type, { trunk, cone, blob, limb, lite }) {
+  if (type === 'sitka') { // wysoki świerk z plantacji: wiele opadających pięter
+    const n = lite ? 5 : 8, out = [trunk(0.26, 0.12, 5, '#4a3a2c', 90)];
+    for (let k = 0; k < n; k++) { const t = k / n; out.push(cone(2.3 * (1 - t) + 0.35, 3.4 - t * 0.8, 2.2 + t * 12.5, ['#1b3122', '#20392a', '#18301f'][k % 3], 91 + k)); }
+    return out;
+  }
+  if (type === 'oak') { // dąb: gruby pień, konary, szeroka kopuła z kęp
+    const out = [trunk(0.5, 0.32, 4.2, '#4b3f33', 100), ...[0, 1, 2].map(k => ({ geo: limb(0.2, 3.4, 0.8).rotateY(k * 2.1 + 0.3).translate(0, 3.6, 0), color: col('#4b3f33') }))];
+    const pts = [[0, 8.2, 0, 3.4], [2.6, 7.0, 0.8, 2.6], [-2.4, 7.2, -0.9, 2.7], [0.7, 6.8, 2.6, 2.5], [-0.8, 7.0, -2.6, 2.5], [1.6, 9.0, -1.4, 2.2], [-1.5, 8.8, 1.5, 2.2]];
+    pts.forEach(([x, y, z, r], k) => out.push(blob(r, x, y, z, 0.78, ['#3c5626', '#46622b', '#34501f'][k % 3], 101 + k, 1)));
+    return out;
+  }
+  // głóg: niski, pochylony przez wiatr
+  return [{ geo: limb(0.16, 2.6, 0.35), color: col('#4a3d30') },
+    blob(1.4, 1.0, 2.6, 0, 0.62, '#48562b', 110, 1), blob(1.0, 1.9, 2.3, 0.4, 0.6, '#526232', 111), blob(0.9, 0.2, 2.9, -0.5, 0.6, '#3f4d26', 112)];
+}
+
+// ---------- bryły ----------
+const box = (w, h, d, x = 0, y = 0, z = 0) => new THREE.BoxGeometry(w, h, d).translate(x, y, z);
+function prism(w, rise, d, y0) { // dach dwuspadowy: kalenica wzdłuż x
+  const g = new THREE.BufferGeometry(), hx = w / 2, hz = d / 2;
+  const P = [[-hx, y0, hz], [hx, y0, hz], [hx, y0 + rise, 0], [-hx, y0 + rise, 0], [-hx, y0, -hz], [hx, y0, -hz]];
+  const tri = [[0, 1, 2], [0, 2, 3], [5, 4, 3], [5, 3, 2], [0, 3, 4], [1, 5, 2]];
+  const pos = []; for (const t of tri) for (const i of t) pos.push(...P[i]);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
+}
+// dom: przód (+z) do drogi, grunt y = 0, cokół w dół
+function houseParts(w, d, H, wall, units, door, lit, out, opt = {}) {
+  const roofC = opt.roof || '#353a40', frame = opt.frame || '#e8e6df', glass = '#161b20';
+  out.push({ geo: box(w, H + 3, d, 0, (H - 3) / 2), color: jitterColor(wall, 0.08, units * 7 + d) });
+  const rise = d * 0.42;
+  out.push({ geo: prism(w + 0.5, rise + 0.15, d + 0.7, H - 0.12), color: jitterColor(roofC, 0.06, 3) });
+  const per = w / units;
+  for (let u = 0; u < units; u++) {
+    const cx = -w / 2 + per * (u + 0.5);
+    const win = (x, y, on) => {
+      out.push({ geo: box(1.05, 1.25, 0.12, x, y, d / 2 + 0.03), color: col(frame) });
+      out.push({ geo: box(0.85, 1.05, 0.08, x, y, d / 2 + 0.08), color: col(on ? LAMP : glass) });
+      out.push({ geo: box(0.08, 1.05, 0.1, x, y, d / 2 + 0.1), color: col(frame) });
+      out.push({ geo: box(1.2, 0.12, 0.2, x, y - 0.68, d / 2 + 0.06), color: col('#b9b1a0') });
+    };
+    const k = opt.pub ? 3 : 1;
+    for (let q = 0; q < k; q++) win(cx + (k > 1 ? (q - 1) * per / 3.2 : per * 0.22), H * 0.72, lit(u * 5 + q));
+    if (!opt.pub) win(cx + per * 0.22, H * 0.3, lit(u * 5 + 3));
+    else for (const q of [-1, 1]) win(cx + q * per / 3.2, H * 0.3, lit(u * 5 + 4 + q));
+    out.push({ geo: box(0.95, 2.05, 0.12, cx - (opt.pub ? 0 : per * 0.22), 1.0, d / 2 + 0.04), color: col(door) });
+    // tył: dwa okna
+    out.push({ geo: box(0.9, 1.1, 0.1, cx, H * 0.72, -d / 2 - 0.03), color: col(lit(u * 5 + 9) ? LAMP : glass) });
+    if (u < units - 1 || units === 1) {
+      const chx = units === 1 ? w / 2 - 0.45 : cx + per / 2;
+      out.push({ geo: box(0.7, 1.6, 0.9, chx, H + rise * 0.55, 0), color: jitterColor(wall, 0.1, u + 11) });
+      out.push({ geo: new THREE.CylinderGeometry(0.12, 0.12, 0.35, 6).translate(chx, H + rise * 0.55 + 0.95, 0), color: col('#8a4a30') });
+    }
+  }
+  if (opt.pub) out.push({ geo: box(w, 0.35, 0.1, 0, 0.18, d / 2 + 0.02), color: col('#1c1c1c') });
+}
+const WALLC = ['#958a76', '#6c675d', '#8b4a36', '#d6d2c6'];
+const DOORS = ['#2b4a36', '#7a1f1f', '#1f2f55', '#141414', '#6b4a2a', '#8a6d1f'];
+
+// wstawia części (lokalne) do świata: obrót Y, przesunięcie
+function placeParts(parts, x, y, z, rot, out) {
+  const m = new THREE.Matrix4().makeRotationY(rot).setPosition(x, y, z);
+  for (const p of parts) { p.geo.applyMatrix4(m); out.push(p); }
+}
+
+function buildEngland(st, group) {
+  const e = st.eng; if (!e) return;
+  const mat = engMaterial(), q = Q(), lite = !q.pipeline;
+  const one = (geo) => { const m = new THREE.InstancedMesh(geo, mat, 1); m.setMatrixAt(0, new THREE.Matrix4()); geo.computeBoundingSphere(); m.computeBoundingSphere(); m.castShadow = true; m.receiveShadow = true; group.add(m); return m; };
+  // --- wioska: wszystkie budynki w jednej geometrii (jedno wywołanie rysowania)
+  const V = e.village, vp = [];
+  const H = V.houses;
+  for (let k = 0; k < H.length; k += 11) {
+    const [x, y, z, rot, w, d, kind, style, units, door] = H.slice(k, k + 10);
+    const parts = [], lit = (i) => hash2i(k, i, 5) < 0.3;
+    houseParts(w, d, kind === 1 ? 4.4 : 5.4, WALLC[style], units, DOORS[door], lit, parts, { roof: kind === 1 && style === 0 ? '#3d3a36' : '#353a40' });
+    placeParts(parts, x, y, z, rot, vp);
+  }
+  if (V.pub) { // pub: bielony, czarne ramy, prawie wszystkie okna świecą
+    const [x, y, z, rot, w, d] = V.pub, parts = [];
+    houseParts(w, d, 6, '#dcd8cc', 2, '#141414', (i) => i % 4 !== 1, parts, { pub: true, frame: '#161616' });
+    placeParts(parts, x, y, z, rot, vp);
+  }
+  if (V.church) { // kościółek: nawa, stromy dach, przypory, ostrołukowe okna, wieża z blankami
+    const [x, y, z, rot, len, d] = V.church, parts = [], sc = '#857d6e';
+    parts.push({ geo: box(len - 5, 9, d, -2.5, 1.5), color: jitterColor(sc, 0.06, 1) });
+    parts.push({ geo: prism(len - 4.6, d * 0.62, d + 0.6, 6), color: col('#343941') });
+    for (let i = 0; i < 4; i++) {
+      const wx = -len / 2 + 2.5 + i * 3.8;
+      for (const s of [-1, 1]) {
+        parts.push({ geo: box(0.9, 2.6, 0.1, wx, 3.3, s * (d / 2 + 0.03)), color: col(i === 1 ? LAMP : '#1d2530') });
+        parts.push({ geo: box(0.6, 3.5, 0.7, wx + 1.9, 1.2, s * (d / 2 + 0.3)), color: jitterColor(sc, 0.08, i) });
+      }
+    }
+    const tx = len / 2 - 2.5;
+    parts.push({ geo: box(5, 20, 5, tx, 7), color: jitterColor('#7d7567', 0.05, 9) });
+    for (let i = 0; i < 4; i++) for (const s of [-1, 1]) {
+      parts.push({ geo: box(0.7, 0.8, 0.5, tx - 1.9 + i * 1.27, 17.4, s * 2.3), color: col('#7d7567') });
+      parts.push({ geo: box(0.5, 0.8, 0.7, tx + s * 2.3, 17.4, -1.9 + i * 1.27), color: col('#7d7567') });
+    }
+    parts.push({ geo: box(1.1, 2.2, 0.1, tx, 13.5, 2.53), color: col('#161b20') });
+    parts.push({ geo: new THREE.CylinderGeometry(0.75, 0.75, 0.1, 16).rotateX(Math.PI / 2).translate(tx, 11, 2.55), color: col('#e8e4d8') });
+    parts.push({ geo: box(1.2, 2.4, 0.2, tx, 1.2, 2.55), color: col('#3b2a1e') });
+    placeParts(parts, x, y, z, rot, vp);
+    for (let k = 0; k < V.stones.length; k += 5) {
+      const v = V.stones[k + 4], p = [v === 3
+        ? { geo: box(0.12, 1.1, 0.12, 0, 0.3), color: col('#a19a8c') }
+        : { geo: box(0.6, 0.8 + v * 0.1, 0.12, 0, 0.3), color: jitterColor('#8e8a80', 0.15, k) }];
+      if (v === 3) p.push({ geo: box(0.55, 0.12, 0.12, 0, 0.62), color: col('#a19a8c') });
+      placeParts(p, V.stones[k], V.stones[k + 1], V.stones[k + 2], V.stones[k + 3], vp);
+    }
+  }
+  if (V.phone) { // czerwona budka telefoniczna K6: szprosy, podświetlone „TELEPHONE", kopulasty dach
+    const red = '#b0121b', p = [{ geo: box(0.95, 2.35, 0.95, 0, 1.17), color: col(red) },
+      { geo: new THREE.CylinderGeometry(0.5, 0.5, 0.95, 12, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(Math.PI / 2).scale(1, 0.4, 1).translate(0, 2.35, 0), color: col(red) }];
+    for (let f = 0; f < 4; f++) {
+      const a = f * Math.PI / 2, s = new THREE.Matrix4().makeRotationY(a);
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) p.push({ geo: box(0.2, 0.2, 0.04, -0.24 + c * 0.24, 0.6 + r * 0.25, 0.48).applyMatrix4(s), color: col('#12171c') });
+      p.push({ geo: box(0.7, 0.14, 0.04, 0, 2.12, 0.49).applyMatrix4(s), color: col('#fff2c0') });
+    }
+    placeParts(p, ...V.phone, vp);
+  }
+  if (V.sign) { const p = [{ geo: box(0.18, 3.8, 0.18, 0, 1.9), color: col('#1c1c1c') }, { geo: box(1.2, 0.1, 0.1, 0.5, 3.6), color: col('#1c1c1c') }]; placeParts(p, ...V.sign, vp); }
+  for (let k = 0; k < V.benches.length; k += 4) {
+    const p = [{ geo: box(1.8, 0.07, 0.8, 0, 0.75), color: col('#6d5134') }, { geo: box(1.8, 0.06, 0.3, 0, 0.45, 0.62), color: col('#6d5134') }, { geo: box(1.8, 0.06, 0.3, 0, 0.45, -0.62), color: col('#6d5134') }, { geo: box(0.08, 0.75, 1.5, -0.7, 0.37), color: col('#5a4229') }, { geo: box(0.08, 0.75, 1.5, 0.7, 0.37), color: col('#5a4229') }];
+    placeParts(p, V.benches[k], V.benches[k + 1], V.benches[k + 2], V.benches[k + 3], vp);
+  }
+  for (let k = 0; k < V.lamps.length; k += 4) {
+    const p = [{ geo: new THREE.CylinderGeometry(0.06, 0.1, 3.6, 6).translate(0, 1.8, 0), color: col('#18191a') }, { geo: box(0.32, 0.45, 0.32, 0, 3.8), color: col(LAMP) }, { geo: box(0.42, 0.08, 0.42, 0, 4.06), color: col('#18191a') }];
+    placeParts(p, V.lamps[k], V.lamps[k + 1], V.lamps[k + 2], V.lamps[k + 3], vp);
+  }
+  // stodoły i stosy bali
+  for (let k = 0; k < e.barns.length; k += 7) {
+    const [x, y, z, rot, w, d] = e.barns.slice(k, k + 6), p = [];
+    p.push({ geo: box(w, 7, d, 0, 0.5), color: jitterColor('#7a7263', 0.06, k) }, { geo: prism(w + 0.4, d * 0.4, d + 0.5, 4), color: col('#3a3e44') });
+    p.push({ geo: box(3, 3, 0.1, 0, 1.5, d / 2 + 0.03), color: col('#2a2520') });
+    placeParts(p, x, y, z, rot, vp);
+  }
+  for (let k = 0; k < e.logs.length; k += 4) {
+    const p = [], lr = makeRng(k + 5);
+    for (let row = 0; row < 4; row++) for (let c = 0; c < 5 - row; c++) {
+      const r = 0.2 + lr() * 0.07, L = 5.4 + lr() * 0.8;
+      p.push({ geo: new THREE.CylinderGeometry(r, r, L, lite ? 7 : 10).rotateZ(Math.PI / 2).translate((lr() - 0.5) * 0.5, 0.25 + row * 0.4, (c - (4 - row) / 2) * 0.48), color: (o, x, y, zz, nx) => o.set(Math.abs(nx) > 0.9 ? '#c7a574' : '#4e3b2a') });
+    }
+    placeParts(p, e.logs[k], e.logs[k + 1], e.logs[k + 2], e.logs[k + 3], vp);
+  }
+  // kratki dla bydła: pręty w poprzek drogi
+  for (const i of e.grids) {
+    const hd = st.hd[i], rx = -Math.sin(hd), rz = Math.cos(hd), hw = st.def.halfW, p = [];
+    for (let b = -6; b <= 6; b++) {
+      const ox = Math.cos(hd) * b * 0.16, oz = Math.sin(hd) * b * 0.16, cx = st.x[i] + ox, cz = st.z[i] + oz;
+      const g = box(0.07, 0.06, 2 * hw + 1).applyMatrix4(new THREE.Matrix4().makeRotationY(Math.atan2(rx, rz)));
+      g.translate(cx, st.heightAt(cx, cz) + 0.06, cz);
+      p.push({ geo: g, color: col('#3a3c3f') });
+    }
+    vp.push(...p);
+  }
+  if (vp.length) one(mergeColored(vp));
+
+  // --- murki i żywopłoty: segmenty w instancjach (kubełki), bryła z kamieni blisko drogi, prostsza w polu
+  const wallGeo = (detail, low) => {
+    const r = makeRng(detail ? 77 : 78), p = [], Hh = low ? 0.8 : 1.25, C = '#6f6a5e';
+    const core = new THREE.BoxGeometry(1, Hh, 1.02), pa = core.attributes.position; // przekrój trapezowy, pełna długość segmentu
+    for (let i = 0; i < pa.count; i++) pa.setX(i, Math.sign(pa.getX(i)) * (pa.getY(i) > 0 ? 0.19 : 0.33));
+    p.push({ geo: core.translate(0, Hh / 2 - 0.15, 0), color: jitterColor('#55524a', 0.1, 3) });
+    if (detail) for (let c = 0; c < 3; c++) for (let s = 0; s < 3; s++) for (const sd of [-1, 1]) {
+      const y = 0.1 + c * (Hh - 0.2) / 3, w = 0.28 - c * 0.04;
+      p.push({ geo: box(0.12, 0.2 + r() * 0.08, 0.26 + r() * 0.1, sd * (w + 0.02 * r()), y, -0.33 + s * 0.33), color: jitterColor(r() < 0.2 ? '#6d7353' : C, 0.25, c * 9 + s + sd) });
+    }
+    for (let s = 0; s < 5; s++) p.push({ geo: box(0.46, 0.28 + r() * 0.1, 0.13, 0, Hh - 0.1, -0.4 + s * 0.2).rotateX((r() - 0.5) * 0.3), color: jitterColor('#7c776a', 0.25, 40 + s) });
+    return mergeColored(p);
+  };
+  const hedgeGeo = () => {
+    const p = [];
+    for (let s = 0; s < 4; s++) p.push({ geo: new THREE.IcosahedronGeometry(0.85, lite ? 0 : 1).scale(0.9, 1.15, 0.75).translate((s % 2 - 0.5) * 0.2, 1.0 + (s % 3) * 0.12, -0.38 + s * 0.25), color: jitterColor(['#34501f', '#3d5a26', '#2f4a1c'][s % 3], 0.2, 60 + s) });
+    return mergeColored(p);
+  };
+  const G = { 0: wallGeo(true, false), 1: wallGeo(false, false), 2: wallGeo(true, true), 3: hedgeGeo() };
+  const S = e.segs, m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), eu = new THREE.Euler(0, 0, 0, 'YXZ'), sc = new THREE.Vector3(), pp = new THREE.Vector3();
+  for (const type of [0, 1, 2, 3]) {
+    const list = [];
+    for (let k = 0; k < S.length; k += 7) if (S[k + 6] === type) list.push(k);
+    const b = new Map();
+    for (const k of list) { const key = Math.floor(S[k] / 384) + ':' + Math.floor(S[k + 2] / 384); if (!b.has(key)) b.set(key, []); b.get(key).push(k); }
+    for (const l of b.values()) {
+      const mesh = new THREE.InstancedMesh(G[type], type === 3 ? wmat('tree', () => vcMaterial({ rough: 0.92, sway: 0.0016 })) : mat, l.length);
+      l.forEach((k, j) => {
+        eu.set(-S[k + 5], S[k + 3], 0);
+        mesh.setMatrixAt(j, m4.compose(pp.set(S[k], S[k + 1] - 0.12, S[k + 2]), qq.setFromEuler(eu), sc.set(1, 1, S[k + 4] + 0.08)));
+      });
+      mesh.computeBoundingSphere(); mesh.castShadow = type !== 1 && !lite; mesh.receiveShadow = true;
+      group.add(mesh);
+    }
+  }
+  // bramy (pięć żerdzi)
+  if (e.gates.length) {
+    const p = [box(0.14, 1.4, 0.14, -1.75, 0.6), box(0.14, 1.4, 0.14, 1.75, 0.6)].map(g => ({ geo: g, color: col('#5b4a38') }));
+    for (let b = 0; b < 5; b++) p.push({ geo: box(3.4, 0.08, 0.05, 0, 0.25 + b * 0.24), color: col('#8a7a62') });
+    p.push({ geo: box(0.08, 1.1, 0.05, 0, 0.72).rotateZ(0.9), color: col('#8a7a62') });
+    const gm = instancedFrom(mergeColored(p), mat, e.gates, 4, (i, pos) => { pos.set(e.gates[i * 4], e.gates[i * 4 + 1], e.gates[i * 4 + 2]); return e.gates[i * 4 + 3]; });
+    if (gm) group.add(gm);
+  }
+  // --- owce (czarne pyski jak rasa swaledale), stojące i skubiące trawę
+  if (e.sheep.length) {
+    const sheepGeo = (graze) => {
+      const wool = (o, x, y, z) => o.set('#d9d3c3').multiplyScalar(0.85 + 0.15 * Math.sin(x * 23 + y * 17 + z * 11));
+      const p = [{ geo: new THREE.IcosahedronGeometry(0.5, lite ? 1 : 2).scale(0.8, 0.72, 1.25).translate(0, 0.72, 0), color: wool }];
+      const hy = graze ? 0.35 : 0.95, hz = graze ? -0.78 : -0.72;
+      p.push({ geo: box(0.22, 0.26, 0.36, 0, hy, hz).rotateX(graze ? 0.9 : 0.3), color: col('#1d1b19') });
+      for (const s of [-1, 1]) p.push({ geo: box(0.16, 0.05, 0.08, s * 0.16, hy + 0.1, hz + 0.1), color: col('#1d1b19') });
+      for (const [x, z] of [[-0.18, -0.35], [0.18, -0.35], [-0.18, 0.38], [0.18, 0.38]]) p.push({ geo: box(0.07, 0.5, 0.07, x, 0.22, z), color: col('#22201d') });
+      return mergeColored(p);
+    };
+    const rockMat = wmat('rock', () => vcMaterial({ rough: 0.95 }));
+    for (const v of [0, 1]) {
+      const idx = []; for (let k = 0; k < e.sheep.length; k += 6) if (e.sheep[k + 5] === v) idx.push(k);
+      const arr = idx.flatMap(k => e.sheep.slice(k, k + 5));
+      const m = instancedFrom(sheepGeo(v === 1), rockMat, arr, 5, (i, pos, s) => { pos.set(arr[i * 5], arr[i * 5 + 1], arr[i * 5 + 2]); s.setScalar(arr[i * 5 + 4]); return arr[i * 5 + 3]; }, { shadow: !lite });
+      if (m) group.add(m);
+    }
+  }
+  // --- parasole kibiców: ta sama kolejność i materiał co tułowia, więc podskakują razem z właścicielem
+  const cr = st.crowd;
+  if (cr.length) {
+    const ug = mergeColored([
+      { geo: new THREE.ConeGeometry(0.62, 0.28, 8, 1, true).translate(0, 0.14, 0), color: col('#ffffff') },
+      { geo: new THREE.CylinderGeometry(0.015, 0.015, 0.9, 4).translate(0, -0.3, 0), color: col('#111111') },
+    ]);
+    const um = instancedFrom(ug, wmat('crowdBody', () => vcMaterial({ rough: 0.8, bounce: 0.1 })), cr, 6, (i, pos, s, c) => {
+      const has = cr[i * 6 + 5] < 0.5;
+      pos.set(cr[i * 6], cr[i * 6 + 1] + 2.05, cr[i * 6 + 2]); s.setScalar(has ? 1 : 0.0001);
+      c.set(['#1c2f5e', '#b8202a', '#1e1e22', '#e0b21c', '#2d6b3a', '#e8e8e8'][(i * 7) % 6]);
+      return cr[i * 6 + 3];
+    }, { colors: true });
+    if (um) group.add(um);
+  }
+  // szyld pubu (ten sam typ materiału co tablica STOP — bez nowego shadera)
+  if (V.sign) {
+    const tex = bannerTexture(['THE RAVEN', 'free house · ales'], { bg: '#1f3a2c', fg: '#e9c46a', w: 512, h: 320 });
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.75), new THREE.MeshStandardNodeMaterial({ map: tex, roughness: 0.6, side: THREE.DoubleSide }));
+    const [x, y, z, rot] = V.sign, o = new THREE.Vector3(0.75, 3.1, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), rot);
+    board.position.set(x + o.x, y + o.y, z + o.z); board.rotation.y = rot;
+    group.add(board);
   }
 }
 
@@ -4964,8 +5699,9 @@ class FX {
     const L = st.def.look;
     this.dust = col(L.dust);
     FXLIGHT.value = L.time === 'night' ? 0.22 : L.time === 'dusk' ? 0.8 : 1;
-    if (this.weather) { this.scene.remove(this.weather.mesh); this.weather.mesh.geometry.dispose(); this.weather.mesh.material.dispose(); this.weather = null; }
-    if (L.weather) {
+    if (this.weather) { this.scene.remove(this.weather.mesh); if (this.weather.dispose) this.weather.dispose(); else { this.weather.mesh.geometry.dispose(); this.weather.mesh.material.dispose(); } this.weather = null; }
+    if (L.weather === 'rain') { this.weather = new RainFX(this.scene, st); this.scene.add(this.weather.mesh); } // Anglia: ulewa (g4c_rain.js)
+    else if (L.weather) {
       this.weather = new Weather(L.weather, L.weather === 'mist' ? Q().mist : Q().snow);
       this.scene.add(this.weather.mesh);
     }
@@ -4973,6 +5709,7 @@ class FX {
   }
   clear() { this.smoke.clear(); this.glow.clear(); this.skids.reset(); }
   dispose() {
+    if (this.weather && this.weather.dispose) { this.scene.remove(this.weather.mesh); this.weather.dispose(); this.weather = null; }
     for (const m of [this.smoke.mesh, this.glow.mesh, this.skids.mesh, this.weather && this.weather.mesh]) {
       if (!m) continue;
       this.scene.remove(m); m.geometry.dispose(); m.material.dispose(); m.dispose?.();
@@ -4985,6 +5722,7 @@ class FX {
     if (!on) { this.smoke.n = 0; this.glow.n = 0; this.skids.count = 0; }
   }
   wheels(car, dt, night) {
+    if (this.weather && this.weather.wheels) { this.weather.wheels(car, dt, this); return; } // mokro: woda zamiast kurzu
     const sp = car.speed;
     const hi = Q().emit;
     for (let i = 0; i < 4; i++) {
@@ -4992,7 +5730,8 @@ class FX {
       if (!wh.contact || !wh.surf) { this.skids.track(i, false); continue; }
       const kind = wh.surf.kind, slip = wh.slip;
       let rate = 0;
-      if (kind === 'tarmac') rate = Math.max(0, slip - 2.5) * 8;
+      // asfalt: dym już przy poślizgu w zakręcie, buksowaniu i na ręcznym (nie tylko przy zablokowanych kołach)
+      if (kind === 'tarmac') rate = Math.max(0, slip - 0.8) * 9 + (wh.spin || 0) * 25;
       else if (kind === 'grass') rate = (sp * 0.35 + slip * 1.6);
       else rate = (sp * (wh.front ? 0.65 : 1.2) + slip * 4.2);
       rate *= hi;
@@ -5020,7 +5759,7 @@ class FX {
         }
       }
       // ślady
-      const mark = kind === 'tarmac' ? slip > 4 : (kind === 'snow' || kind === 'gravel' || kind === 'mud') && (slip > 2.5 || sp > 3);
+      const mark = kind === 'tarmac' ? slip > 2 : (kind === 'snow' || kind === 'gravel' || kind === 'mud') && (slip > 2.5 || sp > 3);
       const mc = kind === 'tarmac' ? '#0b0b0b' : kind === 'snow' ? '#8d949c' : kind === 'mud' ? '#2a2016' : '#5a4a36';
       this.skids.track(i, mark, cx, cy, cz, 0.22, mc);
     }
@@ -5172,6 +5911,333 @@ function makeSupremeChain(scene, camera, scale = 1) {
   const ca = chromaticAberration(toned, POST.ca, T.vec2(0.5, 0.5), 1.1);
   const grain = film(ca, POST.grain);
   return { output: T.vec4(vignette(grain.rgb, 0.45), 1.0), bloomNode, colorTransform: false, aoPass };
+}
+
+// ============================================================
+// Deszcz (Anglia): smugi kropel liczone w całości na GPU (jedno wywołanie rysowania), rozbryzgi na ziemi
+// i na karoserii, woda spod kół, krople na obiektywie i szybie z wycieraczkami (efekt ekranowy), szum ulewy.
+// ============================================================
+const RAIN = {
+  on: false,
+  cam: T.uniform(new THREE.Vector3()), camVel: T.uniform(new THREE.Vector3()), wind: T.uniform(new THREE.Vector2(1.4, 0.6)),
+  boxNear: T.uniform(new THREE.Vector3(9, 9, 9)), boxFar: T.uniform(new THREE.Vector3(46, 26, 46)),
+  px: T.uniform(0.002), k: T.uniform(1), col: T.uniform(new THREE.Color(0.95, 1.0, 1.06)),
+  // efekt ekranowy
+  lens: T.uniform(0), shield: T.uniform(0), speed: T.uniform(0), aspect: T.uniform(1.7), clock: T.uniform(0),
+};
+// skrót zmiennoprzecinkowy (T.hash obcina do liczb całkowitych — za mało wariantów dla ułamków)
+const fhash = (x) => T.fract(T.sin(x).mul(43758.5453));
+const fhash2 = (p) => fhash(T.dot(T.mod(p, 289.0), T.vec2(12.9898, 78.233)));
+const fmod = (x, b) => x.sub(b.mul(T.floor(x.div(b))));
+
+function rainStreakMesh(count) {
+  const pos = new Float32Array(count * 4 * 3), aux = new Float32Array(count * 4 * 4), idx = new Uint32Array(count * 6);
+  for (let i = 0; i < count; i++) {
+    const sx = Math.random(), sy = Math.random(), sz = Math.random(), r1 = Math.random(), r2 = Math.random();
+    for (let v = 0; v < 4; v++) {
+      const o = i * 4 + v;
+      pos[o * 3] = sx; pos[o * 3 + 1] = sy; pos[o * 3 + 2] = sz;
+      aux[o * 4] = v >> 1; aux[o * 4 + 1] = (v & 1) * 2 - 1; aux[o * 4 + 2] = r1; aux[o * 4 + 3] = r2;
+    }
+    const b = i * 4; idx.set([b, b + 1, b + 2, b + 2, b + 1, b + 3], i * 6);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('rq', new THREE.BufferAttribute(aux, 4));
+  geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  const mat = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false, side: THREE.DoubleSide });
+  const seed = T.positionGeometry, q = T.attribute('rq', 'vec4');
+  const near = T.step(0.72, q.z); // ~¼ kropel w małym pudle tuż przy kamerze: duże, rozmyte smugi
+  const B = T.mix(RAIN.boxFar, RAIN.boxNear, near);
+  const fall = T.mix(T.float(7.5), T.float(10.5), q.w);
+  const vel = T.vec3(RAIN.wind.x, fall.negate(), RAIN.wind.y);
+  const w0 = seed.mul(B).add(vel.mul(T.time));
+  const rel = fmod(w0.sub(RAIN.cam).add(B.mul(0.5)), B).sub(B.mul(0.5));
+  const wpos = RAIN.cam.add(rel);
+  const rv = vel.sub(RAIN.camVel);
+  const len = T.clamp(T.length(rv).mul(0.024), 0.12, 1.5);
+  const dir = T.normalize(rv), toCam = T.normalize(rel.negate());
+  const side = T.normalize(T.cross(dir, toCam));
+  const dist = T.length(rel);
+  const w00 = T.mix(T.float(0.0045), T.float(0.006), near), wid = T.max(w00, dist.mul(RAIN.px).mul(0.9));
+  mat.positionNode = wpos.sub(dir.mul(q.x.mul(len))).add(side.mul(q.y.mul(wid)));
+  const e = T.abs(rel).div(B), edge = T.float(1).sub(T.smoothstep(0.36, 0.5, T.max(e.x, T.max(e.y, e.z))));
+  const fade = T.varying(edge.mul(T.smoothstep(0.9, 2.6, dist)).mul(T.sqrt(w00.div(wid))).mul(RAIN.k).mul(T.mix(T.float(0.3), T.float(0.16), near)));
+  mat.colorNode = RAIN.col;
+  mat.opacityNode = fade.mul(T.float(1).sub(T.pow(T.abs(q.y), 2.0))).mul(T.mix(T.float(1), T.float(0.15), q.x));
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.frustumCulled = false; mesh.renderOrder = 6;
+  return mesh;
+}
+
+// rozbryzgi kropel: krótko żyjące „korony" przy ziemi w polu widzenia i na karoserii (CPU, jedna instancja na rozbryzg)
+class Splashes {
+  constructor(max) {
+    this.max = max; this.n = 0;
+    this.p = new Float32Array(max * 3); this.life = new Float32Array(max); this.s = new Float32Array(max);
+    const geo = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);
+    this.ph = new THREE.InstancedBufferAttribute(new Float32Array(max), 1); this.ph.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute('sPh', this.ph);
+    const mat = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+    const t = T.attribute('sPh', 'float'), u = T.uv().sub(T.vec2(0.5, 0.0)).mul(T.vec2(2.0, 1.0));
+    // pięć kropelek wyrzuconych łukiem + płaski pierścień u podstawy
+    let a = T.float(0);
+    for (let k = 0; k < 5; k++) {
+      const xk = T.float((k - 2) / 2).mul(t).mul(0.8), yk = T.sin(t.mul(Math.PI)).mul(T.float(0.75 - Math.abs(k - 2) * 0.18)).add(0.06);
+      a = T.max(a, T.float(1).sub(T.smoothstep(0.05, 0.12, T.length(u.sub(T.vec2(xk, yk))).div(T.float(1).sub(t.mul(0.6))))));
+    }
+    const ring = T.float(1).sub(T.smoothstep(0.03, 0.08, T.abs(T.length(u.mul(T.vec2(1.0, 4.0))).sub(t.mul(0.9)))));
+    a = T.max(a, ring.mul(T.step(u.y, 0.2)));
+    mat.colorNode = RAIN.col.mul(1.25);
+    mat.opacityNode = a.mul(T.float(1).sub(t)).mul(0.85);
+    this.mesh = new THREE.InstancedMesh(geo, mat, max);
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.frustumCulled = false; this.mesh.renderOrder = 5;
+    this.mesh.count = 1; // jedna niewidoczna — shader kompiluje się razem z odcinkiem
+  }
+  spawn(x, y, z, s) {
+    let i = this.n; if (i >= this.max) i = (Math.random() * this.max) | 0; else this.n++;
+    this.p[i * 3] = x; this.p[i * 3 + 1] = y; this.p[i * 3 + 2] = z; this.life[i] = 0; this.s[i] = s;
+  }
+  update(dt, cam) {
+    const im = this.mesh.instanceMatrix.array, ph = this.ph.array;
+    for (let i = 0; i < this.n; i++) {
+      this.life[i] += dt * 4.2;
+      if (this.life[i] >= 1) { const j = --this.n; this.p[i * 3] = this.p[j * 3]; this.p[i * 3 + 1] = this.p[j * 3 + 1]; this.p[i * 3 + 2] = this.p[j * 3 + 2]; this.life[i] = this.life[j]; this.s[i] = this.s[j]; i--; continue; }
+      _v.set(this.p[i * 3], this.p[i * 3 + 1], this.p[i * 3 + 2]);
+      _q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, Math.atan2(cam.position.x - _v.x, cam.position.z - _v.z));
+      _s.set(this.s[i], this.s[i] * 0.7, 1);
+      _m4.compose(_v, _q, _s).toArray(im, i * 16);
+      ph[i] = this.life[i];
+    }
+    if (this.n === 0) { ph[0] = 1; _m4.identity().toArray(im, 0); }
+    this.mesh.count = Math.max(1, this.n);
+    this.mesh.instanceMatrix.needsUpdate = true; this.ph.needsUpdate = true;
+  }
+}
+
+class RainFX {
+  constructor(scene, st) {
+    const q = Q();
+    this.kind = 'rain';
+    this.n = q.pipeline ? (q.supreme ? 22000 : 14000) : settings.quality === 'medium' ? 7000 : 4600;
+    this.mesh = rainStreakMesh(this.n);
+    this.splash = new Splashes(q.pipeline ? 520 : 200);
+    this.mesh.add(this.splash.mesh);
+    this.acc = new Float32Array(5); this.sAcc = 0; this.bAcc = 0;
+    this.prev = null; this.vel = new THREE.Vector3();
+  }
+  dispose() {
+    for (const m of [this.mesh, this.splash.mesh]) { m.geometry.dispose(); m.material.dispose(); }
+    this.splash.mesh.dispose();
+  }
+  update(dt, cam, st) {
+    const cp = cam.position;
+    if (!this.prev) this.prev = cp.clone();
+    if (dt > 0) {
+      // prędkość kamery (wygładzona) — smugi pochylają się z ruchem auta
+      _v.subVectors(cp, this.prev).divideScalar(Math.max(dt, 1e-3));
+      if (_v.lengthSq() > 60 * 60) _v.set(0, 0, 0); // cięcie kamery
+      this.vel.lerp(_v, Math.min(1, dt * 10));
+    }
+    this.prev.copy(cp);
+    RAIN.cam.value.copy(cp); RAIN.camVel.value.copy(this.vel);
+    RAIN.px.value = 2 * Math.tan(cam.fov * Math.PI / 360) / Math.max(300, innerHeight * (typeof renderer !== 'undefined' && renderer ? renderer.getPixelRatio() : 1));
+    RAIN.clock.value += dt;
+    // rozbryzgi na ziemi w polu widzenia
+    const S = this.splash, rate = (Q().pipeline ? 900 : 360) * dt;
+    this.sAcc += rate;
+    cam.getWorldDirection(_v); const yaw = Math.atan2(_v.x, _v.z);
+    while (this.sAcc >= 1) {
+      this.sAcc -= 1;
+      const a = yaw + (Math.random() - 0.5) * 1.8, d = 1.5 + Math.pow(Math.random(), 1.6) * 26;
+      const x = cp.x + Math.sin(a) * d, z = cp.z + Math.cos(a) * d;
+      S.spawn(x, st.heightAt(x, z) + 0.02, z, 0.14 + Math.random() * 0.16);
+    }
+    S.update(dt, cam);
+  }
+  // krople bijące o karoserię (dach, maska, klapa)
+  body(car, dt) {
+    this.bAcc += dt * 40;
+    const v = [0, 0, 0];
+    while (this.bAcc >= 1) {
+      this.bAcc -= 1;
+      const z = (Math.random() - 0.5) * 3.6, roof = Math.abs(z) < 0.7;
+      qRot(car.q, (Math.random() - 0.5) * 1.4, roof ? 0.72 : 0.22, z, v);
+      this.splash.spawn(car.pos[0] + v[0], car.pos[1] + v[1], car.pos[2] + v[2], 0.1 + Math.random() * 0.06);
+    }
+  }
+  // woda spod kół zamiast kurzu: mgiełka, krople z błotem, smuga za autem
+  wheels(car, dt, fx) {
+    const sp = car.speed, hi = Q().emit;
+    for (let i = 0; i < 4; i++) {
+      const wh = car.wheels[i];
+      if (!wh.contact || !wh.surf) { fx.skids.track(i, false); continue; }
+      const slip = wh.slip, grass = wh.surf.zone === 'off';
+      this.acc[i] += (sp * (wh.front ? 0.55 : 1.0) + slip * 2.6) * hi * dt;
+      const [cx, cy, cz] = wh.cp;
+      while (this.acc[i] >= 1) {
+        this.acc[i] -= 1;
+        const jx = (Math.random() - 0.5) * 0.4, jz = (Math.random() - 0.5) * 0.4;
+        const vx = car.vel[0] * 0.3 + (Math.random() - 0.5) * 2.4, vz = car.vel[2] * 0.3 + (Math.random() - 0.5) * 2.4;
+        const g = 0.6 + Math.random() * 0.12;
+        fx.smoke.spawn(cx + jx, cy + 0.2, cz + jz, vx, 0.8 + Math.random() * 1.4, vz, 0.8 + Math.random() * 0.6, 0.35, 1.8 + sp * 0.05, 0.2, g, g * 1.02, g * 1.06, 1.5, -0.1);
+        if (Math.random() < 0.55) {
+          const m = grass ? 0.2 : 0.28 + Math.random() * 0.1;
+          fx.smoke.spawn(cx, cy + 0.15, cz, car.vel[0] * 0.55 + (Math.random() - 0.5) * 3, 1.5 + Math.random() * 3, car.vel[2] * 0.55 + (Math.random() - 0.5) * 3, 0.6, 0.07, 0.11, 1, m, m * 0.88, m * 0.72, 0.3, 9.8);
+        }
+      }
+      fx.skids.track(i, sp > 3 || slip > 2.5, cx, cy, cz, 0.22, grass ? '#2c3320' : '#241c14');
+    }
+    // mgiełka za autem przy prędkości
+    if (sp > 7) {
+      this.acc[4] += sp * 0.32 * hi * dt;
+      const v = [0, 0, 0];
+      while (this.acc[4] >= 1) {
+        this.acc[4] -= 1;
+        qRot(car.q, (Math.random() - 0.5) * 1.6, -0.2, 2.3, v);
+        const g = 0.66 + Math.random() * 0.1;
+        fx.smoke.spawn(car.pos[0] + v[0], car.pos[1] + v[1] + 0.2, car.pos[2] + v[2], car.vel[0] * 0.6, 0.5, car.vel[2] * 0.6, 1.1 + Math.random() * 0.6, 1.2, 4.2, 0.1, g, g * 1.02, g * 1.07, 1.1, -0.05);
+      }
+    } else this.acc[4] = 0;
+    if (Q().pipeline || Math.random() < 0.5) this.body(car, dt);
+  }
+}
+
+// ---------- krople na obiektywie / szybie + wycieraczki (post-processing, na końcu łańcucha) ----------
+const WIPE = { P: 1.9, Ps: 1.3, a0: 0.1, a1: 2.55, L: 0.95 };
+function wiperSince(p, pivot, t) {
+  const d = p.sub(pivot), ang = T.atan(d.y, d.x), r = T.length(d);
+  const k = T.clamp(ang.sub(WIPE.a0).div(WIPE.a1 - WIPE.a0), 0.0, 1.0);
+  const u = T.acos(T.float(1).sub(k.mul(2.0))).div(Math.PI);
+  const tUp = u.mul(WIPE.Ps / 2), tDown = T.float(1).sub(u).mul(WIPE.Ps / 2).add(WIPE.Ps / 2);
+  const tc = fmod(t, T.float(WIPE.P));
+  const since = T.select(tc.greaterThanEqual(tDown), tc.sub(tDown), T.select(tc.greaterThanEqual(tUp), tc.sub(tUp), tc.add(WIPE.P).sub(tDown)));
+  const inside = T.step(r, WIPE.L).mul(T.step(0.06, r)).mul(T.step(WIPE.a0 - 0.05, ang)).mul(T.step(ang, WIPE.a1 + 0.05));
+  return T.mix(T.float(99), since, inside);
+}
+function wiperAngle(t) {
+  const tc = fmod(t, T.float(WIPE.P)), h = WIPE.Ps / 2;
+  const up = T.float(1).sub(T.cos(T.clamp(tc.div(h), 0.0, 1.0).mul(Math.PI))).mul(0.5);
+  const dn = T.float(1).sub(T.cos(T.clamp(tc.sub(h).div(h), 0.0, 1.0).mul(Math.PI))).mul(0.5);
+  return T.float(WIPE.a0).add(T.float(WIPE.a1 - WIPE.a0).mul(up.sub(dn)));
+}
+function bladeMask(p, pivot, ang) {
+  const dir = T.vec2(T.cos(ang), T.sin(ang)), d = p.sub(pivot);
+  const along = T.clamp(T.dot(d, dir), 0.0, WIPE.L), perp = T.length(d.sub(dir.mul(along)));
+  const blade = T.float(1).sub(T.smoothstep(0.006, 0.02, perp)).mul(T.step(0.25, along));
+  const arm = T.float(1).sub(T.smoothstep(0.003, 0.012, perp));
+  return T.max(blade, arm.mul(0.9));
+}
+// jedna warstwa kropel w komórkach: vec4(przesunięcie xy, maska, połysk)
+function dropLayer(p, grid, seed, dens, rMin, rMax, slide) {
+  const g = p.mul(grid), cell = T.floor(g), f = T.fract(g).sub(0.5);
+  const h = fhash2(cell.add(seed));
+  const life = T.fract(RAIN.clock.mul(0.13).add(h.mul(7.0)));
+  const r = T.mix(T.float(rMin), T.float(rMax), fhash(h.mul(31.7)));
+  const c0 = T.vec2(fhash(h.mul(17.3)), fhash(h.mul(5.9))).sub(0.5).mul(T.float(1).sub(r.mul(2.2)));
+  const c = T.vec2(c0.x, T.clamp(c0.y.add(slide.mul(life)), r.sub(0.5), T.float(0.5).sub(r)));
+  const d = f.sub(c).div(r), l = T.length(d.mul(T.vec2(1.0, 0.85)));
+  const vis = T.step(fhash(h.mul(3.3)), dens).mul(T.float(1).sub(T.smoothstep(0.75, 1.0, life)));
+  const m = T.float(1).sub(T.smoothstep(0.82, 1.0, l)).mul(vis);
+  const spec = T.pow(T.max(T.dot(T.normalize(d.add(0.0001)), T.vec2(-0.6, 0.8)), 0.0), 6.0).mul(T.smoothstep(0.35, 0.85, l)).mul(m);
+  return T.vec4(d.mul(r).mul(m).div(grid).mul(-1.6), m, spec);
+}
+// src: węzeł tekstury obrazu (przed mapowaniem tonów albo po — wszystko jedno)
+function rainLens(src) {
+  const uv = T.uv(), asp = RAIN.aspect;
+  const p = T.vec2(uv.x.mul(asp), uv.y);
+  const t = RAIN.clock;
+  // wycieraczki (tylko widok z maski): czas od ostatniego przejścia pióra w tym miejscu
+  const pv1 = T.vec2(asp.mul(0.22), -0.08), pv2 = T.vec2(asp.mul(0.64), -0.08);
+  const since = T.min(wiperSince(p, pv1, t), wiperSince(p, pv2, t));
+  const wet = T.mix(T.float(1), T.clamp(since.mul(0.7), 0.0, 1.0), RAIN.shield);
+  const dSmall = RAIN.lens.mul(0.2).add(RAIN.shield.mul(0.75)).mul(wet);
+  const dBig = RAIN.lens.mul(0.3).add(RAIN.shield.mul(0.45)).mul(wet);
+  const slide = RAIN.shield.mul(RAIN.speed.mul(0.012)).sub(RAIN.lens.mul(0.25)); // na szybie pęd pcha krople w górę, na obiektywie spływają
+  const a = dropLayer(p, 6.0, 3.1, dBig, 0.16, 0.34, slide);
+  const b = dropLayer(p, 17.0, 11.7, dSmall, 0.12, 0.3, slide.mul(0.5));
+  const c = dropLayer(p.add(0.37), 29.0, 23.9, dSmall.mul(RAIN.shield), 0.14, 0.32, T.float(0));
+  const off = a.xy.add(b.xy).add(c.xy);
+  const m = T.clamp(a.z.add(b.z).add(c.z), 0.0, 1.0);
+  // smuga wody tuż za piórem
+  const smear = T.float(1).sub(T.smoothstep(0.0, 0.18, since)).mul(RAIN.shield).mul(0.006);
+  const uv2 = uv.add(T.vec2(off.x.div(asp), off.y)).add(T.vec2(T.sin(p.y.mul(90.0)).mul(smear), 0));
+  let col = src.sample(uv2).rgb;
+  col = col.mul(T.float(1).sub(m.mul(0.18))).add(T.vec3(a.w.add(b.w).add(c.w).mul(0.35)));
+  // pióra wycieraczek
+  const blade = T.max(bladeMask(p, pv1, wiperAngle(t)), bladeMask(p, pv2, wiperAngle(t))).mul(RAIN.shield);
+  col = T.mix(col, T.vec3(0.012, 0.012, 0.014), blade);
+  return T.vec4(col, 1.0);
+}
+
+// ---------- dźwięk ulewy: szum, bębnienie o karoserię, syk mokrych opon, stuk wycieraczek ----------
+class RainSound {
+  constructor(snd) {
+    const ctx = this.ctx = snd.ctx, sr = ctx.sampleRate;
+    const noise = () => { const s = ctx.createBufferSource(); s.buffer = snd.noiseBuf; s.loop = true; s.start(0, Math.random() * 1.9); return s; };
+    const filt = (type, f, q = 0.7) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; };
+    this.out = ctx.createGain(); this.out.gain.value = 0; this.out.connect(snd.master);
+    this.hiss = ctx.createGain(); this.hiss.gain.value = 0.5;
+    noise().connect(filt('highpass', 1200, 0.5)).connect(filt('lowpass', 7500, 0.5)).connect(this.hiss).connect(this.out);
+    this.rumble = ctx.createGain(); this.rumble.gain.value = 0.25;
+    noise().connect(filt('lowpass', 380, 0.6)).connect(this.rumble).connect(this.out);
+    // bębnienie: 3 s losowych stuknięć (zanikające sinusy), zapętlone — jedno źródło zamiast setek
+    const len = sr * 3, buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    for (let k = 0; k < 1400; k++) {
+      const t0 = (Math.random() * len) | 0, f = 1400 + Math.random() * 3600, a = Math.pow(Math.random(), 3) * 0.9 + 0.05, dec = 0.002 + Math.random() * 0.006;
+      for (let i = 0; i < sr * 0.03; i++) { const j = (t0 + i) % len, tt = i / sr; d[j] += a * Math.sin(2 * Math.PI * f * tt) * Math.exp(-tt / dec); }
+    }
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.start();
+    this.drum = ctx.createGain(); this.drum.gain.value = 0;
+    src.connect(filt('highpass', 900, 0.5)).connect(this.drum).connect(this.out);
+    this.tyre = ctx.createGain(); this.tyre.gain.value = 0;
+    this.tyreF = filt('bandpass', 2400, 0.6);
+    noise().connect(this.tyreF).connect(this.tyre).connect(this.out);
+    this.lastWipe = 0;
+  }
+  update(on, speed, inside, wipeT, dt) {
+    const t = this.ctx.currentTime, sp = Math.min(1, speed / 35);
+    this.out.gain.setTargetAtTime(on ? 0.22 : 0, t, 0.25);
+    this.hiss.gain.setTargetAtTime(inside ? 0.28 : 0.55, t, 0.2);
+    this.drum.gain.setTargetAtTime(inside ? 0.9 : 0.35, t, 0.2);
+    this.tyre.gain.setTargetAtTime(sp * sp * 0.9, t, 0.08);
+    this.tyreF.frequency.setTargetAtTime(1800 + sp * 1600, t, 0.1);
+    // stuk wycieraczki na końcach ruchu
+    if (on && inside) {
+      const c = wipeT % WIPE.P, phase = c < WIPE.Ps / 2 ? 0 : c < WIPE.Ps ? 1 : 2;
+      if (phase !== this.lastWipe && phase !== 0 && sound) sound.burst(0.09, 320, 1.2, 0.18);
+      this.lastWipe = phase;
+    }
+    void dt;
+  }
+}
+
+// wołane co klatkę z pętli gry: siła efektu ekranowego zależnie od kamery, reflektory i światło przeciwmgielne, dźwięk
+let rainSound = null;
+function updateRain(dt) {
+  const w = game.fx && game.fx.weather;
+  const on = !!(w && w.kind === 'rain');
+  if (!on) { if (rainSound) rainSound.update(false, 0, false, 0, dt); return; }
+  const s = game.state, car = game.car;
+  const hood = (s === 'race' || s === 'intro' || s === 'finish') && game.camMode === 2 && !game.camHold;
+  const chase = s === 'race' || s === 'intro' || s === 'finish' || s === 'results';
+  const lens = hood ? 0 : chase ? (game.camMode === 3 ? 0.9 : 0.55) : 0.35;
+  RAIN.lens.value += (lens - RAIN.lens.value) * Math.min(1, dt * 3);
+  RAIN.shield.value = hood ? 1 : 0;
+  RAIN.speed.value = car ? car.speed : 0;
+  RAIN.aspect.value = camera.aspect;
+  // reflektory w ulewie (w dzień też) i tylne światło przeciwmgielne
+  if (game.model) {
+    for (const sp of game.model.spots) sp.intensity = 55;
+    game.model.uHead.value = 3.2;
+    game.model.uBrake.value = Math.max(game.model.uBrake.value, 1.9);
+  }
+  if (sound.ctx) {
+    if (!rainSound) rainSound = new RainSound(sound);
+    const live = s === 'race' || s === 'intro' || s === 'finish' || s === 'replay';
+    rainSound.update(live, car ? car.speed : 0, hood, RAIN.clock.value, dt);
+  }
 }
 
 // ============================================================
@@ -5999,7 +7065,7 @@ const UI = {
 // Mysz, dotyk (przesunięcie karuzeli), klawiatura i pad.
 // ============================================================
 const TIME_PL = { day: 'dzień', dusk: 'zmierzch', night: 'noc', sunset: 'zachód słońca' };
-const WEATHER_PL = { snow: 'śnieżyca', mist: 'mgła' };
+const WEATHER_PL = { snow: 'śnieżyca', mist: 'mgła', rain: 'ulewa' };
 const SURF_PL = { gravel: 'szuter', tarmac: 'asfalt', snow: 'śnieg' };
 
 const Menu = {
@@ -6402,17 +7468,20 @@ function setupPipeline() {
   pipeline = null; bloomNode = null;
   const q = Q(), retro = !!settings.retro, fsr = !retro && settings.aa === 'fsr', scale = fsr ? FSR_SCALE : 1;
   RAYS.on = !!(game.stage && game.stage.def.look.rays);
+  RAIN.on = !!(game.stage && game.stage.def.look.weather === 'rain');
   pipeline = new THREE.RenderPipeline(renderer);
   let chain;
   if (!q.pipeline || retro) {
     const sp = T.pass(scene, camera);
     if (fsr || retro) sp.setResolutionScale(retro ? RETRO_SCALE : FSR_SCALE);
     let c = sp.getTextureNode('output');
+    if (RAIN.on) c = rainLens(c); // krople na obiektywie / szybie — bez dodatkowego przebiegu
     if (RAYS.on) c = T.vec4(c.rgb.add(sunRays(sp)), 1.0);
     chain = { output: c, colorTransform: true };
   } else {
     try { chain = q.supreme ? makeSupremeChain(scene, camera, scale) : makeHighChain(scene, camera, q, scale); }
     catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high, scale); }
+    if (RAIN.on) { const tx = T.convertToTexture(chain.output); tx.setResolutionScale(scale); chain.output = rainLens(tx); }
   }
   const toned = chain.colorTransform ? T.renderOutput(chain.output) : chain.output;
   if (retro) {
@@ -6503,7 +7572,7 @@ function applyLook(def) {
   sunDir.set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
   ATM.sunDir.value.copy(sunDir);
   ATM.sunCol.value.set(L.sun).multiplyScalar(L.time === 'night' ? 0.5 : 1);
-  ATM.clouds.value = L.clouds; ATM.stars.value = L.stars; ATM.night.value = L.time === 'night' ? 1 : 0;
+  ATM.clouds.value = L.clouds; ATM.cloudDark.value = L.cloudDark || 0; ATM.stars.value = L.stars; ATM.night.value = L.time === 'night' ? 1 : 0;
   ATM.water.value.set(L.water); ATM.detail.value = def.surface === 'snow' ? 0.35 : 1;
   sun.color.set(L.sun); sun.intensity = L.sunI;
   hemi.color.set(L.hemiSky); hemi.groundColor.set(L.hemiGround); hemi.intensity = L.hemiI * 1.3;
@@ -6526,7 +7595,7 @@ function updateEnv(st) {
       envRT = new THREE.CubeRenderTarget(256, { type: THREE.HalfFloatType });
       cubeCam = new THREE.CubeCamera(1, 4000, envRT);
     }
-    const hide = [game.world && game.world.group, game.model && game.model.group, game.fx && game.fx.smoke.mesh, game.fx && game.fx.glow.mesh].filter(Boolean);
+    const hide = [game.world && game.world.group, game.model && game.model.group, game.fx && game.fx.smoke.mesh, game.fx && game.fx.glow.mesh, game.fx && game.fx.weather && game.fx.weather.mesh].filter(Boolean);
     hide.forEach(o => o.visible = false);
     const i = st.startS;
     cubeCam.position.set(st.x[i], st.y[i] + 4, st.z[i]);
@@ -6618,7 +7687,7 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
   game.world = new World(st, stageLabels(st));
   mark('world', t);
   scene.add(game.world.group);
-  if (RAYS.on !== !!st.def.look.rays && pipeline) setupPipeline();
+  if ((RAYS.on !== !!st.def.look.rays || RAIN.on !== (st.def.look.weather === 'rain')) && pipeline) setupPipeline();
   t = performance.now();
   applyLook(def);
   setupFog(def);
@@ -7279,6 +8348,7 @@ function frame() {
     car.events.shift = 0; car.events.bump = 0;
   }
   game.fx.update(game.state === 'paused' ? 0 : dt, camera, car, night);
+  updateRain(game.state === 'paused' ? 0 : dt);
   // audio
   if (game.state === 'race' || game.state === 'finish' || game.state === 'intro' || game.state === 'replay') {
     let lz = 0, lk = null, slip = 0, tslip = 0, nc = 0;
@@ -7603,7 +8673,7 @@ async function boot() {
     await sleep(Math.max(0, 3000 - performance.now()));
     hideSplash();
   })();
-  globalThis.__szuter = { RAYS, POST, game, sound, settings, Menu, input, codriver, camera: () => camera, renderer: () => renderer, scene: () => scene }; // uchwyt do diagnostyki i testów E2E
+  globalThis.__szuter = { RAYS, RAIN, POST, game, sound, settings, Menu, input, codriver, camera: () => camera, renderer: () => renderer, scene: () => scene }; // uchwyt do diagnostyki i testów E2E
   if (PROF.on) bench();
 }
 
