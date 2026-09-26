@@ -6167,7 +6167,7 @@ function rainLens(src) {
   const dSmall = lensK.mul(0.2).add(RAIN.shield.mul(0.75)).mul(wet);
   const dBig = lensK.mul(0.3).add(RAIN.shield.mul(0.45)).mul(wet);
   const slide = RAIN.shield.mul(RAIN.speed.mul(0.012)).sub(RAIN.lens.mul(0.25)); // na szybie pęd pcha krople w górę, na obiektywie spływają
-  // na obiektywie całe pole kropel zjeżdża w stronę skrętu i spływa w dół (na szybie z maski — nie)
+  // na obiektywie całe pole kropel spływa w dół (na szybie z maski — nie)
   const pl = p.add(RAIN.drift.mul(T.float(1).sub(RAIN.shield)));
   const a = dropLayer(pl, 6.0, 3.1, dBig, 0.16, 0.34, slide);
   const b = dropLayer(pl, 17.0, 11.7, dSmall, 0.12, 0.3, slide.mul(0.5));
@@ -6234,12 +6234,10 @@ class RainSound {
 
 // wołane co klatkę z pętli gry: siła efektu ekranowego zależnie od kamery, reflektory i światło przeciwmgielne, dźwięk
 let rainSound = null;
-// pole kropel/płatków na obiektywie: w stronę skrętu (skręt w prawo → w prawo) i powoli w dół
-function driftLens(dt, car) {
-  const d = RAIN.drift.value, steer = car ? car.steerAngle || 0 : 0, sp = car ? Math.min(1, car.speed / 20) : 0;
-  d.x -= steer * sp * 0.9 * dt;
-  d.y -= 0.035 * dt;
-  if (Math.abs(d.x) > 1e3) d.x %= 100;
+// pole kropel/płatków na obiektywie spływa w dół
+function driftLens(dt) {
+  const d = RAIN.drift.value;
+  d.y -= 0.14 * dt;
   if (Math.abs(d.y) > 1e3) d.y %= 100;
 }
 function updateRain(dt) {
@@ -6252,16 +6250,16 @@ function updateRain(dt) {
     RAIN.snow.value = 1; RAIN.shield.value = 0; RAIN.aspect.value = camera.aspect; RAIN.speed.value = car ? car.speed : 0;
     RAIN.lens.value += ((hood ? 0.25 : chase ? 0.5 : 0.3) - RAIN.lens.value) * Math.min(1, dt * 3);
     const off = !!(car && s === 'race' && car.roadDist > game.stage.def.halfW + 1.2 && car.speed > 4);
-    RAIN.snowK.value = off ? Math.min(5, RAIN.snowK.value + dt * 12) : Math.max(1, RAIN.snowK.value - dt * 1.4);
-    RAIN.clock.value += dt;
-    driftLens(dt, car);
+    RAIN.snowK.value = off ? Math.min(5, RAIN.snowK.value + dt * 12) : Math.max(1, RAIN.snowK.value - dt * 4);
+    RAIN.clock.value += dt * 2.5; // płatki szybko topnieją
+    driftLens(dt);
     if (rainSound) rainSound.update(false, 0, false, 0, dt);
     return;
   }
   const on = !!(w && w.kind === 'rain');
   if (!on) { if (rainSound) rainSound.update(false, 0, false, 0, dt); return; }
   RAIN.snow.value = 0;
-  driftLens(dt, car);
+  driftLens(dt);
   const hood = (s === 'race' || s === 'intro' || s === 'finish') && game.camMode === 2 && !game.camHold;
   const chase = s === 'race' || s === 'intro' || s === 'finish' || s === 'results';
   const lens = hood ? 0 : chase ? (game.camMode === 3 ? 0.9 : 0.55) : 0.35;
