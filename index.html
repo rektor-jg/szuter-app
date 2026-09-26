@@ -445,6 +445,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Asysta<small>Kontra przy poślizgu i kontrola trakcji</small></label><div class="seg" id="optAssist"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt" id="optTouchRow" hidden><label>Kierownica<small id="optTouchNote">Suwak: przeciągaj kciukiem w lewej połowie ekranu</small></label><div class="seg" id="optTouch"><button data-v="stick">SUWAK</button><button data-v="buttons">◀ ▶</button><button data-v="tilt">PRZECHYŁ</button></div></div>
         <div class="opt"><label>Grafika<small id="optQualityNote">Niska: najpłynniej na telefonie</small></label><div class="seg" id="optQuality"><button data-v="low">NISKA</button><button data-v="medium">ŚREDNIA</button><button data-v="high">WYSOKA</button><button data-v="supreme">SUPREME</button></div></div>
+        <div class="opt"><label>Linia jazdy<small>Zielona — gaz do dechy, żółta i pomarańczowa — odpuść, czerwona — hamuj (na razie tylko Finlandia)</small></label><div class="seg" id="optLine"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label>Oszczędzanie baterii<small>30 kl./s i niższa rozdzielczość — dłużej na baterii</small></label><div class="seg" id="optSaver"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label>Antyaliasing<small id="optAaNote">FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu</small></label><div class="seg" id="optAa"><button data-v="fsr">FSR 1</button><button data-v="fxaa">FXAA</button><button data-v="off">WYŁ</button></div></div>
         <div class="opt"><label>Tryb retro<small>Niska rozdzielczość, 15-bitowy kolor i dithering jak na PS1 — przy okazji oszczędza baterię</small></label><div class="seg" id="optRetro"><button data-v="0">WYŁ</button><button data-v="1">PS1</button></div></div>
@@ -616,6 +617,7 @@ const STAGES = [
   {
     id: 'fin', country: 'Finlandia', code: 'FIN', name: 'Harjunmäki', seed: 20417, length: 4700,
     surface: 'gravel', surfaceLabel: 'szuter · hopy',
+    racingLine: true, // linia jazdy (na razie tylko tutaj, do testów)
     halfW: 3.5, ditch: 0.5, ditchW: 3.6, blendW: 20, corridor: 230,
     terrain: { amp: 18, freq: 1 / 380, ridge: 0 },
     grade: 0.07, rolling: [0.7, 120, 0.22, 62], jumps: 7, jumpH: [1.5, 2.4],
@@ -1859,6 +1861,7 @@ class Stage {
       const lim = cornerAfter ? cr.vt * 0.92 : cr.vt * 1.35;
       for (let j = Math.max(0, cr.s - 8); j <= Math.min(N - 1, cr.s + 4); j++) v[j] = Math.min(v[j], lim);
     }
+    this.vLimit = Float64Array.from(v); // limity z zakrętów i garbów, przed obwiedniami (linia jazdy)
     v[0] = 0;
     for (let i = 1; i < N; i++) {
       const vp = v[i - 1];
@@ -2769,7 +2772,7 @@ const store = {
 };
 const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
 const settings = Object.assign(
-  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fsr', retro: false, saver: false },
+  { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fsr', retro: false, saver: false, racingLine: true },
   store.get('settings', {}),
 );
 const saveSettings = () => store.set('settings', settings);
@@ -3053,6 +3056,7 @@ const EN = {
   'Supreme: cienie kaskadowe, SSAO, rozmycie ruchu, trawa, mgła w dolinach, flara — mocna karta graficzna': 'Supreme: cascaded shadows, SSAO, motion blur, grass, valley fog, lens flare — strong GPU',
   'Licznik klatek': 'Frame counter', 'FPS, rozdzielczość i obciążenie w rogu ekranu': 'FPS, resolution and load in the corner', 'Głośność': 'Volume',
   'Język': 'Language', 'Język interfejsu i pilota': 'Interface and co-driver language',
+  'Linia jazdy': 'Racing line', 'Zielona — gaz do dechy, żółta i pomarańczowa — odpuść, czerwona — hamuj (na razie tylko Finlandia)': 'Green — flat out, yellow and orange — lift off, red — brake hard (Finland only for now)',
   'Oszczędzanie baterii': 'Battery saver', 'Telefon się grzeje': 'Phone is getting hot', '30 kl./s': '30 fps', '30 kl./s i niższa rozdzielczość — dłużej na baterii': '30 fps and lower resolution — longer battery life',
   'Antyaliasing': 'Anti-aliasing', 'FXAA: wygładza krawędzie i migotanie, prawie za darmo': 'FXAA: smooths edges and shimmer, almost free',
   'Wyłączony: najostrzej, ale krawędzie są poszarpane i migoczą': 'Off: sharpest, but edges are jagged and shimmer',
@@ -3864,6 +3868,7 @@ class World {
     buildTerrain(st, this.group);
     buildFarTerrain(st, this.group);
     buildRoad(st, this.group, this.roadTex);
+    this.line = st.def.racingLine ? new RacingLine(st, this.group) : null; // linia jazdy (g2c_line.js)
     if (st.def.look.sea) buildItaly(st, this.group); else buildWater(st, this.group);
     buildTrees(st, this.group);
     buildGrass(st, this.group);
@@ -4597,6 +4602,155 @@ function buildEngland(st, group) {
     board.position.set(x + o.x, y + o.y, z + o.z); board.rotation.y = rot;
     group.add(board);
   }
+}
+
+// ============================================================
+// Linia jazdy (jak w Forzie / GT): wstęga na nawierzchni wzdłuż optymalnego toru.
+// Kolor liczy shader z prędkości auta: zielony — gaz do dechy, żółty/pomarańczowy — odpuść,
+// czerwony — mocne hamowanie. Jeden materiał, jeden draw call, geometria budowana raz na odcinek.
+// ============================================================
+const LINE = {
+  step: 2,        // m między przekrojami wstęgi
+  width: 1.05,    // szerokość wstęgi (m)
+  lift: 0.07,     // nad nawierzchnią (droga leży 3,5 cm nad terenem + polygonOffset)
+  decel: 8.5,     // opóźnienie hamowania na szutrze (m/s²) — z tego wynika punkt hamowania
+  near: 3, far: 150, // widoczna od–do (m przed autem); z przodu pełna od ok. 9 m
+  margin: 1.15,   // odstęp środka auta od krawędzi drogi (m)
+};
+
+// Optymalny tor: przesunięcie boczne względem osi drogi minimalizujące krzywiznę
+// (wejście od zewnętrznej, wierzchołek przy wewnętrznej, wyjście na zewnętrzną).
+// Rzutowany Gauss-Seidel na drugich różnicach, od siatki rzadkiej do gęstej (inaczej zbiega za wolno).
+function racingLineOffsets(st, fine) {
+  const N = st.N, lim = Math.max(0.3, st.def.halfW - LINE.margin);
+  let prev = null, prevStep = 0;
+  for (const [step, iters] of [[32, 300], [16, 300], [8, 300], [4, 250], [fine, 200]]) {
+    const M = Math.floor((N - 1) / step) + 1;
+    const cx = new Float64Array(M), cz = new Float64Array(M), nx = new Float64Array(M), nz = new Float64Array(M), o = new Float64Array(M);
+    for (let j = 0; j < M; j++) {
+      const i = Math.min(N - 1, j * step), h = st.hd[i];
+      cx[j] = st.x[i]; cz[j] = st.z[i]; nx[j] = -Math.sin(h); nz[j] = Math.cos(h);
+      if (prev) { // start z rozwiązania rzadszej siatki
+        const f = (j * step) / prevStep, a = Math.min(prev.length - 1, Math.floor(f)), b = Math.min(prev.length - 1, a + 1);
+        o[j] = lerp(prev[a], prev[b], f - a);
+      }
+    }
+    const px = (j) => cx[j] + nx[j] * o[j], pz = (j) => cz[j] + nz[j] * o[j];
+    const relax = (j) => {
+      const tx = (4 * (px(j - 1) + px(j + 1)) - px(j - 2) - px(j + 2)) / 6;
+      const tz = (4 * (pz(j - 1) + pz(j + 1)) - pz(j - 2) - pz(j + 2)) / 6;
+      o[j] = clamp((tx - cx[j]) * nx[j] + (tz - cz[j]) * nz[j], -lim, lim);
+    };
+    for (let it = 0; it < iters; it++) {
+      if (it & 1) for (let j = M - 3; j >= 2; j--) relax(j);
+      else for (let j = 2; j < M - 2; j++) relax(j);
+    }
+    prev = o; prevStep = step;
+  }
+  // lekkie wygładzenie, żeby wierzchołki przy krawędzi nie dawały załamań
+  const out = new Float64Array(prev.length);
+  for (let j = 0; j < prev.length; j++) {
+    let s = 0, n = 0;
+    for (let k = -2; k <= 2; k++) { const q = j + k; if (q >= 0 && q < prev.length) { s += prev[q]; n++; } }
+    out[j] = clamp(s / n, -lim, lim);
+  }
+  return out;
+}
+
+// Prędkość docelowa w każdym punkcie: limit z profilu (ten sam, z którego liczy się st.vProfile bota)
+// i obwiednia hamowania z opóźnieniem LINE.decel — punkt, w którym obwiednia spada poniżej prędkości auta,
+// to miejsce, gdzie trzeba zacząć hamować.
+function racingLineTargets(st) {
+  const N = st.N, lim = st.vLimit || st.vProfile, v = new Float64Array(N);
+  v[N - 1] = lim[N - 1];
+  for (let i = N - 2; i >= 0; i--) v[i] = Math.min(lim[i], Math.sqrt(v[i + 1] * v[i + 1] + 2 * LINE.decel));
+  return v;
+}
+
+function racingLineMaterial() {
+  return wmat('racingLine', () => {
+    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false, side: THREE.DoubleSide,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 });
+    const uSpeed = T.uniform(0), uS = T.uniform(-1e4);
+    m.userData.uSpeed = uSpeed; m.userData.uS = uS;
+    const u = T.uv().x, s = T.uv().y, vt = T.attribute('lineV', 'float');
+    // nadmiar prędkości względem obwiedni hamowania (m/s): < 0 — zapas, > 0 — trzeba zwalniać
+    const e = uSpeed.sub(vt);
+    let c = T.vec3(0.12, 0.95, 0.28);
+    c = T.mix(c, T.vec3(1.0, 0.9, 0.12), T.smoothstep(-0.5, 1.5, e));
+    c = T.mix(c, T.vec3(1.0, 0.5, 0.06), T.smoothstep(1.5, 4.0, e));
+    c = T.mix(c, T.vec3(1.0, 0.1, 0.06), T.smoothstep(4.5, 8.0, e));
+    // szewrony wskazujące kierunek jazdy (grot do przodu)
+    const side = u.sub(0.5).abs();
+    const f = T.fract(s.sub(side.mul(1.3)).div(3.2));
+    const chev = T.smoothstep(0.0, 0.06, f).mul(T.smoothstep(0.34, 0.42, f).oneMinus());
+    // miękkie brzegi + zanikanie na końcach widocznego odcinka
+    const edge = T.smoothstep(0.3, 0.5, side).oneMinus();
+    const d = s.sub(uS);
+    const fade = T.smoothstep(LINE.near, LINE.near + 6, d).mul(T.smoothstep(LINE.far - 45, LINE.far, d).oneMinus());
+    m.colorNode = c.mul(chev.mul(0.35).add(0.85));
+    m.opacityNode = edge.mul(fade).mul(chev.mul(0.25).add(0.62));
+    return m;
+  });
+}
+
+class RacingLine {
+  constructor(st, group) {
+    const step = LINE.step, N = st.N;
+    const off = racingLineOffsets(st, step), vT = racingLineTargets(st);
+    const M = off.length, hwid = LINE.width / 2;
+    const px = new Float64Array(M), pz = new Float64Array(M);
+    for (let j = 0; j < M; j++) {
+      const i = Math.min(N - 1, j * step), h = st.hd[i];
+      px[j] = st.x[i] - Math.sin(h) * off[j]; pz[j] = st.z[i] + Math.cos(h) * off[j];
+    }
+    const pos = new Float32Array(M * 2 * 3), uv = new Float32Array(M * 2 * 2), lv = new Float32Array(M * 2);
+    for (let j = 0; j < M; j++) {
+      const a = Math.max(0, j - 1), b = Math.min(M - 1, j + 1);
+      let fx = px[b] - px[a], fz = pz[b] - pz[a];
+      const l = Math.hypot(fx, fz) || 1; fx /= l; fz /= l;
+      const rx = -fz, rz = fx; // w prawo od kierunku jazdy
+      const s = Math.min(N - 1, j * step);
+      for (let q = 0; q < 2; q++) {
+        const k = j * 2 + q, sg = q ? 1 : -1;
+        const x = px[j] + rx * hwid * sg, z = pz[j] + rz * hwid * sg;
+        pos[k * 3] = x; pos[k * 3 + 1] = st.heightAt(x, z) + LINE.lift; pos[k * 3 + 2] = z;
+        uv[k * 2] = q; uv[k * 2 + 1] = s;
+        lv[k] = vT[s];
+      }
+    }
+    const idx = new Uint16Array((M - 1) * 6);
+    for (let j = 0, k = 0; j < M - 1; j++) {
+      const v0 = j * 2, v1 = v0 + 1, v2 = v0 + 2, v3 = v0 + 3;
+      idx[k++] = v0; idx[k++] = v2; idx[k++] = v1; idx[k++] = v1; idx[k++] = v2; idx[k++] = v3;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    geo.setAttribute('lineV', new THREE.BufferAttribute(lv, 1));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    geo.computeBoundingSphere();
+    this.mat = racingLineMaterial();
+    this.mesh = new THREE.Mesh(geo, this.mat);
+    this.mesh.castShadow = false; this.mesh.receiveShadow = false;
+    this.mesh.frustumCulled = false; this.mesh.renderOrder = 2;
+    this.M = M; this.geo = geo;
+    this.offsets = off; this.targets = vT; // do testów / podglądu
+    group.add(this.mesh);
+  }
+  // co klatkę: pozycja auta na trasie (m), prędkość (m/s), czy rysować
+  update(s, speed, visible) {
+    this.mesh.visible = visible;
+    if (!visible) return;
+    this.mat.userData.uS.value = s;
+    this.mat.userData.uSpeed.value = Math.abs(speed);
+    // rysujemy tylko pas przed autem — reszta wstęgi nie trafia nawet do rasteryzacji
+    const a = clamp(Math.floor((s + LINE.near - 2) / LINE.step), 0, this.M - 2);
+    const b = clamp(Math.ceil((s + LINE.far + 2) / LINE.step), a + 1, this.M - 1);
+    this.geo.setDrawRange(a * 6, (b - a) * 6);
+  }
+  // rozgrzewka shaderów: cała wstęga widoczna
+  warm() { this.mesh.visible = true; this.geo.setDrawRange(0, Infinity); }
 }
 
 // ============================================================
@@ -5926,6 +6080,7 @@ const RAIN = {
   lens: T.uniform(0), shield: T.uniform(0), speed: T.uniform(0), aspect: T.uniform(1.7), clock: T.uniform(0),
   // przesunięcie całego pola kropel na obiektywie (w stronę skrętu i w dół) oraz śnieg: 1 = płatki zamiast kropel, gęstość (×5 w zaspie)
   drift: T.uniform(new THREE.Vector2()), snow: T.uniform(0), snowK: T.uniform(1),
+  accT: 0, lensT: 0, // narastanie od startu odcinka (na starcie obiektyw czysty) i wygładzona docelowa ilość
 };
 // skrót zmiennoprzecinkowy (T.hash obcina do liczb całkowitych — za mało wariantów dla ułamków)
 const fhash = (x) => T.fract(T.sin(x).mul(43758.5453));
@@ -6163,16 +6318,17 @@ function rainLens(src) {
   const pv1 = T.vec2(asp.mul(0.22), -0.08), pv2 = T.vec2(asp.mul(0.64), -0.08);
   const since = T.min(wiperSince(p, pv1, t), wiperSince(p, pv2, t));
   const wet = T.mix(T.float(1), T.clamp(since.mul(0.7), 0.0, 1.0), RAIN.shield);
-  const lensK = RAIN.lens.mul(T.mix(T.float(1), RAIN.snowK, RAIN.snow));
+  const lensK = T.min(RAIN.lens.mul(T.mix(T.float(1), RAIN.snowK, RAIN.snow)), 1.2); // przy pełnej komórce płatki układają się w siatkę
   const dSmall = lensK.mul(0.2).add(RAIN.shield.mul(0.75)).mul(wet);
   const dBig = lensK.mul(0.3).add(RAIN.shield.mul(0.45)).mul(wet);
   const slide = RAIN.shield.mul(RAIN.speed.mul(0.012)).sub(RAIN.lens.mul(0.25)); // na szybie pęd pcha krople w górę, na obiektywie spływają
   // na obiektywie całe pole kropel spływa w dół (na szybie z maski — nie)
   const pl = p.add(RAIN.drift.mul(T.float(1).sub(RAIN.shield)));
-  const a = dropLayer(pl, 6.0, 3.1, dBig, 0.16, 0.34, slide);
-  const b = dropLayer(pl, 17.0, 11.7, dSmall, 0.12, 0.3, slide.mul(0.5));
+  const a = dropLayer(pl, 6.0, 3.1, dBig.mul(T.float(1).sub(RAIN.snow)), 0.16, 0.34, slide);
+  const b = dropLayer(pl, 17.0, 11.7, dSmall.mul(T.float(1).sub(RAIN.snow.mul(0.4))), 0.12, 0.3, slide.mul(0.5));
+  const f = dropLayer(pl.add(0.61), 36.0, 41.3, lensK.mul(0.26).mul(RAIN.snow), 0.16, 0.36, slide);
   const c = dropLayer(p.add(0.37), 29.0, 23.9, dSmall.mul(RAIN.shield), 0.14, 0.32, T.float(0));
-  const off = a.xy.add(b.xy).add(c.xy);
+  const off = a.xy.add(b.xy).add(c.xy).mul(T.float(1).sub(RAIN.snow.mul(0.85))); // płatek nie załamuje światła jak kropla
   const m = T.clamp(a.z.add(b.z).add(c.z), 0.0, 1.0);
   // smuga wody tuż za piórem
   const smear = T.float(1).sub(T.smoothstep(0.0, 0.18, since)).mul(RAIN.shield).mul(0.006);
@@ -6181,7 +6337,7 @@ function rainLens(src) {
   col = col.mul(T.float(1).sub(m.mul(0.18))).add(T.vec3(a.w.add(b.w).add(c.w).mul(0.35)));
   // śnieg: płatki na obiektywie są białe i matowe, z miękkim brzegiem
   const rag = T.mx_noise_float(T.vec3(pl.mul(34.0), 0.0)).mul(0.5).add(0.5); // postrzępiony, nierówny płatek
-  col = T.mix(col, T.vec3(0.95, 0.97, 1.02), T.clamp(a.z.add(b.z), 0.0, 1.0).mul(rag.mul(0.5).add(0.18)).mul(RAIN.snow));
+  col = T.mix(col, T.vec3(0.96, 0.98, 1.03), T.clamp(b.z.add(f.z), 0.0, 1.0).mul(rag.mul(0.45).add(0.4)).mul(RAIN.snow));
   // zaspa: obiektyw zaparowany śniegiem, rozjaśnia się, gdy płatki topnieją
   col = T.mix(col, T.vec3(0.9, 0.92, 0.96), T.clamp(RAIN.snowK.sub(1.0).div(4.0), 0.0, 1.0).mul(RAIN.snow).mul(0.28));
   // pióra wycieraczek
@@ -6235,10 +6391,19 @@ class RainSound {
 // wołane co klatkę z pętli gry: siła efektu ekranowego zależnie od kamery, reflektory i światło przeciwmgielne, dźwięk
 let rainSound = null;
 // pole kropel/płatków na obiektywie spływa w dół
-function driftLens(dt) {
+function driftLens(dt, sp = 0.14) {
   const d = RAIN.drift.value;
-  d.y -= 0.14 * dt;
+  d.y -= sp * dt;
   if (Math.abs(d.y) > 1e3) d.y %= 100;
+}
+// ilość kropel/płatków: na starcie odcinka zero, narasta przez ok. 25 s jazdy; w tle menu umiarkowanie
+function lensAmount(dt, target) {
+  const s = game.state;
+  if (s === 'intro') RAIN.accT = 0;
+  else if (s === 'race' || s === 'finish') RAIN.accT = Math.min(1, RAIN.accT + dt / 25);
+  else if (s === 'menu') RAIN.accT = 0.6;
+  RAIN.lensT += (target - RAIN.lensT) * Math.min(1, dt * 3);
+  return RAIN.lensT * RAIN.accT;
 }
 function updateRain(dt) {
   const w = game.fx && game.fx.weather;
@@ -6248,11 +6413,12 @@ function updateRain(dt) {
     const chase = s === 'race' || s === 'intro' || s === 'finish' || s === 'results';
     const hood = chase && game.camMode === 2 && !game.camHold;
     RAIN.snow.value = 1; RAIN.shield.value = 0; RAIN.aspect.value = camera.aspect; RAIN.speed.value = car ? car.speed : 0;
-    RAIN.lens.value += ((hood ? 0.25 : chase ? 0.5 : 0.3) - RAIN.lens.value) * Math.min(1, dt * 3);
     const off = !!(car && s === 'race' && car.roadDist > game.stage.def.halfW + 1.2 && car.speed > 4);
     RAIN.snowK.value = off ? Math.min(5, RAIN.snowK.value + dt * 12) : Math.max(1, RAIN.snowK.value - dt * 4);
+    // zaspa sypie śniegiem niezależnie od narastania
+    RAIN.lens.value = Math.max(lensAmount(dt, hood ? 0.25 : chase ? 0.5 : 0.3), (RAIN.snowK.value - 1) / 4 * 0.5);
     RAIN.clock.value += dt * 2.5; // płatki szybko topnieją
-    driftLens(dt);
+    driftLens(dt, 0.22);
     if (rainSound) rainSound.update(false, 0, false, 0, dt);
     return;
   }
@@ -6263,7 +6429,7 @@ function updateRain(dt) {
   const hood = (s === 'race' || s === 'intro' || s === 'finish') && game.camMode === 2 && !game.camHold;
   const chase = s === 'race' || s === 'intro' || s === 'finish' || s === 'results';
   const lens = hood ? 0 : chase ? (game.camMode === 3 ? 0.9 : 0.55) : 0.35;
-  RAIN.lens.value += (lens - RAIN.lens.value) * Math.min(1, dt * 3);
+  RAIN.lens.value = lensAmount(dt, lens);
   RAIN.shield.value = hood ? 1 : 0;
   RAIN.speed.value = car ? car.speed : 0;
   RAIN.aspect.value = camera.aspect;
@@ -6993,6 +7159,7 @@ const UI = {
     seg('optAa', 'aa', id, () => { setAaNote(); this.h.aaChanged(); });
     seg('optRetro', 'retro', (v) => v === '1', () => this.h.retroChanged());
     seg('optSaver', 'saver', (v) => v === '1', () => this.h.saverChanged());
+    seg('optLine', 'racingLine', (v) => v === '1', nop);
     $('perf').hidden = !settings.perf;
     if (IS_TOUCH) {
       $('optTouchRow').hidden = false;
@@ -8369,6 +8536,11 @@ function frame() {
   // wizualizacja auta
   game.model.sync(renderPos, renderQuat, car, dt);
   game.model.uBrake.value = (game.lastInp.brake > 0.1 && game.state !== 'replay') ? 3.2 : 0.7;
+  // linia jazdy: tylko w jeździe (i na pauzie w jeździe), nie w powtórce ani w tle menu; przy rozgrzewce shaderów zawsze
+  if (game.world.line) {
+    const ls = game.state === 'paused' ? game.paused : game.state;
+    game.world.line.update(currentS(), car.speed, (settings.racingLine && (ls === 'race' || ls === 'intro')) || !!warmReq);
+  }
   const loose = car.wheels.some(w => w.contact && w.surf && w.surf.loose > 0);
   if (loose && game.state !== 'results') game.model.uDirt.value = Math.min(1, game.model.uDirt.value + dt * car.speed * 0.0009);
   updateCamera(dt);
