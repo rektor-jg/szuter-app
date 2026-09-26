@@ -2047,12 +2047,12 @@ const QUALITY = {
   low: {
     dprTouch: 2, dpr: 1, minScale: 0.6, pipeline: false, bloom: false, shadowMap: 1024, shadowExt: 55,
     treeShadows: false, rockShadows: false, block: 2, lodNear: 28, lodFar: 110, treeNear: 2, treeFar: 5, treeMax: 150, rockMax: 120, bucket: 512,
-    smoke: 300, glow: 120, skids: 700, litDust: false, emit: 0.38, snow: 350, mist: 20, fogK: 0.8, bakeSky: true, beams: 1, ripple: false,
+    smoke: 420, glow: 200, skids: 700, litDust: false, emit: 0.55, snow: 350, mist: 20, fogK: 0.8, bakeSky: true, beams: 1, ripple: false,
   },
   medium: {
     dprTouch: 2, dpr: 1.35, minScale: 0.7, pipeline: false, bloom: false, shadowMap: 2048, shadowExt: 80,
     treeShadows: false, rockShadows: true, block: 2, lodNear: 45, lodFar: 150, treeNear: 1, treeFar: 3, treeMax: 190, rockMax: 170, bucket: 512,
-    smoke: 650, glow: 200, skids: 1400, litDust: true, emit: 0.7, snow: 800, mist: 40, fogK: 0.92, bakeSky: IS_TOUCH, beams: 2, ripple: true,
+    smoke: 900, glow: 280, skids: 1400, litDust: true, emit: 0.95, snow: 800, mist: 40, fogK: 0.92, bakeSky: IS_TOUCH, beams: 2, ripple: true,
   },
   high: {
     dprTouch: 2.5, dpr: 1.75, minScale: 0.8, pipeline: true, bloom: true, shadowMap: 2048, csm: true, cascades: 3, csmFar: 260,
@@ -4265,9 +4265,9 @@ class FX {
       if (!wh.contact || !wh.surf) { this.skids.track(i, false); continue; }
       const kind = wh.surf.kind, slip = wh.slip;
       let rate = 0;
-      if (kind === 'tarmac') rate = Math.max(0, slip - 3.5) * 5;
-      else if (kind === 'grass') rate = (sp * 0.25 + slip * 1.2);
-      else rate = (sp * (wh.front ? 0.45 : 0.85) + slip * 3.2);
+      if (kind === 'tarmac') rate = Math.max(0, slip - 2.5) * 8;
+      else if (kind === 'grass') rate = (sp * 0.35 + slip * 1.6);
+      else rate = (sp * (wh.front ? 0.65 : 1.2) + slip * 4.2);
       rate *= hi;
       this.acc[i] += rate * dt;
       const [cx, cy, cz] = wh.cp;
@@ -4278,7 +4278,7 @@ class FX {
         const b = 0.85 + Math.random() * 0.3;
         if (kind === 'tarmac') {
           const g = night ? 0.5 : 0.82;
-          this.smoke.spawn(cx + jx, cy + 0.25, cz + jz, vx, 0.6 + Math.random(), vz, 1.6 + Math.random(), 0.5, 3.2, 0.32, g, g, g * 1.02, 1.3, -0.25);
+          this.smoke.spawn(cx + jx, cy + 0.25, cz + jz, vx, 0.6 + Math.random(), vz, 2.2 + Math.random() * 1.4, 0.6, 4.2, 0.36, g, g, g * 1.02, 1.3, -0.25);
         } else if (kind === 'snow') {
           this.smoke.spawn(cx + jx, cy + 0.2, cz + jz, vx, 1 + Math.random() * 1.6, vz, 0.9 + Math.random() * 0.7, 0.35, 2.0 + sp * 0.03, 0.55, 1.05 * b, 1.08 * b, 1.12 * b, 1.8, 1.4);
           if (Math.random() < 0.35) this.smoke.spawn(cx, cy + 0.2, cz, vx * 1.6, 2 + Math.random() * 2.5, vz * 1.6, 0.5, 0.12, 0.2, 0.9, 1, 1, 1.05, 0.4, 9);
@@ -4288,7 +4288,7 @@ class FX {
         } else {
           const grass = kind === 'grass';
           const r = grass ? 0.3 : this.dust.r, g = grass ? 0.33 : this.dust.g, bb = grass ? 0.2 : this.dust.b;
-          this.smoke.spawn(cx + jx, cy + 0.25, cz + jz, vx, 0.4 + Math.random() * 1.2, vz, 1.8 + Math.random() * 1.6, 0.5, 2.8 + sp * 0.06, grass ? 0.18 : 0.3, r * b, g * b, bb * b, 1.1, -0.05);
+          this.smoke.spawn(cx + jx, cy + 0.25, cz + jz, vx, 0.4 + Math.random() * 1.4, vz, 2.3 + Math.random() * 1.9, 0.6, 3.4 + sp * 0.08, grass ? 0.2 : 0.34, r * b, g * b, bb * b, 1.1, -0.05);
           if (!grass && Math.random() < 0.2) this.smoke.spawn(cx, cy + 0.15, cz, vx * 1.5, 1 + Math.random() * 2.5, vz * 1.5, 0.6, 0.05, 0.09, 1, r * 0.7, g * 0.7, bb * 0.7, 0.3, 9.8);
         }
       }
@@ -4307,16 +4307,23 @@ class FX {
     for (let k = 0; k < n; k++) this.smoke.spawn(x, y + 0.5, z, (Math.random() - 0.5) * 5, 1 + Math.random() * 3, (Math.random() - 0.5) * 5, 0.9 + Math.random() * 0.6, 0.1, 0.25, 1, r, g, b, 0.5, 6);
     for (let k = 0; k < n / 2; k++) this.smoke.spawn(x, y + 0.4, z, (Math.random() - 0.5) * 2, 0.5 + Math.random(), (Math.random() - 0.5) * 2, 1.6, 0.6, 3, 0.3, this.dust.r, this.dust.g, this.dust.b, 1.2, 0);
   }
-  flame(car) {
-    // wydech: prawy tył, pod zderzakiem
+  // strzał z wydechu (prawy tył, pod zderzakiem): błysk u wylotu, jasny rdzeń, pomarańczowy język ognia, na koniec dymek
+  flame(car, big = 1) {
     const q = car.q, v = [0, 0, 0];
-    qRot(q, 0.52, -0.3, 2.1, v);
+    qRot(q, 0.52, -0.24, 2.05, v);
     const bx = car.pos[0] + v[0], by = car.pos[1] + v[1], bz = car.pos[2] + v[2];
     qRot(q, 0, 0, 1, v);
-    for (let k = 0; k < 4; k++) {
-      const s = 3 + Math.random() * 4;
-      this.glow.spawn(bx, by, bz, car.vel[0] + v[0] * s, car.vel[1] + v[1] * s + 0.3, car.vel[2] + v[2] * s, 0.06 + Math.random() * 0.06, 0.3, 0.15, 1, 4.5, 1.7 + Math.random() * 0.8, 0.5, 2, 0);
+    const vx = car.vel[0], vy = car.vel[1], vz = car.vel[2];
+    this.glow.spawn(bx, by, bz, vx, vy, vz, 0.05, 0.6 * big, 0.35, 1, 5, 3.6, 2, 1, 0);
+    // język ognia: cząstki rozłożone wzdłuż wylotu od razu (nie kula), u wylotu jasny rdzeń, dalej węższy pomarańcz
+    const n = Math.round(12 * big);
+    for (let k = 0; k < n; k++) {
+      const f = k / n, d = f * 1.1 * big, s = 1 + Math.random() * 2.5, j = () => (Math.random() - 0.5) * 0.3; // wolno — płomień trzyma się rury
+      const core = f < 0.3, sz = (0.46 - f * 0.26) * big;
+      this.glow.spawn(bx + v[0] * d, by + v[1] * d + f * 0.05, bz + v[2] * d, vx + v[0] * s + j(), vy + v[1] * s + 0.3 + j() * 0.4, vz + v[2] * s + j(),
+        0.1 + Math.random() * 0.1, sz, sz * 1.5, 1, core ? 5 : 4.8, core ? 3.2 : 1.3 + Math.random() * 0.6, core ? 1.8 : 0.3, 2.5, 0);
     }
+    for (let k = 0; k < 2; k++) this.smoke.spawn(bx, by, bz, vx + v[0] * 3, vy + 0.5, vz + v[2] * 3, 0.9 + Math.random() * 0.5, 0.3, 1.3, 0.22, 0.12, 0.12, 0.13, 2, -0.3);
   }
   update(dt, cam, car, night) {
     // dym z uszkodzonego silnika
@@ -6531,8 +6538,12 @@ function frame() {
     // strzały z wydechu
     if (game.state !== 'replay') {
       const thr = game.lastInp.throttle || 0;
-      if (car.events.shift > 0 && car.rpm > car.cfg.redline * 0.7 && Math.random() < 0.6) { game.fx.flame(car); if (game.state !== 'menu') sound.pops(); }
-      if ((game.prevThr || 0) > 0.8 && thr < 0.1 && car.rpm > car.cfg.redline * 0.72 && Math.random() < 0.45) { game.fx.flame(car); if (game.state !== 'menu') sound.pops(); }
+      // każda zmiana biegu w górę pod obrotami, puszczenie gazu z wysokich obrotów i ogranicznik obrotów (seria strzałów)
+      const pop = (big) => { game.fx.flame(car, big); if (game.state !== 'menu') sound.pops(); };
+      if (car.events.shift > 0 && car.rpm > car.cfg.redline * 0.6) pop(1.2);
+      else if ((game.prevThr || 0) > 0.8 && thr < 0.1 && car.rpm > car.cfg.redline * 0.72 && Math.random() < 0.6) pop(1);
+      game.limT = car.limiter ? (game.limT || 0) - dt : 0;
+      if (car.limiter && game.limT <= 0) { pop(0.8); game.limT = 0.09 + Math.random() * 0.12; }
       game.prevThr = thr;
       if (car.events.bump > 2.5 && game.state === 'race') { sound.thump(car.events.bump * 1.5); input.rumble(0.5, 0.2, 100); camState.shake = Math.min(0.6, camState.shake + 0.12); }
       if (car.events.scrape > 3 && game.state === 'race') sound.scrape(car.events.scrape * 0.02);
