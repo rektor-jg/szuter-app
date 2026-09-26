@@ -429,7 +429,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
   <section class="scr" id="scrRally" hidden aria-label="Rajd">
     <header class="scr-head"><button class="back" type="button" data-back>◂ Menu</button><h2>Rajd</h2><span class="step" id="rallyKm"></span></header>
     <div class="sheet-wrap"><div class="sheet">
-      <p class="note-p">Siedem odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia i Kenia</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
+      <p class="note-p">Osiem odcinków po kolei: <b>Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia, Kenia i Włochy</b>. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.</p>
       <div class="rows" id="rallyRows"></div>
     </div></div>
     <footer class="scr-foot"><span class="keys"><kbd>Enter</kbd> dalej · <kbd>Esc</kbd> wstecz</span><button class="go" id="rallyGo" type="button">Wybierz auto <span>▸</span></button></footer>
@@ -760,8 +760,46 @@ const STAGES = [
       water: '#2c4a55', wildlife: true,
     },
   },
-
-
+  {
+    // Riwiera: serpentyny w górach, kolorowe miasteczko, zjazd agrafkami nad morze, droga wykuta w klifie
+    // i wioska w zatoce. Trasa nie jest losowana, tylko składana z planu (plan), teren układa się wokół niej (coast).
+    id: 'ita', country: 'Włochy', code: 'ITA', name: "Costa d'Oro", seed: 1957, length: 5200,
+    surface: 'tarmac', surfaceLabel: 'asfalt · klify nad morzem',
+    halfW: 3.2, ditch: 0.1, ditchW: 2.2, blendW: 11, corridor: 210,
+    terrain: { amp: 30, freq: 1 / 420, ridge: 0.9 },
+    grade: 0.095, rolling: [0.2, 110, 0.08, 50], jumps: 0, jumpH: [1, 1],
+    corners: { hairpin: 0.08, tight: 0.3, medium: 0.32, easy: 0.2, flat: 0.1 },
+    pStraight: 0.5, straightScale: 0.8, maxR: 900,
+    grip: { road: 1.12, verge: 0.72, ditch: 0.6, off: 0.6 },
+    crr: { road: 0.014, verge: 0.045, ditch: 0.1, off: 0.09 },
+    loose: 0, water: 0,
+    // makia, cyprysy, pinie, oliwki i oleandry; palmy na nabrzeżu wioski
+    trees: { mix: [['stonepine', 0.22], ['cypress', 0.2], ['olive', 0.2], ['shrub', 0.26], ['oleander', 0.12], ['palm', 0]], density: 0.0062, clear: 3.2, mid: 0.55, far: 0.4, scale: [0.8, 1.25] },
+    rocks: 0.0022, walls: 0, bales: 0, poles: 0, crowds: 7,
+    // plan trasy: [strefa, kroki]; ['S', długość] prosta, ['C', promień, kurs°] zakręt do kursu bezwzględnego
+    // (0° = wzdłuż brzegu, morze po prawej), ['C', R, kurs°, 1] = kąt nieruszany w wariantach losowych
+    plan: [
+      ['mountain', [['S', 110], ['C', 55, 22], ['S', 70], ['C', 42, -18], ['S', 80], ['C', 70, 8], ['S', 60], ['C', 30, 62], ['S', 45],
+        ['C', 15, 170], ['S', 105], ['C', 15, 14], ['S', 115], ['C', 16, 168], ['S', 95], ['C', 15, 12], ['S', 70],
+        ['C', 45, -22], ['S', 55], ['C', 36, 28], ['S', 50], ['C', 60, 0], ['S', 40]]],
+      ['town', [['S', 70], ['C', 14, 90, 1], ['S', 48], ['C', 14, 0, 1], ['S', 78], ['C', 15, 90, 1], ['S', 40], ['C', 15, 0, 1], ['S', 62], ['C', 34, 26], ['S', 30]]],
+      ['descent', [['S', 45], ['C', 15, 172], ['S', 110], ['C', 15, 14], ['S', 115], ['C', 16, 170], ['S', 105], ['C', 15, 16], ['S', 90], ['C', 16, 168], ['S', 60], ['C', 26, 96], ['S', 70], ['C', 34, 0]]],
+      ['coast', [['S', 120], ['C', 75, -30], ['S', 55], ['C', 48, 42], ['S', 95], ['C', 58, -12], ['S', 150], ['C', 95, 22], ['S', 70],
+        ['C', 40, -38], ['S', 60], ['C', 62, 30], ['S', 115], ['C', 85, -4], ['S', 140], ['C', 70, -30], ['S', 90], ['C', 60, 8],
+        ['S', 100], ['C', 55, 34], ['S', 80], ['C', 50, -20], ['S', 120], ['C', 80, 10], ['S', 60]]],
+      ['village', [['S', 90], ['C', 45, 38], ['S', 70], ['C', 38, -8], ['S', 120], ['C', 60, 30], ['S', 160]]],
+    ],
+    coast: { cliff: 62, road: 10, wall: 17 },
+    look: {
+      // złota godzina: niskie słońce nad morzem przed autem po prawej, ciepła mgiełka, długie cienie
+      time: 'dusk', timeLabel: 'sunset', sunElev: 9, sunAz: 58, sun: '#ffc587', sunI: 3.0, hemiSky: '#a9b9d8', hemiGround: '#7d6450', hemiI: 1.0,
+      fog: '#d9bea6', fogNear: 380, fogFar: 2800, shadowK: 0.55, zenith: '#2c5a9c', horizon: '#f0b68a', clouds: 0.22, stars: 0,
+      grass: '#838a45', grass2: '#a69a58', dirt: '#9c6a45', rock: '#a9a193', verge: '#958a70',
+      road: '#55565a', rut: '#434448', stone: '#76777b', dust: '#b9b3aa', fx: 'smoke', weather: null, bloom: 0.3,
+      exposure: 1.0, sat: 1.15, contrast: 1.1,
+      water: '#1d4d6e', sea: true,
+    },
+  },
 ];
 
 // ------------------------------------------------------------
@@ -1004,11 +1042,80 @@ function tryRoute(def, seed) {
 }
 
 function generateRoute(def, seed = def.seed) {
+  if (def.plan) return planRoute(def, seed);
   for (let a = 0; a < 12; a++) {
     const r = tryRoute(def, (seed + a * 9973) >>> 0);
     if (r) return r;
   }
   throw new Error('Nie udało się wygenerować trasy');
+}
+
+// ------------------------------------------------------------
+// Trasa z planu (Włochy): odcinki o zadanym charakterze zamiast losowania. Domyślny seed daje trasę dokładnie
+// z planu, inne seedy ją przekształcają (długości, promienie, kursy) — z kontrolą, czy nitki się nie zbliżają,
+// odcinek nadmorski biegnie wzdłuż brzegu, a góry i miasteczko zostają w głębi lądu.
+// ------------------------------------------------------------
+function planClass(R, A) {
+  if (R <= 20 && A >= 140 * DEG) return 'hairpin';
+  if (R < 34) return 'tight';
+  if (R < 64) return 'medium';
+  if (R < 130) return 'easy';
+  return 'flat';
+}
+function planTry(def, seed, jit) {
+  const rng = makeRng(seed);
+  const X = [0], Z = [0], H = [0], K = [0];
+  const corners = [], zones = [];
+  const push = (curvs) => {
+    let x = X[X.length - 1], z = Z[Z.length - 1], h = H[H.length - 1];
+    for (const k of curvs) { const hm = h + k * 0.5; x += Math.cos(hm); z += Math.sin(hm); h += k; X.push(x); Z.push(z); H.push(h); K.push(k); }
+  };
+  for (const [kind, steps] of def.plan) {
+    const s0 = X.length - 1;
+    for (const st of steps) {
+      if (st[0] === 'S') { push(new Array(Math.max(8, Math.round(st[1] * (1 + jit * (rng() - 0.5) * 0.3)))).fill(0)); continue; }
+      const R = st[1] * (1 + jit * (rng() - 0.5) * 0.2);
+      const target = (st[2] + (st[3] === 1 ? 0 : jit * (rng() - 0.5) * 14)) * DEG;
+      const h = H[H.length - 1];
+      const d = Math.atan2(Math.sin(target - h), Math.cos(target - h));
+      if (Math.abs(d) < 2 * DEG) continue;
+      const dir = d > 0 ? 1 : -1, A = Math.abs(d), c0 = X.length - 1;
+      push(cornerCurv({ dir, parts: [{ R, A }] }));
+      corners.push({ s0: c0, s1: X.length - 1, dir, cls: planClass(R, A), R, A, comp: null });
+    }
+    zones.push({ kind, s0, s1: X.length - 1 });
+  }
+  const total = LEAD + def.length + RUNOFF;
+  if (X.length - 1 < total) push(new Array(total - X.length + 1).fill(0));
+  const N = X.length;
+  // nitki nie mogą się zbliżyć (poza sąsiednimi metrami tej samej nitki)
+  for (let i = 0; i < N; i += 3) for (let j = i + 72; j < N; j += 3) {
+    const dx = X[i] - X[j], dz = Z[i] - Z[j];
+    if (dx * dx + dz * dz < 24 * 24) { planTry.why = `nitki ${i}/${j}`; return null; }
+  }
+  // brzeg: odcinek nadmorski i wioska idą wzdłuż +x (bez zawracania), reszta trasy w głębi lądu
+  const zc = zones.find(z => z.kind === 'coast'), zv = zones.find(z => z.kind === 'village');
+  for (let i = zc.s0; i < N; i++) if (Math.cos(H[i]) < 0.26) { planTry.why = `kurs ${i}`; return null; }
+  const xa = X[zc.s0];
+  const roadZ = (x) => { let lo = zc.s0, hi = N - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (X[m] < x) lo = m; else hi = m; } return Z[lo]; };
+  const zd = zones.find(z => z.kind === 'descent');
+  for (let i = 0; i < zd.s1 - 160; i += 4) {
+    const zRef = X[i] < xa ? Z[zc.s0] : roadZ(X[i]);
+    if (Z[i] > zRef - (i < zd.s0 ? 110 : 40)) { planTry.why = `ląd ${i}`; return null; }
+  }
+  return {
+    seed, N, plan: true,
+    x: Float64Array.from(X), z: Float64Array.from(Z), hd: Float64Array.from(H), k: Float64Array.from(K),
+    corners: corners.filter(c => c.s0 > LEAD - 30 && c.s0 < LEAD + def.length + 40),
+    zones: zones.map(z => z === zv ? { ...z, s1: N - 1 } : z),
+  };
+}
+function planRoute(def, seed) {
+  if (seed === def.seed) { const r = planTry(def, seed, 0); if (r) return r; }
+  for (let a = 0; a < 30; a++) { const r = planTry(def, (seed + a * 7919) >>> 0, 1); if (r) return { ...r, seed }; }
+  const r = planTry(def, def.seed, 0);
+  if (!r) throw new Error('Nie udało się wygenerować trasy: ' + planTry.why);
+  return { ...r, seed };
 }
 
 // ------------------------------------------------------------
@@ -1058,6 +1165,143 @@ class Stage {
       }
       return T.amp * h + T.ridge * T.amp * r;
     };
+    if (this.def.coast) this.initCoast(this.base);
+  }
+
+  // --- Włochy: teren układa się wokół trasy. Brzeg morza biegnie wzdłuż odcinka nadmorskiego (droga przesunięta
+  // w stronę morza, czyli w prawo), za nim klif do wody; nad drogą ściana skalna; w głąb lądu coraz wyżej, aż do gór
+  // na horyzoncie; miasteczko na łagodniejszym tarasie, wioska w zatoce między stromymi zboczami.
+  // Linia brzegu, wysokość klifu i ściany to tabele co 1 m wzdłuż x — teren liczy się szybko.
+  initCoast(noiseBase) {
+    const def = this.def, C = def.coast, r = this.route, N = this.N, X = this.x, Z = this.z, Hd = this.hd, hw = def.halfW;
+    const zone = (k) => r.zones.find(z => z.kind === k);
+    const zc = zone('coast'), zv = zone('village'), zt = zone('town');
+    this.zones = r.zones;
+    const nC = makeNoise2D(this.seed * 17 + 3), nD = makeNoise2D(this.seed * 23 + 11);
+    const a = zc.s0, b = N - 1, vs = zv.s0;
+    this.coastS = [a, b]; this.villageS = [vs, b];
+    // wzdłuż trasy: wysokość klifu, ściana nad drogą, odległość drogi od krawędzi
+    const cliffS = (s) => {
+      const top = C.cliff + 11 * nC(s * 0.0045, 1.3);
+      return lerp(lerp(C.cliff * 0.8, top, smoothstep(a - 40, a + 260, s)), 3.4, smoothstep(vs - 760, vs + 190, s));
+    };
+    const wallS = (s) => C.wall * (0.65 + 0.6 * (nC(s * 0.012, 7.7) * 0.5 + 0.5)) * smoothstep(a + 40, a + 190, s) * (1 - smoothstep(vs - 600, vs - 300, s));
+    const offS = (s) => C.road + 2.5 * nC(s * 0.009, 4.1) - 2.5 * smoothstep(vs - 100, vs + 150, s);
+    const x0 = Math.floor(Math.min(X[a], X[b])) - 30, x1 = Math.ceil(X[b]) + 30, n = x1 - x0 + 1;
+    const cz = new Float64Array(n).fill(NaN), ch = new Float64Array(n), cw = new Float64Array(n), co = new Float64Array(n);
+    let pp = null;
+    for (let i = a; i <= b; i++) {
+      const off = offS(i), q = [X[i] - Math.sin(Hd[i]) * off, Z[i] + Math.cos(Hd[i]) * off, cliffS(i), wallS(i), off];
+      if (pp && q[0] > pp[0]) {
+        for (let k = Math.ceil(pp[0] - x0); k <= Math.floor(q[0] - x0); k++) {
+          const t = (k + x0 - pp[0]) / (q[0] - pp[0]);
+          cz[k] = lerp(pp[1], q[1], t); ch[k] = lerp(pp[2], q[2], t); cw[k] = lerp(pp[3], q[3], t); co[k] = lerp(pp[4], q[4], t);
+        }
+      }
+      if (!pp || q[0] > pp[0]) pp = q;
+    }
+    // końce tabeli: przedłużenie ostatnią wartością
+    let f = 0; while (Number.isNaN(cz[f])) f++;
+    let l = n - 1; while (Number.isNaN(cz[l])) l--;
+    for (let k = 0; k < f; k++) { cz[k] = cz[f]; ch[k] = ch[f]; cw[k] = cw[f]; co[k] = co[f]; }
+    for (let k = l + 1; k < n; k++) { cz[k] = cz[l]; ch[k] = ch[l]; cw[k] = cw[l]; co[k] = co[l]; }
+    const czs = boxSmooth(boxSmooth(cz, 6), 6), czf = boxSmooth(boxSmooth(boxSmooth(cz, 120), 120), 120);
+    // kierunek brzegu → odległość prostopadła do linii brzegu zamiast różnicy z
+    const cs = new Float64Array(n);
+    for (let k = 0; k < n; k++) { const d = (czs[Math.min(n - 1, k + 3)] - czs[Math.max(0, k - 3)]) / (Math.min(n - 1, k + 3) - Math.max(0, k - 3)); cs[k] = 1 / Math.sqrt(1 + d * d); }
+    const cz0 = czs[0], cz1 = czs[n - 1], czf0 = czf[0] - cz0, czf1 = czf[n - 1] - cz1, ex = (X[b] - X[b - 60]) / 60, ez = (Z[b] - Z[b - 60]) / 60;
+    const endSlope = ez / Math.max(0.3, ex);
+    // brzeg poza trasą: na zachodzie łagodny łuk ku morzu, na wschodzie przylądek z latarnią
+    const coastAt = (x, out) => {
+      const k = x - x0;
+      if (k <= 0) {
+        const d = -k;
+        out[0] = cz0 + 170 * Math.sin(Math.min(d / 900, 1) * Math.PI / 2) + 50 * nC(x * 0.0025, 9.1) * smoothstep(0, 300, d);
+        out[1] = ch[0] + 20 * smoothstep(0, 500, d); out[2] = 0; out[3] = co[0]; out[4] = cs[0]; out[5] = out[0] + czf0;
+      } else if (k >= n - 1) {
+        const d = k - (n - 1);
+        out[0] = cz1 + endSlope * Math.min(d, 260) + 190 * Math.sin(Math.min(d / 700, 1) * Math.PI) * smoothstep(100, 400, d) - 0.3 * Math.max(0, d - 700);
+        out[1] = lerp(ch[n - 1], 38, smoothstep(60, 420, d)); out[2] = 0; out[3] = co[n - 1]; out[4] = cs[n - 1]; out[5] = out[0] + czf1;
+      } else {
+        const i = Math.floor(k), t = k - i;
+        out[0] = czs[i] + (czs[i + 1] - czs[i]) * t; out[1] = ch[i] + (ch[i + 1] - ch[i]) * t;
+        out[2] = cw[i] + (cw[i + 1] - cw[i]) * t; out[3] = co[i] + (co[i + 1] - co[i]) * t; out[4] = cs[i]; out[5] = czf[i] + (czf[i + 1] - czf[i]) * t;
+      }
+      return out;
+    };
+    this.coastAt = coastAt;
+    const tmpW = [0, 0, 0, 0, 0, 0];
+    // odległość od linii brzegu (m, prostopadle; ujemna = morze)
+    this.coastW = (x, z) => { coastAt(x, tmpW); return (tmpW[0] - z) * tmpW[4]; };
+    // wioska: strome zbocza wokół zatoki (x od początku strefy wioski)
+    const vx0 = X[vs], vx1 = X[b];
+    // taras miasteczka: maska co 4 m (odległość od ulic), wysokość = średni teren pod ulicami
+    const tx0 = Math.min(...Array.from(X.subarray(zt.s0, zt.s1))) - 120, tz0 = Math.min(...Array.from(Z.subarray(zt.s0, zt.s1))) - 120;
+    const tw = Math.ceil((Math.max(...Array.from(X.subarray(zt.s0, zt.s1))) + 120 - tx0) / 4) + 1, th = Math.ceil((Math.max(...Array.from(Z.subarray(zt.s0, zt.s1))) + 120 - tz0) / 4) + 1;
+    const tm = new Float32Array(tw * th);
+    for (let j = 0; j < th; j++) for (let i = 0; i < tw; i++) {
+      const x = tx0 + i * 4, z = tz0 + j * 4; let m = 1e9;
+      for (let s = zt.s0 - 30; s <= zt.s1 + 30; s += 3) m = Math.min(m, (X[s] - x) ** 2 + (Z[s] - z) ** 2);
+      tm[j * tw + i] = 1 - smoothstep(38, 95, Math.sqrt(m));
+    }
+    const townMask = (x, z) => {
+      const gx = (x - tx0) / 4, gz = (z - tz0) / 4;
+      if (gx < 0 || gz < 0 || gx >= tw - 1 || gz >= th - 1) return 0;
+      const i = Math.floor(gx), j = Math.floor(gz), fx = gx - i, fz = gz - j, c = j * tw + i;
+      return (tm[c] * (1 - fx) + tm[c + 1] * fx) * (1 - fz) + (tm[c + tw] * (1 - fx) + tm[c + tw + 1] * fx) * fz;
+    };
+    // zgrubna odległość od trasy (co 8 m, chamfer): przy drodze łagodniejsze góry — mniej nasypów i wykopów
+    let bx0 = Infinity, bz0 = Infinity, bx1 = -Infinity, bz1 = -Infinity;
+    for (let i = 0; i < N; i += 4) { bx0 = Math.min(bx0, X[i]); bx1 = Math.max(bx1, X[i]); bz0 = Math.min(bz0, Z[i]); bz1 = Math.max(bz1, Z[i]); }
+    bx0 -= 320; bz0 -= 320;
+    const dw = Math.ceil((bx1 + 320 - bx0) / 8) + 1, dh = Math.ceil((bz1 + 320 - bz0) / 8) + 1, D = new Float32Array(dw * dh).fill(1e9);
+    for (let i = 0; i < N; i += 2) {
+      const gx = (X[i] - bx0) / 8, gz = (Z[i] - bz0) / 8, ix = Math.round(gx), iz = Math.round(gz);
+      for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) { const c = (iz + dz) * dw + ix + dx; const d = Math.hypot(ix + dx - gx, iz + dz - gz) * 8; if (d < D[c]) D[c] = d; }
+    }
+    for (let j = 1; j < dh - 1; j++) for (let i = 1; i < dw - 1; i++) { const c = j * dw + i; D[c] = Math.min(D[c], D[c - 1] + 8, D[c - dw] + 8, D[c - dw - 1] + 11.3, D[c - dw + 1] + 11.3); }
+    for (let j = dh - 2; j > 0; j--) for (let i = dw - 2; i > 0; i--) { const c = j * dw + i; D[c] = Math.min(D[c], D[c + 1] + 8, D[c + dw] + 8, D[c + dw + 1] + 11.3, D[c + dw - 1] + 11.3); }
+    const roadNear = (x, z) => {
+      const gx = (x - bx0) / 8, gz = (z - bz0) / 8;
+      if (gx < 1 || gz < 1 || gx >= dw - 2 || gz >= dh - 2) return 320;
+      const i = Math.floor(gx), j = Math.floor(gz), fx = gx - i, fz = gz - j, c = j * dw + i;
+      return Math.min(320, (D[c] * (1 - fx) + D[c + 1] * fx) * (1 - fz) + (D[c + dw] * (1 - fx) + D[c + dw + 1] * fx) * fz);
+    };
+    this.roadNear = roadNear;
+    const tmp = [0, 0, 0, 0, 0, 0], water = def.water, ref = C.cliff * 0.9;
+    const raw = (x, z) => {
+      coastAt(x, tmp);
+      // przy brzegu odległość prostopadła do linii brzegu, w głębi lądu od mocno wygładzonej linii (bez pasów wzdłuż z)
+      const wn = (tmp[0] - z) * tmp[4], w = lerp(wn, tmp[5] - z, smoothstep(60, 320, wn)), hc = tmp[1], wall = tmp[2], off = tmp[3];
+      const fine = 1.2 * nD(x * 0.05, z * 0.05);
+      if (w < 0) return water - 3.5 + Math.max(-38, w * 0.5) + fine * 2;
+      if (w < 4.5) { const t = w / 4.5; return water - 3.5 + (hc + 3.5 - water) * (1 - (1 - t) * (1 - t) * (1 - t)) + fine * t; }
+      const u = w - 4.5;
+      // ściana skalna tuż za poboczem, przechodzi w zbocze
+      const wb = wall * smoothstep(off + hw - 3, off + hw + 3.5, w) * (1 - smoothstep(30, 150, u));
+      // w głąb lądu: coraz wyżej i coraz bardziej górzyście, na horyzoncie wysokie góry
+      const land = lerp(hc, ref, smoothstep(30, 320, u)) + 0.115 * u + 0.00004 * u * u + 430 * smoothstep(850, 2100, u);
+      const mount = noiseBase(x, z) * smoothstep(30, 360, u) * (0.45 + 0.55 * smoothstep(30, 260, roadNear(x, z)) + smoothstep(600, 1500, u));
+      const vill = 62 * smoothstep(24, 130, u) * smoothstep(vx0 - 250, vx0 + 40, x) * (1 - smoothstep(vx1 + 60, vx1 + 400, x));
+      const h = land + wb + mount + vill + fine * smoothstep(0, 20, u);
+      if (!smoothOnly) return h;
+      smoothOnly[0] = land; return h;
+    };
+    let smoothOnly = null;
+    const sm = [0];
+    let tSum = 0, tN = 0;
+    smoothOnly = sm;
+    for (let s = zt.s0; s <= zt.s1; s += 4) { raw(X[s], Z[s]); tSum += sm[0]; tN++; }
+    const tH = tSum / tN;
+    this.townH = tH;
+    this.base = (x, z) => {
+      const m = townMask(x, z);
+      if (m <= 0) { smoothOnly = null; return raw(x, z); }
+      smoothOnly = sm;
+      const h = raw(x, z);
+      return lerp(h, tH + (sm[0] - tH) * 0.4, m);
+    };
+    this.seaSideAt = () => 1;
   }
 
   async build(onProgress = () => {}) {
@@ -1295,6 +1539,7 @@ class Stage {
   placeProps() {
     const def = this.def, rng = makeRng(this.seed ^ 0x51ee), hw = def.halfW, tr = def.trees;
     const nrm = [0, 0, 0];
+    if (def.coast) this.placeCoastStructures();
     // drzewa
     const mixW = {}; for (const [t, w] of tr.mix) mixW[t] = w;
     this.trees = {}; for (const [t] of tr.mix) this.trees[t] = [];
@@ -1314,11 +1559,12 @@ class Stage {
         if (nrm[1] < 0.74) continue;
         const type = pickWeighted(rng, mixW);
         const sc = lerp(tr.scale[0], tr.scale[1], rng());
+        if (this.keepOut && this.keepOut(x, z, 1.5)) continue;
         const wide = type === 'shrub' || type === 'thorn' || type === 'jungle' || type === 'fern';
         const sink = wide ? sc * 0.9 * Math.sqrt(1 - nrm[1] * nrm[1]) / nrm[1] : 0;
         this.trees[type].push(x, y - 0.1 - sink, z, sc, rng() * 6.283);
         const cr = type === 'giant' ? 0.9 : type === 'palm' ? 0.22 : 0.3;
-        if (d < 42 && type !== 'shrub' && type !== 'fern' && type !== 'jungle') this.addCollider(x, z, cr * sc, y - 1, y + 9 * sc, 'tree');
+        if (d < 42 && type !== 'shrub' && type !== 'fern' && type !== 'jungle' && type !== 'oleander' && type !== 'agave') this.addCollider(x, z, cr * sc, y - 1, y + 9 * sc, 'tree');
       }
       // głazy
       const nR = Math.round(CHUNK * CHUNK * def.rocks);
@@ -1329,6 +1575,7 @@ class Stage {
         const y = this.heightAt(x, z);
         if (this.water != null && y < this.water + 0.2) continue;
         const sc = 0.5 + rng() * rng() * 2.2;
+        if (this.keepOut && this.keepOut(x, z, sc)) continue;
         this.rocks.push(x, y - sc * 0.25, z, sc, rng() * 6.283);
         if (d < 40 && sc > 0.7) this.addCollider(x, z, sc * 0.75, y - 1, y + sc * 0.7, 'rock');
       }
@@ -1338,6 +1585,7 @@ class Stage {
       if ((c.cls === 'tight' || c.cls === 'medium') && rng() < 0.3) {
         const apex = Math.round((c.s0 + c.s1) / 2);
         const [x, z] = this.pointAt(apex, c.dir * (hw + 1.3));
+        if (this.keepOut && (this.zoneAt(apex) === 'town' || this.keepOut(x, z, 1))) continue;
         const y = this.heightAt(x, z), sc = 0.9 + rng() * 0.5;
         this.rocks.push(x, y - 0.2, z, sc, rng() * 6.283);
         this.addCollider(x, z, sc * 0.75, y - 1, y + sc * 0.7, 'rock');
@@ -1407,10 +1655,12 @@ class Stage {
         const [x, z] = this.pointAt(s, lat);
         const y = this.heightAt(x, z);
         if (this.water != null && y < this.water + 0.3) continue;
+        if (this.keepOut && (this.keepOut(x, z, 0.5) || Math.abs(y - this.y[clamp(Math.round(s), 0, this.N - 1)]) > 3.5)) continue;
         const [rx, rz] = this.pointAt(s, 0);
         this.crowd.push(x, y, z, Math.atan2(rx - x, rz - z), (rng() * 8) | 0, rng());
       }
     }
+    if (def.coast) for (let i = 0; i < this.shoreRocks.length; i++) this.rocks.push(this.shoreRocks[i]);
     // bramy
     this.gantries = [
       { s: this.startS, kind: 'start' },
@@ -1419,6 +1669,108 @@ class Stage {
       { s: this.finishS, kind: 'finish' },
       { s: Math.min(this.N - 30, this.finishS + 170), kind: 'stop' },
     ];
+  }
+
+  // --- Włochy: ściany skalne nad drogą, kamienne balustrady nad przepaściami, głazy w wodzie pod klifem.
+  // Zajęte miejsca trafiają do maski (co 2 m), żeby drzewa, głazy i kibice nie wchodziły w mury i domy.
+  placeCoastStructures() {
+    const def = this.def, hw = def.halfW, N = this.N, rng = makeRng((this.seed ^ 0x17a1) >>> 0);
+    const mw = this.cX * CHUNK / 2 + 1, mh = this.cZ * CHUNK / 2 + 1, occ = new Uint8Array(mw * mh);
+    const cell = (x, z) => { const i = Math.round((x - this.x0) / 2), j = Math.round((z - this.z0) / 2); return i < 0 || j < 0 || i >= mw || j >= mh ? -1 : j * mw + i; };
+    this.markOcc = (x, z) => { const c = cell(x, z); if (c >= 0) occ[c] = 1; };
+    this.keepOut = (x, z, r = 0) => {
+      const n = Math.ceil(r / 2);
+      for (let dz = -n; dz <= n; dz++) for (let dx = -n; dx <= n; dx++) { const c = cell(x + dx * 2, z + dz * 2); if (c >= 0 && occ[c]) return true; }
+      return false;
+    };
+    this.zoneAt = (s) => { for (const z of this.zones) if (s >= z.s0 && s <= z.s1) return z.kind; return 'village'; };
+    const markStrip = (s0, s1, side, l0, l1) => {
+      for (let s = s0; s <= s1; s += 1) for (let l = l0; l <= l1; l += 1.5) { const [x, z] = this.pointAt(s, side * l); this.markOcc(x, z); }
+    };
+    const runs = (test, gap, minLen) => {
+      const out = []; let cur = null;
+      for (let s = LEAD - 40; s < N - 3; s += 2) {
+        if (test(s)) { if (cur && s - cur.s1 <= gap) cur.s1 = s; else { if (cur) out.push(cur); cur = { s0: s, s1: s }; } }
+      }
+      if (cur) out.push(cur);
+      return out.filter(r => r.s1 - r.s0 >= minLen);
+    };
+    const side = (s, sd, l) => { const [x, z] = this.pointAt(s, sd * l); return this.heightAt(x, z) - this.y[s]; };
+    const inTown = (s) => { const z = this.zoneAt(s); return z === 'town' || (z === 'village' && s > this.villageS[0] + 60); };
+    // kamienice wzdłuż ulic miasteczka i na zboczu nad zatoką (wioska); kościół z dzwonnicą przy placu
+    this.houses = [];
+    const zt = this.zones.find(z => z.kind === 'town');
+    const churchS = Math.round(zt.s0 + (zt.s1 - zt.s0) * 0.42);
+    const footprint = (h, shrink) => {
+      const ca = Math.cos(h.rot), sa = Math.sin(h.rot), pts = [];
+      for (let u = -h.w / 2 + shrink; u <= h.w / 2 - shrink + 0.01; u += Math.max(1, (h.w - 2 * shrink) / 4)) for (let v = -h.d / 2 + shrink; v <= h.d / 2 - shrink + 0.01; v += Math.max(1, (h.d - 2 * shrink) / 4)) pts.push([h.x + u * ca - v * sa, h.z + u * sa + v * ca]);
+      return pts;
+    };
+    const tryHouse = (s, sd, lat, w, d, floors, kind, corner) => {
+      const i = clamp(Math.round(s), 0, N - 1), hd = this.hd[i];
+      const [x, z] = this.pointAt(s, sd * (lat + d / 2));
+      const h = { x, z, rot: sd > 0 ? hd : hd + Math.PI, w, d, floors, kind, corner, color: (rng() * 1000) | 0 };
+      const pts = footprint(h, 0);
+      let lo = Infinity, hi = -Infinity, front = -Infinity;
+      for (const [px, pz] of pts) {
+        if (this.roadDist(px, pz) < hw + 1.05 || this.keepOut(px, pz, 0)) return null;
+        const y = this.heightAt(px, pz); lo = Math.min(lo, y); hi = Math.max(hi, y);
+      }
+      if (hi - lo > 9 || lo < def.water + 0.8) return null;
+      const [fx, fz] = this.pointAt(s, sd * lat); front = this.heightAt(fx, fz);
+      h.y0 = lo - 0.6; h.g = Math.max(0, front - h.y0);
+      h.h = kind === 'tower' ? 26 : kind === 'church' ? 13 + h.g : h.g + floors * 3 + 0.6;
+      for (const [px, pz] of footprint(h, -0.4)) this.markOcc(px, pz);
+      for (const [px, pz] of footprint(h, 0)) if (this.roadDist(px, pz) < 12) this.addCollider(px, pz, 0.9, h.y0 - 1, h.y0 + h.h, 'wall');
+      this.houses.push(h);
+      return h;
+    };
+    const street = (s0, s1, sides, rows, floorsMin, floorsMax, back) => {
+      for (const sd of sides) for (let row = 0; row < rows; row++) {
+        for (let s = s0; s < s1;) {
+          if (sd < 0 && s > churchS - 16 && s < churchS + 18 && this.zoneAt(s) === 'town') { s += 4; continue; }
+          const w = 5.5 + rng() * 5, d = 7.5 + rng() * 5, fl = floorsMin + ((rng() * (floorsMax - floorsMin + 1)) | 0);
+          const lat = hw + 1.35 + rng() * 0.7 + row * back + (row ? rng() * 3 : 0);
+          const h = tryHouse(s + w / 2, sd, lat, w, d, fl + (row ? 1 : 0), 'house', row === 0 && rng() < 0.3);
+          s += h ? w + (rng() < 0.22 ? 1.5 + rng() * 2 : 0.15) : 3;
+        }
+      }
+    };
+    // plac z kościołem i dzwonnicą po lewej stronie ulicy
+    tryHouse(churchS, -1, hw + 9, 12, 21, 0, 'church', false);
+    tryHouse(churchS + 11, -1, hw + 12, 4.6, 4.6, 0, 'tower', false);
+    street(zt.s0 - 30, zt.s1 + 25, [-1, 1], 2, 2, 4, 11);
+    const [vs] = this.villageS;
+    street(vs + 40, Math.min(N - 10, this.finishS + 200), [-1], 5, 2, 4, 10);
+    street(vs + 180, Math.min(N - 10, this.finishS + 200), [1], 1, 2, 3, 0);
+    // dzwonnica wioski nad dachami
+    for (let t = 0; t < 12; t++) if (tryHouse(this.finishS - 60 + t * 9, -1, hw + 38 + t * 2, 4.4, 4.4, 0, 'tower', false)) break;
+    // ściany skalne w wykopach (wysoki teren tuż za poboczem)
+    this.faces = [];
+    for (const sd of [-1, 1]) for (const r of runs((s) => !inTown(s) && side(s, sd, hw + 10) > 4.2, 8, 18)) this.faces.push({ ...r, side: sd });
+    // balustrady nad przepaściami (i nabrzeże w wiosce)
+    this.parapets = [];
+    for (const sd of [-1, 1]) {
+      for (const r of runs((s) => this.zoneAt(s) !== 'town' && side(s, sd, hw + 7) < -3.2 && !this.faces.some(f => f.side === sd && s >= f.s0 - 4 && s <= f.s1 + 4), 12, 14)) this.parapets.push({ ...r, side: sd });
+    }
+    for (const f of this.faces) {
+      markStrip(f.s0, f.s1, f.side, hw + 1, hw + 11);
+      for (let s = f.s0; s <= f.s1; s += 1.6) { const [x, z] = this.pointAt(s, f.side * (hw + 1.6)); const y = this.y[Math.round(s)]; this.addCollider(x, z, 0.5, y - 1, y + 12, 'rock'); }
+    }
+    for (const p of this.parapets) {
+      markStrip(p.s0, p.s1, p.side, hw + 1, hw + 2.6);
+      for (let s = p.s0; s <= p.s1; s += 1.4) { const [x, z] = this.pointAt(s, p.side * (hw + 1.45)); const y = this.y[Math.round(s)]; this.addCollider(x, z, 0.32, y - 0.6, y + 0.85, 'wall'); }
+    }
+    // głazy na linii wody pod klifem
+    this.shoreRocks = [];
+    for (let s = this.coastS[0] - 20; s < N - 5; s += 3 + rng() * 5) {
+      const i = Math.round(s), [cx] = this.pointAt(i, 0);
+      const off = this.coastAt(cx, [0, 0, 0, 0, 0, 0])[3];
+      const lat = off + (rng() - 0.35) * 7, [x, z] = this.pointAt(i, lat), y = this.heightAt(x, z);
+      if (y > def.water + 2.5 || y < def.water - 6) continue;
+      const sc = 1.2 + rng() * rng() * 4.2;
+      this.shoreRocks.push(x, def.water - 0.35 * sc, z, sc, rng() * 6.283);
+    }
   }
 
   // --- notatki pilota ----------------------------------------------------
@@ -2290,7 +2642,7 @@ const EN = {
   'jeden OS · rekordy i rywale': 'one stage · records and rivals', 'prowadzenie · grafika · pilot · sterowanie': 'handling · graphics · co-driver · controls',
   'klasyfikacja generalna': 'overall standings', 'Wybór odcinka': 'Stage select', 'Wybierz auto': 'Choose car', 'Garaż': 'Garage', 'Na start': 'To the start',
   'Start rajdu': 'Start rally', '◂ Odcinek': '◂ Stage', '◂ Rajd': '◂ Rally', 'Następne auto': 'Next car', 'Poprzednie auto': 'Previous car',
-  'Siedem odcinków po kolei:': 'Seven stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia i Kenia': 'Finland, Greece, Sweden, Corsica, Wales at night, Brazil and Kenya',
+  'Osiem odcinków po kolei:': 'Eight stages in a row:', 'Finlandia, Grecja, Szwecja, Korsyka, Walia nocą, Brazylia, Kenia i Włochy': 'Finland, Greece, Sweden, Corsica, Wales at night, Brazil, Kenya and Italy',
   '. Czasy się sumują, a generalka liczy się z rywalami po każdym OS. Między odcinkami serwis naprawia auto.': '. Times add up and the overall standings against rivals update after every stage. The service crew repairs the car between stages.',
   // skróty klawiszy
   'wybór ·': 'select ·', 'dalej · pad:': 'next · pad:', 'dalej ·': 'next ·', 'odcinek ·': 'stage ·', 'losuj ·': 'shuffle ·', 'wstecz': 'back', 'auto ·': 'car ·', 'start ·': 'start ·', 'opcja ·': 'option ·', 'zmiana ·': 'change ·',
@@ -2301,6 +2653,7 @@ const EN = {
   'Finlandia': 'Finland', 'Grecja': 'Greece', 'Szwecja': 'Sweden', 'Korsyka': 'Corsica', 'Walia': 'Wales', 'Brazylia': 'Brazil', 'Kenia': 'Kenya', 'czerwony pył': 'red dust', 'sawanna': 'savanna',
   'hopy': 'jumps', 'kamienisty szuter': 'rocky gravel', 'upał': 'heat', 'bandy': 'snow banks', 'serpentyny': 'hairpins', 'błoto': 'mud',
   'czerwona ziemia': 'red dirt', 'las deszczowy': 'rainforest',
+  'Włochy': 'Italy', 'klify nad morzem': 'sea cliffs', 'zachód słońca': 'sunset',
   // garaż
   'napęd 4×4': '4×4', 'napęd na przód': 'front-wheel drive', 'napęd na tył': 'rear-wheel drive', 'moc': 'power', 'zwrot': 'turn-in',
   'Twoje rekordy tym autem': 'Your records with this car', 'Twój rekord': 'Your record',
@@ -2468,6 +2821,7 @@ function terrainColorFn(st) {
   const cg = col(L.grass), cg2 = col(L.grass2), cd = col(L.dirt), cr = col(L.rock), cv = col(L.verge);
   const n = st.noiseDetail, tmp = new THREE.Color();
   const ditchEnd = hw + 1 + def.ditchW;
+  if (L.sea) return italyColorFn(st);
   return (x, z, y, ny, d, out) => {
     const a = n(x * 0.012, z * 0.012) * 0.5 + 0.5, b = n(x * 0.07 + 17, z * 0.07 - 5) * 0.5 + 0.5;
     tmp.copy(cg).lerp(cg2, smoothstep(0.3, 0.8, a));
@@ -2519,6 +2873,7 @@ function buildTerrain(st, group) {
       nor[p * 3] = gx / l; nor[p * 3 + 1] = 1 / l; nor[p * 3 + 2] = gz / l;
       clr[p * 3] = c3[0]; clr[p * 3 + 1] = c3[1]; clr[p * 3 + 2] = c3[2];
     }
+    if (st.def.look.sea) { let top = -1e9; for (let v = 1; v < pos.length; v += 3) top = Math.max(top, pos[v]); if (top < st.water - 1.2) continue; } // całe pod morzem
     const key = `${(ch.i / block) | 0}:${(ch.j / block) | 0}`;
     let g = groups.get(key); if (!g) { g = []; groups.set(key, g); }
     g.push({ pos, nor, clr, n });
@@ -2730,6 +3085,19 @@ function treeGeo(type) {
     case 'broadleaf': parts = [trunk(0.3, 0.2, 4.2, '#4a3a2a', 21), blob(2.8, 0, 6.2, 0, 0.85, '#3d5a26', 22, 1), blob(1.8, 1.5, 7.4, 0.6, 0.9, '#46652c', 23), blob(1.6, -1.4, 7.0, -0.8, 0.9, '#37521f', 24)]; break;
     case 'olive': parts = [trunk(0.26, 0.16, 1.9, '#5b4a3a', 25), blob(1.5, 0.3, 2.6, 0, 0.6, '#6f7a50', 26), blob(1.2, -0.8, 2.9, 0.5, 0.55, '#7b8458', 27), blob(1.1, 0.6, 3.2, -0.7, 0.55, '#667048', 28)]; break;
     case 'cypress': parts = [trunk(0.15, 0.1, 1.2, '#4a3a2a', 29), blob(1.0, 0, 4.8, 0, 4.2, '#26381f', 30), blob(0.7, 0, 8.4, 0, 2.0, '#2b3f22', 31)]; break;
+    // pinia (sosna włoska): wysoki, lekko pochylony goły pień, kilka konarów i płaski parasol korony
+    case 'stonepine': parts = [
+      { geo: new THREE.CylinderGeometry(0.17, 0.3, 9.5, 7, 1, true).translate(0, 4.75, 0).rotateZ(0.07), color: jitterColor('#6a4e3b', 0.12, 90) },
+      ...[0, 1, 2].map((k) => ({ geo: limb(0.13, 3.2, 0.75).rotateY(-(k / 3 * Math.PI * 2 + 0.5)).translate(-0.62, 8.9, 0), color: col('#664a37') })),
+      ...[[-0.6, 11.3, 0, 3.3], ...[0, 1, 2, 3, 4, 5].map((k) => { const a = k / 6 * Math.PI * 2 + 0.4; return [-0.6 + Math.cos(a) * 3.2, 10.7 + (k % 2) * 0.45, Math.sin(a) * 3.2, 2.1 + (k % 3) * 0.3]; })]
+        .map(([x, y, z, r], k) => blob(r, x, y, z, 0.34, ['#3a5a2c', '#446634', '#34512a'][k % 3], 91 + k, 1))]; break;
+    // oleander: zielony krzew obsypany różowymi kwiatami
+    case 'oleander': parts = [blob(1.1, 0, 1.0, 0, 0.9, '#4d6b36', 100), blob(0.85, 0.8, 0.9, 0.3, 0.9, '#587a3d', 101), blob(0.8, -0.7, 1.2, -0.4, 0.9, '#48652f', 102),
+      ...[[0.3, 1.9, 0.5], [-0.5, 1.8, 0.6], [0.9, 1.4, -0.4], [-0.9, 1.6, -0.2], [0.1, 2.0, -0.6], [0.7, 1.2, 0.9], [-0.3, 1.3, -1.0], [1.2, 0.9, 0.3]]
+        .map(([x, y, z], k) => blob(0.26, x, y, z, 0.8, k % 3 ? '#e27ba3' : '#f4c1d4', 103 + k))]; break;
+    // agawa na skałach nad morzem: rozeta grubych, szarozielonych liści
+    case 'agave': parts = [...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((k) => ({ geo: new THREE.ConeGeometry(0.16, 1.5, 4).translate(0, 0.75, 0).rotateZ(0.35 + (k % 3) * 0.28).rotateY(k / 9 * Math.PI * 2), color: jitterColor('#6d8f80', 0.14, 111 + k) })),
+      { geo: new THREE.CylinderGeometry(0.03, 0.06, 3.6, 5).translate(0, 1.8, 0), color: col('#8a8052') }]; break;
     case 'shrub': default: parts = [blob(0.8, 0, 0.45, 0, 0.7, '#5f6a36', 32), blob(0.6, 0.6, 0.4, 0.3, 0.7, '#6b733e', 33), blob(0.55, -0.5, 0.35, -0.4, 0.7, '#57622f', 34)]; break;
   }
   const g = mergeColored(parts);
@@ -3018,7 +3386,7 @@ function buildTvCams(st) {
         for (const c of l) if (Math.hypot(c.x - x, c.z - z) < 2.6) { blocked = true; break; }
       }
       if (blocked) continue;
-      best = { s: ss, x, z, y: Math.max(st.heightAt(x, z), st.water ?? -1e9) + 1.6 + rng() * 3.2, heli: rng() < 0.12 };
+      best = { s: ss, x, z, y: Math.max(st.heightAt(x, z), st.water ?? -1e9, st.def.look.sea ? st.y[ss] - 1 : -1e9) + 1.6 + rng() * 3.2, heli: rng() < 0.12 };
       break;
     }
     if (best) { if (best.heli) best.y += 18; cams.push(best); }
@@ -3108,7 +3476,7 @@ class World {
     buildTerrain(st, this.group);
     buildFarTerrain(st, this.group);
     buildRoad(st, this.group, this.roadTex);
-    buildWater(st, this.group);
+    if (st.def.look.sea) buildItaly(st, this.group); else buildWater(st, this.group);
     buildTrees(st, this.group);
     buildGrass(st, this.group);
     buildRocks(st, this.group);
@@ -3134,6 +3502,365 @@ class World {
     });
     mats.forEach(m => m.dispose());
     texs.forEach(t => t.dispose());
+  }
+}
+
+// ============================================================
+// Włochy: morze ze ścieżką słońca, droga wykuta w klifie (ściany skalne, kamienne balustrady),
+// skały w morzu, miasteczko i wioska w zatoce
+// ============================================================
+
+// morze: fale, odbicie nieba, szeroka złota ścieżka słońca i iskry; przy brzegu turkus i piana (kolor wierzchołka:
+// r = płycizna, g = pas piany). Jeden materiał na wszystkie jakości — same funkcje trygonometryczne, bez tekstur.
+function seaMaterial() {
+  return wmat('sea', () => {
+    const m = new THREE.MeshBasicNodeMaterial();
+    const P = T.positionWorld, t = T.time;
+    const rel = P.sub(T.cameraPosition), vd = T.normalize(rel);
+    const fade = T.float(1).div(T.length(rel.xz).mul(0.0035).add(1));
+    let gx = T.float(0), gz = T.float(0);
+    for (const [dx, dz, k, w, a] of [[0.8, 0.6, 0.23, 1.1, 0.07], [-0.45, 0.89, 0.41, 1.6, 0.05], [0.96, -0.28, 0.9, 2.3, 0.035], [0.25, 0.97, 1.9, 3.4, 0.022]]) {
+      const c = T.cos(P.x.mul(dx * k).add(P.z.mul(dz * k)).add(t.mul(w))).mul(a);
+      gx = gx.add(c.mul(dx)); gz = gz.add(c.mul(dz));
+    }
+    const n = T.normalize(T.vec3(gx.mul(fade).negate(), 1, gz.mul(fade).negate()));
+    const r0 = T.reflect(vd, n), refl = T.vec3(r0.x, T.abs(r0.y), r0.z);
+    const fres = T.float(0.02).add(T.pow(T.float(1).sub(T.clamp(T.dot(vd.negate(), n), 0.0, 1.0)), 5.0).mul(0.98));
+    const sky = T.mix(ATM.horizon, ATM.zenith, T.pow(T.clamp(refl.y, 0.0, 1.0), 0.6));
+    const sd = T.max(T.dot(refl, ATM.sunDir), 0.0);
+    const path = T.pow(sd, 14.0).mul(0.55).add(T.pow(sd, 120.0).mul(1.6));
+    const glint = T.pow(sd, 1400.0).mul(fade).mul(38.0);
+    const vc = T.attribute('color', 'vec3');
+    const body = T.mix(ATM.water, T.vec3(0.12, 0.42, 0.44), vc.r.mul(0.75));
+    let c = T.mix(body, sky.mul(0.8), fres.mul(0.75)).add(ATM.sunCol.mul(path.add(glint)));
+    const surf = T.sin(P.x.mul(0.31).add(t.mul(1.2))).add(T.sin(P.z.mul(0.37).sub(t.mul(0.9)))).mul(0.12);
+    const foam = T.smoothstep(0.45, 0.85, vc.g.add(surf));
+    c = T.mix(c, T.vec3(0.93, 0.9, 0.84), foam.mul(0.8));
+    m.colorNode = c;
+    return m;
+  });
+}
+
+// pas siatki wzdłuż brzegu: gęsto przy skałach, coraz rzadziej ku horyzontowi
+function buildSea(st, group) {
+  const water = st.water, gx0 = st.x0 - 300, gx1 = st.x0 + st.cX * CHUNK + 300;
+  const xs = [];
+  for (let x = gx0 - 7200; x < gx0 - 1600; x += 800) xs.push(x);
+  for (let x = gx0 - 1600; x < gx0; x += 80) xs.push(x);
+  for (let x = gx0; x < gx1; x += 8) xs.push(x);
+  for (let x = gx1; x < gx1 + 1600; x += 80) xs.push(x);
+  for (let x = gx1 + 1600; x <= gx1 + 7200; x += 800) xs.push(x);
+  const ws = [6, 2, 0, -2, -4, -7, -11, -17, -26, -40, -62, -95, -150, -240, -400, -700, -1300, -2600, -6000];
+  const nx = xs.length, nw = ws.length, tmp = [0, 0, 0, 0, 0, 0];
+  const pos = new Float32Array(nx * nw * 3), clr = new Float32Array(nx * nw * 3);
+  for (let i = 0; i < nx; i++) {
+    const x = xs[i]; st.coastAt(x, tmp);
+    for (let j = 0; j < nw; j++) {
+      const z = tmp[0] - ws[j] / tmp[4], o = (i * nw + j) * 3;
+      const w = ws[j] > -30 ? st.coastW(x, z) : ws[j];
+      pos[o] = x; pos[o + 1] = water; pos[o + 2] = z;
+      clr[o] = 1 - smoothstep(-2, 55, -w); clr[o + 1] = 1 - smoothstep(-1, 9, -w); clr[o + 2] = 0;
+    }
+  }
+  const idx = new Uint32Array((nx - 1) * (nw - 1) * 6);
+  let k = 0;
+  for (let i = 0; i < nx - 1; i++) for (let j = 0; j < nw - 1; j++) {
+    const a = i * nw + j, b = a + nw;
+    idx[k++] = a; idx[k++] = a + 1; idx[k++] = b; idx[k++] = b; idx[k++] = a + 1; idx[k++] = b + 1;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(clr, 3));
+  geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  geo.computeBoundingSphere();
+  const mesh = new THREE.Mesh(geo, seaMaterial());
+  mesh.frustumCulled = false;
+  group.add(mesh);
+}
+
+// statyczna geometria Włoch (domy, skały, mury): kolor z wierzchołków, bez tekstury detalu terenu (rzutowana z góry
+// dawała na pionowych ścianach pionowe pasy). Jeden materiał na wszystko.
+function staticMaterial() { return wmat('static', () => vcMaterial({ rough: 0.9 })); }
+
+// kolor wapienia: poziome warstwy, ciemne szczeliny, mokro przy wodzie, zieleń na półkach
+const ROCK = { base: col('#a9a193'), light: col('#d3cab8'), dark: col('#7a6f60'), moss: col('#626b3e'), wet: col('#4a443d'), grime: col('#6b6255') };
+function rockColor(c, y, s, n, water) {
+  const band = Math.sin(y * 1.45 + n(s * 0.015, y * 0.08) * 3);
+  c.copy(ROCK.base).lerp(band > 0.25 ? ROCK.light : ROCK.dark, Math.min(1, Math.abs(band) * 0.55));
+  const k = n(s * 0.35, y * 0.45);
+  if (k > 0.5) c.lerp(ROCK.dark, 0.55); else if (k < -0.62) c.lerp(ROCK.moss, 0.6);
+  if (water != null) c.lerp(ROCK.wet, smoothstep(water + 2.2, water + 0.2, y) * 0.8);
+  return c;
+}
+
+// płaskie cieniowanie: siatka z indeksami → osobne trójkąty z normalnymi ścian
+function flatMesh(pos, clr, idx, mat, { shadow = false } = {}) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(clr, 3));
+  g.setIndex(idx);
+  const f = g.toNonIndexed(); g.dispose();
+  f.computeVertexNormals(); f.computeBoundingSphere();
+  const m = new THREE.Mesh(f, mat);
+  m.receiveShadow = true; m.castShadow = shadow;
+  return m;
+}
+
+// ściany skalne w wykopach: kurtyna od pobocza do krawędzi terenu, warstwy wapienia, nawisy, u góry zieleń
+function buildRockFaces(st, group) {
+  const hw = st.def.halfW, n = st.noiseDetail, K = 9, mat = staticMaterial(), c = new THREE.Color();
+  for (const f of st.faces) {
+    for (let a = f.s0; a < f.s1; a += 150) {
+      const b = Math.min(f.s1, a + 150), pos = [], clr = [], idx = [];
+      let cols = 0;
+      for (let s = a; s <= b + 0.01; s += 2, cols++) {
+        const i = Math.round(s), y0 = st.y[i];
+        const [tx, tz] = st.pointAt(s, f.side * (hw + 10.5)), top = st.heightAt(tx, tz);
+        const e = Math.min(1, (s - f.s0) / 10, (f.s1 - s) / 10);
+        for (let k = 0; k <= K; k++) {
+          const t = k / K, mid = k > 0 && k < K;
+          const bulge = mid ? n(s * 0.09 + k * 0.35, k * 0.8 + f.side * 5) * 1.5 + n(s * 0.4, k * 2.1) * 0.5 : 0;
+          let lat = hw + 1.3 + 8.4 * Math.pow(t, 1.8) + bulge;
+          let y = lerp(y0 - 0.4, top - 0.2, Math.pow(t, 0.8)) + (mid ? n(s * 0.31 + 9, k * 1.1) * 0.5 : 0);
+          if (k === K) lat = hw + 10.5;
+          const [x, z] = st.pointAt(s, f.side * lat);
+          if (e < 1) y = lerp(st.heightAt(x, z) - 0.1, y, e);
+          pos.push(x, y, z);
+          rockColor(c, y, s, n, null);
+          if (t > 0.78) c.lerp(ROCK.moss, (t - 0.78) * 4 * 0.75);
+          if (k === 0) c.lerp(ROCK.grime, 0.5);
+          clr.push(c.r, c.g, c.b);
+        }
+      }
+      for (let q = 0; q < cols - 1; q++) for (let k = 0; k < K; k++) {
+        const v0 = q * (K + 1) + k, v1 = v0 + 1, v2 = v0 + K + 1, v3 = v2 + 1;
+        if (f.side < 0) idx.push(v0, v2, v1, v1, v2, v3); else idx.push(v0, v1, v2, v1, v3, v2);
+      }
+      group.add(flatMesh(pos, clr, idx, mat));
+    }
+  }
+}
+
+// klif pod balustradą: kurtyna skalna od drogi do wody, dopasowana do stoku terenu i lekko przed nim
+function buildSeaCliffs(st, group) {
+  const hw = st.def.halfW, n = st.noiseDetail, K = 10, W = st.water, mat = staticMaterial(), c = new THREE.Color();
+  for (const p of st.parapets) {
+    if (p.side < 0 || p.s1 < st.coastS[0]) continue;
+    for (let a = Math.max(p.s0, st.coastS[0] - 10); a < p.s1; a += 150) {
+      const b = Math.min(p.s1, a + 150), pos = [], clr = [], idx = [];
+      let cols = 0;
+      for (let s = a; s <= b + 0.01; s += 2, cols++) {
+        const i = Math.round(s), y0 = st.y[i], e = Math.min(1, (s - p.s0) / 8, (p.s1 - s) / 8);
+        let L = hw + 1.9;
+        for (let k = 0; k <= K; k++) {
+          const t = k / K, yT = lerp(y0 - 1.3, W - 3, Math.pow(t, 0.85));
+          if (k > 0) { while (L < hw + 60) { const [x, z] = st.pointAt(s, L); if (st.heightAt(x, z) <= yT) break; L += 0.5; } }
+          const bulge = k > 0 ? 0.7 + (n(s * 0.08 + k * 0.4, k * 0.9 + 3) * 0.5 + 0.5) * 1.8 * e : 0;
+          const [x, z] = st.pointAt(s, L + bulge);
+          const y = yT + (k > 0 && k < K ? n(s * 0.27, k * 1.3 + 7) * 0.6 : 0);
+          pos.push(x, y, z);
+          rockColor(c, y, s, n, W);
+          if (k === 0) c.lerp(ROCK.moss, 0.5);
+          clr.push(c.r, c.g, c.b);
+        }
+      }
+      for (let q = 0; q < cols - 1; q++) for (let k = 0; k < K; k++) {
+        const v0 = q * (K + 1) + k, v1 = v0 + 1, v2 = v0 + K + 1, v3 = v2 + 1;
+        idx.push(v0, v1, v2, v1, v3, v2);
+      }
+      group.add(flatMesh(pos, clr, idx, mat));
+    }
+  }
+}
+
+// kamienne balustrady: murek z bloków z ciemnymi spoinami i jaśniejszym daszkiem, co kilkanaście metrów słupek
+function buildParapets(st, group) {
+  const hw = st.def.halfW, mat = staticMaterial(), stone = col('#b9ab90'), cap = col('#e4dac6'), joint = col('#6d6453'), c = new THREE.Color();
+  const X = [[1.18, -0.15], [1.18, 0.6], [1.22, 0.72], [1.8, 0.72], [1.84, 0.6], [1.84, null]];
+  for (const p of st.parapets) {
+    for (let a = p.s0; a < p.s1; a += 160) {
+      const b = Math.min(p.s1, a + 160), pos = [], clr = [], idx = [];
+      const quad = (A, B, C, D, cc) => { const v = pos.length / 3; pos.push(...A, ...B, ...C, ...D); for (let r = 0; r < 4; r++) clr.push(cc.r, cc.g, cc.b); if (p.side < 0) idx.push(v, v + 1, v + 2, v + 2, v + 1, v + 3); else idx.push(v, v + 2, v + 1, v + 1, v + 2, v + 3); };
+      const sect = (s) => {
+        const i = Math.round(s), y0 = st.y[i];
+        return X.map(([l, dy]) => {
+          const [x, z] = st.pointAt(s, p.side * (hw + l));
+          return [x, dy == null ? Math.min(y0 - 1.2, st.heightAt(x, z) - 0.4) : y0 + dy, z];
+        });
+      };
+      let prev = sect(a), blk = 0;
+      for (let s = a; s < b - 0.5; s += 2, blk++) {
+        const mid = sect(Math.min(b, s + 1.86)), end = sect(Math.min(b, s + 2)), j = 0.82 + ((blk * 7919) % 17) / 45;
+        for (let r = 0; r < X.length - 1; r++) {
+          c.copy(r === 2 ? cap : stone).multiplyScalar(r === 2 ? 0.95 + j * 0.05 : j);
+          quad(prev[r], mid[r], prev[r + 1], mid[r + 1], c);
+          quad(mid[r], end[r], mid[r + 1], end[r + 1], r === 2 ? cap : joint);
+        }
+        prev = end;
+      }
+      // słupki
+      for (let s = a + 6; s < b - 2; s += 16) {
+        const i = Math.round(s), y0 = st.y[i], [x, z] = st.pointAt(s, p.side * (hw + 1.5));
+        const g = new THREE.BoxGeometry(0.74, 1.02, 0.74).toNonIndexed();
+        g.translate(x, y0 + 0.4, z);
+        const pa = g.attributes.position.array;
+        for (let v = 0; v < pa.length; v += 18) { const vv = pos.length / 3; for (let r = 0; r < 6; r++) { pos.push(pa[v + r * 3], pa[v + r * 3 + 1], pa[v + r * 3 + 2]); clr.push(cap.r * 0.93, cap.g * 0.93, cap.b * 0.93); } idx.push(vv, vv + 1, vv + 2, vv + 3, vv + 4, vv + 5); }
+        g.dispose();
+      }
+      group.add(flatMesh(pos, clr, idx, mat));
+    }
+  }
+}
+
+// skały w morzu (faraglioni): kilka wysokich baszt wapienia na tle zachodu, z zielenią na szczycie
+function buildSeaStacks(st, group) {
+  const rng = makeRng((st.seed ^ 0xfa7a) >>> 0), [c0] = st.coastS, c1 = st.villageS[0], n = st.noiseDetail;
+  const pos = [], clr = [], idx = [], green = col('#56613a'), c = new THREE.Color();
+  const spots = [[0.36, 150, 20, 34], [0.4, 105, 9, 16], [0.78, 230, 26, 44], [0.83, 170, 11, 20]];
+  for (const [f, off, R, H] of spots) {
+    const s = Math.round(c0 + (c1 - c0) * f), [px] = st.pointAt(s, 0);
+    const tmp = st.coastAt(px, [0, 0, 0, 0, 0, 0]);
+    const cx = px + (rng() - 0.5) * 40, cz = tmp[0] + off / tmp[4];
+    const seg = 9, rows = 7, v0 = pos.length / 3;
+    for (let r = 0; r <= rows; r++) {
+      const t = r / rows, y = st.water - 6 + (H + 6) * t;
+      for (let q = 0; q < seg; q++) {
+        const a = q / seg * Math.PI * 2, rr = R * (1 - 0.35 * t * t) * (0.8 + 0.35 * n(q * 0.9 + cx * 0.01, r * 0.7));
+        pos.push(cx + Math.cos(a) * rr, r === rows ? y + 2 * rng() : y, cz + Math.sin(a) * rr);
+        rockColor(c, y, q * 7 + cx, n, st.water);
+        if (t > 0.86) c.lerp(green, 0.7);
+        clr.push(c.r, c.g, c.b);
+      }
+    }
+    const top = pos.length / 3; pos.push(cx, st.water + H + 3, cz); clr.push(green.r, green.g, green.b);
+    for (let r = 0; r < rows; r++) for (let q = 0; q < seg; q++) {
+      const a = v0 + r * seg + q, b = v0 + r * seg + (q + 1) % seg;
+      idx.push(a, a + seg, b, b, a + seg, b + seg);
+    }
+    for (let q = 0; q < seg; q++) idx.push(v0 + rows * seg + q, top, v0 + rows * seg + (q + 1) % seg);
+  }
+  group.add(flatMesh(pos, clr, idx, staticMaterial(), { shadow: false }));
+}
+
+function buildItaly(st, group) {
+  buildSea(st, group);
+  buildRockFaces(st, group);
+  buildSeaCliffs(st, group);
+  buildParapets(st, group);
+  buildSeaStacks(st, group);
+  buildTowns(st, group);
+}
+
+// kolory terenu: sucha trawa i makia, terakotowa ziemia, wapień w warstwach na stromiznach, mokra skała przy wodzie
+function italyColorFn(st) {
+  const L = st.def.look, hw = st.def.halfW, n = st.noiseDetail, W = st.water;
+  const cg = col(L.grass), cg2 = col(L.grass2), cd = col(L.dirt), cr = col(L.rock), cv = col(L.verge);
+  const mac = col('#4d5b30'), light = col('#d9cbb0'), dark = col('#8e7a5f'), wet = col('#4f473f'), tmp = new THREE.Color(), rk = new THREE.Color();
+  const ditchEnd = hw + 1 + st.def.ditchW;
+  return (x, z, y, ny, d, out) => {
+    const a = n(x * 0.012, z * 0.012) * 0.5 + 0.5, b = n(x * 0.07 + 17, z * 0.07 - 5) * 0.5 + 0.5, m = n(x * 0.03 - 40, z * 0.03 + 12);
+    tmp.copy(cg).lerp(cg2, smoothstep(0.3, 0.8, a));
+    tmp.lerp(mac, smoothstep(0.05, 0.45, m) * 0.75);
+    tmp.lerp(cd, smoothstep(0.62, 0.92, b) * 0.5);
+    const band = Math.sin(y * 1.7 + a * 3);
+    rk.copy(cr).lerp(band > 0.3 ? light : dark, Math.abs(band) * 0.4);
+    tmp.lerp(rk, smoothstep(0.86, 0.6, ny));
+    if (d < hw + 1.2) tmp.lerp(cv, 0.95);
+    else if (d < ditchEnd + 2.5) tmp.lerp(cv, 0.6 * (1 - smoothstep(hw + 1.2, ditchEnd + 2.5, d)));
+    tmp.lerp(wet, smoothstep(W + 1.6, W + 0.3, y) * 0.85);
+    const j = 0.9 + b * 0.2;
+    out[0] = tmp.r * j; out[1] = tmp.g * j; out[2] = tmp.b * j;
+  };
+}
+
+// ---------- miasteczko i wioska: kolorowe kamienice (ochra, róż, terakota), zielone okiennice, dachówka, dzwonnica ----------
+const HOUSE_COLORS = ['#d9a456', '#e5bf6a', '#d98c73', '#e3a07e', '#c4694a', '#e8d6b0', '#d8b48a', '#ce7f5c', '#e6c79a', '#b85d45'];
+function buildTowns(st, group) {
+  if (!st.houses || !st.houses.length) return;
+  const mat = staticMaterial(), rng = makeRng((st.seed ^ 0x40a5e) >>> 0);
+  const shutter = col('#3f6a45'), shutter2 = col('#2f5a3f'), glass = col('#2b2a2c'), frame = col('#f1e7d2'), roofT = col('#a9573c'), roofS = col('#6e6a67'), c = new THREE.Color();
+  const blocks = new Map();
+  const buf = (x, z) => { const k = Math.floor(x / 160) + ':' + Math.floor(z / 160); let b = blocks.get(k); if (!b) { b = { pos: [], clr: [], idx: [] }; blocks.set(k, b); } return b; };
+  for (const h of st.houses) {
+    const B = buf(h.x, h.z), ca = Math.cos(h.rot), sa = Math.sin(h.rot);
+    // lokalne (u wzdłuż fasady, v w głąb, y w górę) → świat
+    const P = (u, y, v) => [h.x + u * ca - v * sa, h.y0 + y, h.z + u * sa + v * ca];
+    const quad = (a, b, cc, d, color) => { const v0 = B.pos.length / 3; B.pos.push(...a, ...b, ...cc, ...d); for (let r = 0; r < 4; r++) B.clr.push(color.r, color.g, color.b); B.idx.push(v0, v0 + 1, v0 + 2, v0 + 2, v0 + 1, v0 + 3); };
+    const tri = (a, b, cc, color) => { const v0 = B.pos.length / 3; B.pos.push(...a, ...b, ...cc); for (let r = 0; r < 3; r++) B.clr.push(color.r, color.g, color.b); B.idx.push(v0, v0 + 1, v0 + 2); };
+    const w = h.w / 2, d = h.d / 2, H = h.h, wall = col(h.kind === 'church' ? '#e2d3b4' : HOUSE_COLORS[h.color % HOUSE_COLORS.length]);
+    // ściany (fasada od strony drogi: v = -d)
+    const walls = [[[-w, -d], [w, -d]], [[w, -d], [w, d]], [[w, d], [-w, d]], [[-w, d], [-w, -d]]];
+    walls.forEach(([[u0, v0], [u1, v1]], wi) => {
+      c.copy(wall).multiplyScalar(wi === 0 ? 1 : wi === 2 ? 0.9 : 0.95);
+      quad(P(u0, 0, v0), P(u0, H, v0), P(u1, 0, v1), P(u1, H, v1), c);
+      // gzyms pod dachem
+      c.copy(wall).lerp(frame, 0.5);
+      const o = 0.12, nu = (v1 - v0) !== 0 ? Math.sign(u0 === w ? 1 : -1) : 0, nv = (u1 - u0) !== 0 ? (v0 < 0 ? -1 : 1) : 0;
+      quad(P(u0 + nu * o, H - 0.35, v0 + nv * o), P(u0 + nu * o, H, v0 + nv * o), P(u1 + nu * o, H - 0.35, v1 + nv * o), P(u1 + nu * o, H, v1 + nv * o), c);
+      // okna z okiennicami na ścianach widocznych z drogi
+      if (h.kind === 'house' && (wi === 0 || (wi !== 2 && h.corner))) {
+        const len = Math.hypot(u1 - u0, v1 - v0), n = Math.max(1, Math.floor(len / 2.6)), du = (u1 - u0) / len, dv = (v1 - v0) / len;
+        const ou = nu * 0.06, ov = nv * 0.06 || (wi === 0 ? -0.06 : 0);
+        for (let fl = 0; fl < h.floors; fl++) {
+          const y0 = h.g + 1.0 + fl * 3.0 + (fl === 0 ? -1.0 : 0.4), wh = fl === 0 ? 2.2 : 1.55, ww = fl === 0 ? 1.2 : 0.8;
+          for (let q = 0; q < n; q++) {
+            const t = (q + 0.5) * len / n, cu = u0 + du * t, cv = v0 + dv * t;
+            const A = (s, y) => P(cu + du * s + ou, y, cv + dv * s + ov);
+            if (fl === 0) { // parter: drzwi / witryny sklepów
+              quad(A(-ww / 2, y0), A(-ww / 2, y0 + wh), A(ww / 2, y0), A(ww / 2, y0 + wh), q % 3 === 1 ? c.copy(shutter2) : c.copy(glass).lerp(wall, 0.15));
+              continue;
+            }
+            quad(A(-ww / 2 - 0.12, y0 - 0.12), A(-ww / 2 - 0.12, y0 + wh + 0.14), A(ww / 2 + 0.12, y0 - 0.12), A(ww / 2 + 0.12, y0 + wh + 0.14), frame);
+            const sh = (q + fl + h.color) % 4 === 0 ? shutter2 : shutter;
+            if ((q * 7 + fl * 3 + h.color) % 3 === 0) { // okiennice zamknięte
+              quad(A(-ww / 2, y0), A(-ww / 2, y0 + wh), A(ww / 2, y0), A(ww / 2, y0 + wh), sh);
+            } else { // otwarte: szyba i skrzydła po bokach
+              quad(A(-ww / 2, y0), A(-ww / 2, y0 + wh), A(ww / 2, y0), A(ww / 2, y0 + wh), glass);
+              quad(A(-ww / 2 - 0.5, y0), A(-ww / 2 - 0.5, y0 + wh), A(-ww / 2 - 0.12, y0), A(-ww / 2 - 0.12, y0 + wh), sh);
+              quad(A(ww / 2 + 0.12, y0), A(ww / 2 + 0.12, y0 + wh), A(ww / 2 + 0.5, y0), A(ww / 2 + 0.5, y0 + wh), sh);
+            }
+          }
+        }
+      }
+    });
+    // dach: czterospadowy (dachówka albo łupek), z okapem
+    const e = 0.45, R = h.kind === 'church' ? roofT : (h.color % 3 === 0 ? roofS : roofT), rh = Math.min(w, d) * (h.kind === 'tower' ? 1.6 : 0.55);
+    c.copy(R).multiplyScalar(0.9 + (h.color % 5) * 0.04);
+    const r0 = P(-w - e, H, -d - e), r1 = P(w + e, H, -d - e), r2 = P(w + e, H, d + e), r3 = P(-w - e, H, d + e);
+    if (h.kind === 'tower') {
+      const tp = P(0, H + rh, 0);
+      tri(r0, tp, r1, c); tri(r1, tp, r2, c); tri(r2, tp, r3, c); tri(r3, tp, r0, c);
+    } else {
+      const along = w >= d, k = along ? w - d : d - w;
+      const ra = along ? P(-k, H + rh, 0) : P(0, H + rh, -k), rb = along ? P(k, H + rh, 0) : P(0, H + rh, k);
+      if (along) { quad(r0, ra, r1, rb, c); quad(r2, rb, r3, ra, c.multiplyScalar(0.92)); tri(r1, rb, r2, c); tri(r3, ra, r0, c); }
+      else { quad(r1, ra, r2, rb, c); quad(r3, rb, r0, ra, c.multiplyScalar(0.92)); tri(r0, ra, r1, c); tri(r2, rb, r3, c); }
+    }
+    // dzwonnica: ciemne otwory dzwonów pod dachem
+    if (h.kind === 'tower') {
+      for (let side = 0; side < 4; side++) {
+        const a = side * Math.PI / 2, cu = Math.sin(a), cv = -Math.cos(a), tu = Math.cos(a), tv = Math.sin(a);
+        const Q = (s, y) => P(cu * (w + 0.05) + tu * s, y, cv * (d + 0.05) + tv * s);
+        quad(Q(-w * 0.45, H - 3.6), Q(-w * 0.45, H - 1.0), Q(w * 0.45, H - 3.6), Q(w * 0.45, H - 1.0), glass);
+      }
+    }
+    if (h.kind === 'church') { // rozeta i portal na fasadzie
+      const Q = (s, y) => P(s, y, -d - 0.06);
+      quad(Q(-1.1, h.g), Q(-1.1, h.g + 3.4), Q(1.1, h.g), Q(1.1, h.g + 3.4), c.copy(shutter2).lerp(glass, 0.5));
+      for (let q = 0; q < 8; q++) { const a0 = q / 8 * Math.PI * 2, a1 = (q + 1) / 8 * Math.PI * 2; tri(Q(0, H - 3), Q(Math.cos(a1) * 1.1, H - 3 + Math.sin(a1) * 1.1), Q(Math.cos(a0) * 1.1, H - 3 + Math.sin(a0) * 1.1), glass); }
+    }
+    // balkony z kwiatami (bugenwilla) na niektórych kamienicach
+    if (h.kind === 'house' && h.floors > 1 && rng() < 0.45) {
+      const y0 = h.g + 3.9, bu = (rng() - 0.5) * (h.w - 2.5), Q = (s, y, v) => P(bu + s, y, -d + v);
+      quad(Q(-1, y0, -0.9), Q(-1, y0 + 0.12, -0.9), Q(1, y0, -0.9), Q(1, y0 + 0.12, -0.9), frame);
+      quad(Q(-1, y0 + 0.12, -0.9), Q(-1, y0 + 0.12, 0), Q(1, y0 + 0.12, -0.9), Q(1, y0 + 0.12, 0), frame);
+      c.set(rng() < 0.5 ? '#c43d7a' : '#d9567f');
+      quad(Q(-1, y0 + 0.12, -0.95), Q(-1, y0 + 0.9, -0.95), Q(1, y0 + 0.12, -0.95), Q(1, y0 + 0.9, -0.95), c);
+    }
+  }
+  for (const b of blocks.values()) {
+    const m = flatMesh(b.pos, b.clr, b.idx, mat, { shadow: true });
+    group.add(m);
   }
 }
 
@@ -5271,7 +5998,7 @@ const UI = {
 // Menu: tytuł → odcinek (karuzela) → garaż; rajd; opcje.
 // Mysz, dotyk (przesunięcie karuzeli), klawiatura i pad.
 // ============================================================
-const TIME_PL = { day: 'dzień', dusk: 'zmierzch', night: 'noc' };
+const TIME_PL = { day: 'dzień', dusk: 'zmierzch', night: 'noc', sunset: 'zachód słońca' };
 const WEATHER_PL = { snow: 'śnieżyca', mist: 'mgła' };
 const SURF_PL = { gravel: 'szuter', tarmac: 'asfalt', snow: 'śnieg' };
 
@@ -5307,7 +6034,7 @@ const Menu = {
     // rajd
     const total = STAGES.reduce((a, s) => a + s.length, 0);
     STAGES.forEach((def, i) => $('rallyRows').append(el('div', { class: 'row' }, el('canvas'),
-      el('div', { class: 'nm' }, el('b', {}, `${def.country} · ${def.name}`), el('span', {}, `${def.surfaceLabel} · ${kmStr(def.length)} · ${TIME_PL[def.look.time]}`)),
+      el('div', { class: 'nm' }, el('b', {}, `${def.country} · ${def.name}`), el('span', {}, `${def.surfaceLabel} · ${kmStr(def.length)} · ${TIME_PL[def.look.timeLabel || def.look.time]}`)),
       el('div', { class: 'bt' }, `OS ${i + 1}`))));
     $('rallyKm').textContent = `${STAGES.length} OS · ${kmStr(total)}`;
     $('rallyGo').addEventListener('click', () => { this.mode = 'rally'; this.blip('ok'); this.show('garage'); });
@@ -5553,7 +6280,7 @@ const Menu = {
     }
     const facts = [
       ['Długość', kmStr(def.length)], ['Nawierzchnia', SURF_PL[def.surface]],
-      ['Pora', TIME_PL[def.look.time]], ['Pogoda', WEATHER_PL[def.look.weather] || 'sucho'],
+      ['Pora', TIME_PL[def.look.timeLabel || def.look.time]], ['Pogoda', WEATHER_PL[def.look.weather] || 'sucho'],
       ['Zakręty', p ? String(p.corners) : '…'], ['Nawroty', p ? String(p.hairpins) : '…'],
       ['Hopy i garby', p ? String(p.crests.length) : '…'], ['Przewyższenie', p ? `${Math.round(p.maxY - p.minY)} m` : '…'],
     ];
@@ -5780,7 +6507,7 @@ function applyLook(def) {
   ATM.water.value.set(L.water); ATM.detail.value = def.surface === 'snow' ? 0.35 : 1;
   sun.color.set(L.sun); sun.intensity = L.sunI;
   hemi.color.set(L.hemiSky); hemi.groundColor.set(L.hemiGround); hemi.intensity = L.hemiI * 1.3;
-  renderer.toneMappingExposure = L.time === 'night' ? 1.55 : L.time === 'dusk' ? 1.15 : 1.05;
+  renderer.toneMappingExposure = L.exposure ?? (L.time === 'night' ? 1.55 : L.time === 'dusk' ? 1.15 : 1.05);
   const shK = L.shadowK ?? 0.62;
   sun.shadow.intensity = shK;
   if (csm) for (const l of csm.lights || []) if (l.shadow) l.shadow.intensity = shK;
@@ -5789,8 +6516,8 @@ function applyLook(def) {
   camera.far = L.fogFar * fk * 1.05;
   camera.updateProjectionMatrix();
   refreshCSM();
-  POST.sat.value = L.time === 'night' ? 1.0 : 1.1;
-  POST.contrast.value = L.time === 'night' ? 1.02 : 1.07;
+  POST.sat.value = L.sat ?? (L.time === 'night' ? 1.0 : 1.1);
+  POST.contrast.value = L.contrast ?? (L.time === 'night' ? 1.02 : 1.07);
 }
 
 function updateEnv(st) {
