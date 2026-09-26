@@ -61,6 +61,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--signal);outline
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 6%,#000 88%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 6%,#000 88%,transparent 100%)}
 .strip{display:flex;flex-wrap:nowrap;width:max-content;transition:transform .42s cubic-bezier(.2,.8,.2,1);will-change:transform}
 .strip.snap{transition:none}
+.main-list{touch-action:pan-y;cursor:grab}
 .main-item{position:relative;flex:0 0 auto;padding:4px .42em 8px;white-space:nowrap;color:rgba(236,229,212,.42);
   font:400 clamp(34px,5.4vw,76px)/1 var(--display);font-stretch:78%;text-transform:lowercase;letter-spacing:-.005em;text-shadow:0 2px 8px rgba(0,0,0,.45);transition:color .25s}
 .main-item::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1.5px;background:rgba(236,229,212,.5)}
@@ -271,33 +272,34 @@ body.touch #banner{top:34%}
 @media (orientation:landscape) and (max-height:520px){
   /* menu na telefonie w poziomie */
   #menu .scr{padding:max(8px,var(--sat,env(safe-area-inset-top,0px))) max(14px,var(--sar,env(safe-area-inset-right,0px))) max(8px,var(--sab,env(safe-area-inset-bottom,0px))) max(14px,var(--sal,env(safe-area-inset-left,0px)))}
-  .logo{font-size:48px}
+  .logo{font-size:58px}
   .t-brand{margin-top:8px}
-  .t-sub{font-size:10px;margin-top:3px}.t-hint{font-size:9.5px}
-  .tag{margin-top:6px;font-size:9.5px}
+  .t-top{font-size:12px}
+  .t-sub{font-size:12px;margin-top:4px}.t-hint{font-size:11px}
+  .tag{margin-top:6px;font-size:10.5px}
   .main-list{margin-left:calc(-1 * max(14px,var(--sal,env(safe-area-inset-left,0px))));margin-right:calc(-1 * max(14px,var(--sar,env(safe-area-inset-right,0px))))}
-  .main-item{font-size:36px}
+  .main-item{font-size:44px}
   .scr-head{margin-bottom:6px;gap:10px}
-  .scr-head h2{font-size:26px}
+  .scr-head h2{font-size:30px}
   .back{padding:0 14px;min-height:44px;min-width:88px;font-size:11px;display:inline-flex;align-items:center;justify-content:center}
   .scr-foot{margin-top:6px}
   .scr-foot .keys{display:none}
-  .go{padding:10px 14px;font-size:19px}
+  .go{padding:11px 16px;font-size:21px}
   .carousel{margin:0 calc(-1 * max(14px,var(--sar,env(safe-area-inset-right,0px)))) 0 calc(-1 * max(14px,var(--sal,env(safe-area-inset-left,0px))))}
   .cs{width:min(600px,78vw)}
-  .cs-head{padding:7px 12px 6px}.cs-head b{font-size:22px}.cs-head h3{font-size:19px}
+  .cs-head{padding:7px 12px 6px}.cs-head b{font-size:24px}.cs-head h3{font-size:21px}
   .cs-maps{padding:6px 8px;gap:4px}.cs-map{aspect-ratio:2/1}.cs-prof{height:34px}
-  .cs-facts div{padding:4px 9px}.cs-facts dt{font-size:8px}.cs-facts dd{font-size:13px;margin-top:1px}
-  .cs-times div{padding:5px 9px;font-size:8px}.cs-times strong{font-size:14px}
+  .cs-facts div{padding:4px 9px}.cs-facts dt{font-size:9px}.cs-facts dd{font-size:14.5px;margin-top:1px}
+  .cs-times div{padding:5px 9px;font-size:9px}.cs-times strong{font-size:15.5px}
   .cs-reroll{margin:5px 8px 6px;padding:5px 8px;font-size:12px}
   .garage{width:min(380px,48vw)}
-  .g-head{padding:8px 12px 6px}.g-head h3{font-size:26px}
-  .g-tag{padding:5px 12px;font-size:10px}
+  .g-head{padding:8px 12px 6px}.g-head h3{font-size:29px}
+  .g-tag{padding:5px 12px;font-size:11px}
   .g-meters{padding:7px 12px;gap:4px}.g-meters em{height:6px}
-  .g-rec h4{padding:6px 12px 2px}.g-rec td{padding:3px 12px;font-size:10.5px}
+  .g-rec h4{padding:6px 12px 2px}.g-rec td{padding:3px 12px;font-size:11.5px}
   .row{grid-template-columns:44px minmax(0,1fr) auto;gap:8px;padding:5px 10px 5px 6px}
-  .row canvas{width:44px;height:34px}.row .nm b{font-size:15.5px}.row .nm span{font-size:10.5px}
-  .opt{padding:6px 10px}.opt label{font-size:14px}.opt small{font-size:10.5px}.seg button{padding:5px 6px;font-size:10px}
+  .row canvas{width:44px;height:34px}.row .nm b{font-size:17px}.row .nm span{font-size:11.5px}
+  .opt{padding:7px 12px}.opt label{font-size:16px}.opt small{font-size:11.5px}.seg button{padding:7px 8px;font-size:11.5px}
   .note-p{font-size:12px;padding:8px 10px}
   .badge{display:none}
   /* nakładki: wyniki w dwóch kolumnach, bez przewijania całej karty */
@@ -317,24 +319,31 @@ body.touch #banner{top:34%}
 
 /* ---------- splash: Summit Games (znak marki rysuje się kreską), potem ekran rozjeżdża się po skosie ---------- */
 #splash{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:40;pointer-events:auto}
-.sp-half{position:absolute;inset:-2px;background:#2B231C;transition:transform .95s cubic-bezier(.75,0,.2,1) .18s}
+.sp-half{position:absolute;inset:-2px;background:#2B231C;transition:transform .95s cubic-bezier(.75,0,.2,1) .18s;will-change:transform}
 .sp-a{clip-path:polygon(0 0,62.3% 0,38.3% 100%,0 100%)}
 .sp-b{clip-path:polygon(62% 0,100% 0,100% 100%,38% 100%)}
 .sp-logo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:clamp(22px,4vw,48px);transition:opacity .35s,transform .45s cubic-bezier(.5,0,.2,1)}
-.sp-mark{width:clamp(78px,11vw,150px);height:auto;overflow:visible}
-.sp-tri{stroke-dasharray:100;stroke-dashoffset:100;animation:spDraw 1s cubic-bezier(.6,0,.2,1) .25s forwards}
-.sp-dia{opacity:0;transform:translateY(-26px);transform-box:fill-box;transform-origin:center;animation:spDrop .5s cubic-bezier(.3,1.5,.5,1) 1.05s forwards}
-.sp-word{font:600 clamp(40px,6.6vw,92px)/1 "IBM Plex Mono",var(--mono);color:#FBF9F3;letter-spacing:.6em;margin-right:-.3em;opacity:0;animation:spTrack .9s cubic-bezier(.2,.8,.2,1) 1.2s forwards}
+.sp-mark{position:relative;width:clamp(84px,11vw,150px);aspect-ratio:84/89}
+.sp-mark svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* trójkąt odsłania się od dołu jak wejście na szczyt: ramka jedzie w górę, rysunek w niej w dół */
+.sp-rev{position:absolute;inset:0;overflow:hidden;transform:translateY(100%);animation:spUp .95s cubic-bezier(.6,0,.2,1) .2s forwards;will-change:transform}
+.sp-rev-in{position:absolute;inset:0;transform:translateY(-100%);animation:spUp .95s cubic-bezier(.6,0,.2,1) .2s forwards;will-change:transform}
+.sp-dia{opacity:0;transform:translateY(-40%);animation:spIn .5s cubic-bezier(.3,1.5,.5,1) 1.05s forwards;will-change:transform,opacity}
+.sp-word{display:flex;gap:.28em;margin-right:-.28em;font:600 clamp(40px,6.6vw,92px)/1 "IBM Plex Mono",var(--mono);color:#FBF9F3}
+.sp-word i{font-style:normal;opacity:0;transform:translateX(calc(var(--i) * .22em));animation:spIn .9s cubic-bezier(.2,.8,.2,1) 1.2s forwards;will-change:transform,opacity}
 .sp-sub{margin-top:.8em;font:500 clamp(13px,1.7vw,22px)/1 "IBM Plex Mono",var(--mono);color:#A89B8C;letter-spacing:.9em;opacity:0;animation:spFade .6s ease 1.65s forwards}
-@keyframes spDraw{to{stroke-dashoffset:0}}
-@keyframes spDrop{to{opacity:1;transform:none}}
-@keyframes spTrack{from{opacity:0;letter-spacing:.6em}to{opacity:1;letter-spacing:.28em}}
+/* cienka kreska ładowania pod napisem, dopóki gra się przygotowuje */
+.sp-load{position:relative;height:2px;margin-top:1.4em;overflow:hidden;background:rgba(251,249,243,.1);opacity:0;animation:spFade .5s ease 2s forwards}
+.sp-load i{position:absolute;left:0;top:0;bottom:0;width:30%;background:#D08A5F;transform:translateX(-100%);animation:spBar 1.3s ease-in-out 2s infinite;will-change:transform}
+@keyframes spUp{to{transform:none}}
+@keyframes spIn{to{opacity:1;transform:none}}
 @keyframes spFade{to{opacity:1}}
+@keyframes spBar{to{transform:translateX(340%)}}
 #splash.out{pointer-events:none}
 #splash.out .sp-logo{opacity:0;transform:scale(1.06)}
 #splash.out .sp-a{transform:translate(-78%,-12%)}
 #splash.out .sp-b{transform:translate(78%,12%)}
-@media (prefers-reduced-motion:reduce){.sp-tri,.sp-dia,.sp-word,.sp-sub{animation-duration:.01s;animation-delay:0s}}
+@media (prefers-reduced-motion:reduce){.sp-rev,.sp-rev-in,.sp-dia,.sp-word i,.sp-sub{animation-duration:.01s;animation-delay:0s}}
 
 /* ---------- nakładki ---------- */
 .overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:calc(var(--sat,env(safe-area-inset-top,0px)) + 12px) calc(var(--sar,env(safe-area-inset-right,0px)) + 16px) calc(var(--sab,env(safe-area-inset-bottom,0px)) + 12px) calc(var(--sal,env(safe-area-inset-left,0px)) + 16px);
@@ -387,8 +396,11 @@ table.cls tr.me td:last-child{color:var(--signal)}
 <div id="splash" aria-label="Summit Games">
   <div class="sp-half sp-a"></div><div class="sp-half sp-b"></div>
   <div class="sp-logo">
-    <svg class="sp-mark" viewBox="8 2 84 89" aria-hidden="true"><path class="sp-tri" d="M43 31 L13 86 L87 86 L57 31" fill="none" stroke="#FBF9F3" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/><path class="sp-dia" d="M50 3 L62 15 L50 27 L38 15 Z" fill="#D08A5F"/></svg>
-    <div class="sp-text"><div class="sp-word">SUMMIT</div><div class="sp-sub">GAMES</div></div>
+    <div class="sp-mark">
+      <div class="sp-rev"><div class="sp-rev-in"><svg viewBox="8 2 84 89" aria-hidden="true"><path d="M43 31 L13 86 L87 86 L57 31" fill="none" stroke="#FBF9F3" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+      <svg class="sp-dia" viewBox="8 2 84 89" aria-hidden="true"><path d="M50 3 L62 15 L50 27 L38 15 Z" fill="#D08A5F"/></svg>
+    </div>
+    <div class="sp-text"><div class="sp-word"><i style="--i:-2.5">S</i><i style="--i:-1.5">U</i><i style="--i:-.5">M</i><i style="--i:.5">M</i><i style="--i:1.5">I</i><i style="--i:2.5">T</i></div><div class="sp-sub">GAMES</div><div class="sp-load"><i></i></div></div>
   </div>
 </div>
 
@@ -402,7 +414,7 @@ table.cls tr.me td:last-child{color:var(--signal)}
     <div class="t-brand"><h1 class="logo">Szuter</h1><p class="tag">rally · odcinki specjalne · WebGPU</p></div>
     <nav class="main-list" id="titleList"><div class="strip" id="titleStrip"></div></nav>
     <p class="t-sub" id="titleSub"></p>
-    <p class="t-hint"><span class="keys-desk">Strzałkami wybierasz, Enter zatwierdza, Esc wraca.</span><span class="keys-touch">Stuknij w słowo, żeby przejść dalej.</span></p>
+    <p class="t-hint"><span class="keys-desk">Strzałkami wybierasz, Enter zatwierdza, Esc wraca.</span><span class="keys-touch">Przesuń palcem, żeby wybrać, stuknij, żeby wejść.</span></p>
   </section>
   <section class="scr" id="scrStage" hidden aria-label="Wybór odcinka">
     <header class="scr-head"><button class="back" type="button" data-back>◂ Menu</button><h2>Odcinek specjalny</h2><span class="step">1 / 2</span></header>
@@ -2265,7 +2277,7 @@ if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.langu
 const EN = {
   'menu główne': 'main menu', 'czas': 'time',
   'Strzałkami wybierasz, Enter zatwierdza, Esc wraca.': 'Use the arrow keys to choose, Enter to confirm, Esc to go back.',
-  'Stuknij w słowo, żeby przejść dalej.': 'Tap a word to continue.',
+  'Przesuń palcem, żeby wybrać, stuknij, żeby wejść.': 'Swipe to choose, tap to enter.',
   'Tryb retro': 'Retro mode',
   'Niska rozdzielczość, 15-bitowy kolor i dithering jak na PS1 — przy okazji oszczędza baterię': 'Low resolution, 15-bit colour and dithering like on the PS1 — saves battery too',
   'FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu': 'FSR 1: rendered at 75% resolution and upscaled with sharpening — less power',
@@ -5177,6 +5189,7 @@ const Menu = {
     this.h = h;
     this.screens = { title: $('scrTitle'), stage: $('scrStage'), garage: $('scrGarage'), rally: $('scrRally'), opts: $('scrOpts') };
     document.querySelectorAll('#menu [data-back]').forEach(b => b.addEventListener('click', () => this.back()));
+    this.initTitleDrag();
     // karty odcinków (+ losowy)
     const track = $('stageTrack');
     for (let i = 0; i <= STAGES.length; i++) {
@@ -5262,7 +5275,7 @@ const Menu = {
     const strip = $('titleStrip'); strip.replaceChildren();
     for (let set = 0; set < 3; set++) {
       items.forEach(([id, label], k) => {
-        const b = el('button', { class: 'main-item', type: 'button', tabindex: set === 1 ? '0' : '-1', onclick: () => { this.titleSel = k; this.pick(id); } }, label);
+        const b = el('button', { class: 'main-item', type: 'button', tabindex: set === 1 ? '0' : '-1', onclick: () => { if (this.dragged) return; this.titleSel = k; this.pick(id); } }, label);
         if (set !== 1) b.setAttribute('aria-hidden', 'true');
         strip.append(b);
       });
@@ -5276,12 +5289,42 @@ const Menu = {
       $('titleClock').textContent = `${String(m).padStart(2, '0')}:${sec < 10 ? '0' : ''}${sec.toFixed(2)}`;
     }, 50);
   },
+  // przeciąganie paska palcem / myszą: pasek jedzie za palcem, po puszczeniu staje na najbliższym słowie
+  initTitleDrag() {
+    const list = $('titleList'), strip = $('titleStrip');
+    let x0 = 0, base = 0, id = null, dx = 0;
+    list.addEventListener('pointerdown', (e) => {
+      id = e.pointerId; x0 = e.clientX; dx = 0; this.dragged = false;
+      base = this.stripX || 0;
+    });
+    list.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== id) return;
+      dx = e.clientX - x0;
+      if (!this.dragged && Math.abs(dx) > 8) { this.dragged = true; list.setPointerCapture(id); strip.classList.add('snap'); }
+      if (this.dragged) strip.style.transform = `translateX(${Math.round(base + dx)}px)`;
+    });
+    const end = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      if (!this.dragged) return;
+      const n = this.titleItems.length, w = strip.scrollWidth / (3 * n);
+      const steps = Math.max(-n, Math.min(n, -Math.round(dx / (w * 0.75)) || -Math.sign(dx)));
+      this.titleSel = ((this.titleSel + steps) % n + n) % n;
+      this.titlePos = Math.max(0, Math.min(3 * n - 1, this.titlePos + steps));
+      this.placeTitle(true); this.blip('move');
+      clearTimeout(this.titleSnap);
+      this.titleSnap = setTimeout(() => { this.titlePos = n + this.titleSel; this.placeTitle(false); }, 450);
+      setTimeout(() => { this.dragged = false; }, 0);
+    };
+    list.addEventListener('pointerup', end); list.addEventListener('pointercancel', end);
+  },
   placeTitle(anim = true) {
     const strip = $('titleStrip'), kids = strip.children, n = this.titleItems.length;
     const b = kids[this.titlePos]; if (!b) return;
     const anchor = $('titleList').clientWidth * (innerWidth < 700 ? 0.1 : 0.14);
     strip.classList.toggle('snap', !anim);
-    strip.style.transform = `translateX(${Math.round(anchor - b.offsetLeft)}px)`;
+    this.stripX = Math.round(anchor - b.offsetLeft);
+    strip.style.transform = `translateX(${this.stripX}px)`;
     for (let i = 0; i < kids.length; i++) kids[i].classList.toggle('on', i === this.titlePos);
     $('titleSub').textContent = this.titleItems[this.titleSel][2];
     kids[n + this.titleSel].focus({ preventScroll: true });
