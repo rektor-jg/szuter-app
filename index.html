@@ -2282,7 +2282,7 @@ const EN = {
   'Niska rozdzielczość, 15-bitowy kolor i dithering jak na PS1 — przy okazji oszczędza baterię': 'Low resolution, 15-bit colour and dithering like on the PS1 — saves battery too',
   'FSR 1: obraz liczony w 75% rozdzielczości i skalowany z wyostrzeniem — mniej prądu': 'FSR 1: rendered at 75% resolution and upscaled with sharpening — less power',
   // nazwa i ekran tytułowy
-  'Szuter': 'Roadbook', 'Szuter Rally': 'Roadbook Rally', 'rally · odcinki specjalne · WebGPU': 'rally · special stages · WebGPU',
+  'Szuter': 'Hairpin', 'Szuter Rally': 'Hairpin Rally', 'rally · odcinki specjalne · WebGPU': 'rally · special stages · WebGPU',
   'Menu główne': 'Main menu', 'Odcinek specjalny': 'Special stage', 'Rajd': 'Rally', 'Opcje': 'Options', 'Kontynuuj': 'Continue',
   'jeden OS · rekordy i rywale': 'one stage · records and rivals', 'prowadzenie · grafika · pilot · sterowanie': 'handling · graphics · co-driver · controls',
   'klasyfikacja generalna': 'overall standings', 'Wybór odcinka': 'Stage select', 'Wybierz auto': 'Choose car', 'Garaż': 'Garage', 'Na start': 'To the start',
@@ -2331,7 +2331,7 @@ const EN = {
   'Przygotowuję grafikę…': 'Preparing graphics…', 'Wczytuję auta…': 'Loading cars…', 'WebGL 2 · tryb zgodności': 'WebGL 2 · compatibility mode', 'Nie ruszymy': "Can't start",
   'Ta przeglądarka nie obsługuje ani WebGPU, ani WebGL 2. Spróbuj w aktualnym Chrome, Edge, Safari lub Firefoksie.': "This browser supports neither WebGPU nor WebGL 2. Try an up-to-date Chrome, Edge, Safari or Firefox.",
   'Szuter Rally · three.js (MIT) · fonty Saira i Martian Mono (SIL OFL 1.1) · model Orkana RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · gra nie zbiera żadnych danych.':
-    'Roadbook Rally · three.js (MIT) · Saira and Martian Mono fonts (SIL OFL 1.1) · Orkan RS model: “2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · the game collects no data.',
+    'Hairpin Rally · three.js (MIT) · Saira and Martian Mono fonts (SIL OFL 1.1) · Orkan RS model: “2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · the game collects no data.',
 };
 // teksty złożone: wzorce (liczby, nazwy) przepisywane regułą
 const EN_RULES = [
@@ -2375,7 +2375,7 @@ function translateDom(root = document.body) {
   }
   root.querySelectorAll('[aria-label]').forEach(el => { if (!el.dataset.pl) el.dataset.pl = el.getAttribute('aria-label'); el.setAttribute('aria-label', trText(el.dataset.pl)); });
   document.documentElement.lang = settings.ui;
-  document.title = settings.ui === 'en' ? 'Roadbook Rally' : 'Szuter Rally';
+  document.title = settings.ui === 'en' ? 'Hairpin Rally' : 'Szuter Rally';
 }
 function initI18n() {
   translateDom();
