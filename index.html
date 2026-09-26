@@ -5924,6 +5924,8 @@ const RAIN = {
   px: T.uniform(0.002), k: T.uniform(1), col: T.uniform(new THREE.Color(0.95, 1.0, 1.06)),
   // efekt ekranowy
   lens: T.uniform(0), shield: T.uniform(0), speed: T.uniform(0), aspect: T.uniform(1.7), clock: T.uniform(0),
+  // przesunięcie całego pola kropel na obiektywie (w stronę skrętu i w dół) oraz śnieg: 1 = płatki zamiast kropel, gęstość (×5 w zaspie)
+  drift: T.uniform(new THREE.Vector2()), snow: T.uniform(0), snowK: T.uniform(1),
 };
 // skrót zmiennoprzecinkowy (T.hash obcina do liczb całkowitych — za mało wariantów dla ułamków)
 const fhash = (x) => T.fract(T.sin(x).mul(43758.5453));
@@ -6161,11 +6163,14 @@ function rainLens(src) {
   const pv1 = T.vec2(asp.mul(0.22), -0.08), pv2 = T.vec2(asp.mul(0.64), -0.08);
   const since = T.min(wiperSince(p, pv1, t), wiperSince(p, pv2, t));
   const wet = T.mix(T.float(1), T.clamp(since.mul(0.7), 0.0, 1.0), RAIN.shield);
-  const dSmall = RAIN.lens.mul(0.2).add(RAIN.shield.mul(0.75)).mul(wet);
-  const dBig = RAIN.lens.mul(0.3).add(RAIN.shield.mul(0.45)).mul(wet);
+  const lensK = RAIN.lens.mul(T.mix(T.float(1), RAIN.snowK, RAIN.snow));
+  const dSmall = lensK.mul(0.2).add(RAIN.shield.mul(0.75)).mul(wet);
+  const dBig = lensK.mul(0.3).add(RAIN.shield.mul(0.45)).mul(wet);
   const slide = RAIN.shield.mul(RAIN.speed.mul(0.012)).sub(RAIN.lens.mul(0.25)); // na szybie pęd pcha krople w górę, na obiektywie spływają
-  const a = dropLayer(p, 6.0, 3.1, dBig, 0.16, 0.34, slide);
-  const b = dropLayer(p, 17.0, 11.7, dSmall, 0.12, 0.3, slide.mul(0.5));
+  // na obiektywie całe pole kropel zjeżdża w stronę skrętu i spływa w dół (na szybie z maski — nie)
+  const pl = p.add(RAIN.drift.mul(T.float(1).sub(RAIN.shield)));
+  const a = dropLayer(pl, 6.0, 3.1, dBig, 0.16, 0.34, slide);
+  const b = dropLayer(pl, 17.0, 11.7, dSmall, 0.12, 0.3, slide.mul(0.5));
   const c = dropLayer(p.add(0.37), 29.0, 23.9, dSmall.mul(RAIN.shield), 0.14, 0.32, T.float(0));
   const off = a.xy.add(b.xy).add(c.xy);
   const m = T.clamp(a.z.add(b.z).add(c.z), 0.0, 1.0);
@@ -6174,6 +6179,11 @@ function rainLens(src) {
   const uv2 = uv.add(T.vec2(off.x.div(asp), off.y)).add(T.vec2(T.sin(p.y.mul(90.0)).mul(smear), 0));
   let col = src.sample(uv2).rgb;
   col = col.mul(T.float(1).sub(m.mul(0.18))).add(T.vec3(a.w.add(b.w).add(c.w).mul(0.35)));
+  // śnieg: płatki na obiektywie są białe i matowe, z miękkim brzegiem
+  const rag = T.mx_noise_float(T.vec3(pl.mul(34.0), 0.0)).mul(0.5).add(0.5); // postrzępiony, nierówny płatek
+  col = T.mix(col, T.vec3(0.95, 0.97, 1.02), T.clamp(a.z.add(b.z), 0.0, 1.0).mul(rag.mul(0.5).add(0.18)).mul(RAIN.snow));
+  // zaspa: obiektyw zaparowany śniegiem, rozjaśnia się, gdy płatki topnieją
+  col = T.mix(col, T.vec3(0.9, 0.92, 0.96), T.clamp(RAIN.snowK.sub(1.0).div(4.0), 0.0, 1.0).mul(RAIN.snow).mul(0.28));
   // pióra wycieraczek
   const blade = T.max(bladeMask(p, pv1, wiperAngle(t)), bladeMask(p, pv2, wiperAngle(t))).mul(RAIN.shield);
   col = T.mix(col, T.vec3(0.012, 0.012, 0.014), blade);
@@ -6224,11 +6234,34 @@ class RainSound {
 
 // wołane co klatkę z pętli gry: siła efektu ekranowego zależnie od kamery, reflektory i światło przeciwmgielne, dźwięk
 let rainSound = null;
+// pole kropel/płatków na obiektywie: w stronę skrętu (skręt w prawo → w prawo) i powoli w dół
+function driftLens(dt, car) {
+  const d = RAIN.drift.value, steer = car ? car.steerAngle || 0 : 0, sp = car ? Math.min(1, car.speed / 20) : 0;
+  d.x -= steer * sp * 0.9 * dt;
+  d.y -= 0.035 * dt;
+  if (Math.abs(d.x) > 1e3) d.x %= 100;
+  if (Math.abs(d.y) > 1e3) d.y %= 100;
+}
 function updateRain(dt) {
   const w = game.fx && game.fx.weather;
+  const s = game.state, car = game.car;
+  // śnieg (Szwecja): płatki osiadają na obiektywie; po wypadnięciu z drogi w zaspę — pięć razy więcej, potem topnieją
+  if (w && w.kind === 'snow') {
+    const chase = s === 'race' || s === 'intro' || s === 'finish' || s === 'results';
+    const hood = chase && game.camMode === 2 && !game.camHold;
+    RAIN.snow.value = 1; RAIN.shield.value = 0; RAIN.aspect.value = camera.aspect; RAIN.speed.value = car ? car.speed : 0;
+    RAIN.lens.value += ((hood ? 0.25 : chase ? 0.5 : 0.3) - RAIN.lens.value) * Math.min(1, dt * 3);
+    const off = !!(car && s === 'race' && car.roadDist > game.stage.def.halfW + 1.2 && car.speed > 4);
+    RAIN.snowK.value = off ? Math.min(5, RAIN.snowK.value + dt * 12) : Math.max(1, RAIN.snowK.value - dt * 1.4);
+    RAIN.clock.value += dt;
+    driftLens(dt, car);
+    if (rainSound) rainSound.update(false, 0, false, 0, dt);
+    return;
+  }
   const on = !!(w && w.kind === 'rain');
   if (!on) { if (rainSound) rainSound.update(false, 0, false, 0, dt); return; }
-  const s = game.state, car = game.car;
+  RAIN.snow.value = 0;
+  driftLens(dt, car);
   const hood = (s === 'race' || s === 'intro' || s === 'finish') && game.camMode === 2 && !game.camHold;
   const chase = s === 'race' || s === 'intro' || s === 'finish' || s === 'results';
   const lens = hood ? 0 : chase ? (game.camMode === 3 ? 0.9 : 0.55) : 0.35;
@@ -7481,7 +7514,7 @@ function setupPipeline() {
   pipeline = null; bloomNode = null;
   const q = Q(), retro = !!settings.retro, fsr = !retro && settings.aa === 'fsr', scale = fsr ? FSR_SCALE : 1;
   RAYS.on = !!(game.stage && game.stage.def.look.rays);
-  RAIN.on = !!(game.stage && game.stage.def.look.weather === 'rain');
+  RAIN.on = !!(game.stage && (game.stage.def.look.weather === 'rain' || game.stage.def.look.weather === 'snow')); // krople / płatki na obiektywie
   pipeline = new THREE.RenderPipeline(renderer);
   let chain;
   if (!q.pipeline || retro) {
@@ -7700,7 +7733,7 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
   game.world = new World(st, stageLabels(st));
   mark('world', t);
   scene.add(game.world.group);
-  if ((RAYS.on !== !!st.def.look.rays || RAIN.on !== (st.def.look.weather === 'rain')) && pipeline) setupPipeline();
+  if ((RAYS.on !== !!st.def.look.rays || RAIN.on !== (st.def.look.weather === 'rain' || st.def.look.weather === 'snow')) && pipeline) setupPipeline();
   t = performance.now();
   applyLook(def);
   setupFog(def);
