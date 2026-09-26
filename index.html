@@ -3156,7 +3156,7 @@ function makeSky() {
   c = T.mix(ATM.fog, c, T.smoothstep(-0.1, 0.035, dir.y));
   const sd = T.max(T.dot(dir, ATM.sunDir), 0.0);
   const glow = T.pow(sd, 1100).mul(28).add(T.pow(sd, 14).mul(0.35)).add(T.pow(sd, 3).mul(0.1));
-  c = c.add(ATM.sunCol.mul(glow));
+  c = c.add(ATM.sunCol.mul(glow).mul(T.float(1).sub(ATM.cloudDark))); // za grubymi chmurami tarczy słońca nie widać
   // chmury: rzut płaski na „sufit"
   const pl = dir.xz.div(T.max(dir.y, 0.07)).mul(0.85);
   const n = T.mx_fractal_noise_float(T.vec3(pl.x, pl.y, T.time.mul(0.006)), 4, 2.0, 0.5, 1.0);
@@ -4409,7 +4409,7 @@ function houseParts(w, d, H, wall, units, door, lit, out, opt = {}) {
   }
   if (opt.pub) out.push({ geo: box(w, 0.35, 0.1, 0, 0.18, d / 2 + 0.02), color: col('#1c1c1c') });
 }
-const WALLC = ['#958a76', '#6c675d', '#8b4a36', '#d6d2c6'];
+const WALLC = ['#958a76', '#7a7468', '#8b4a36', '#d6d2c6'];
 const DOORS = ['#2b4a36', '#7a1f1f', '#1f2f55', '#141414', '#6b4a2a', '#8a6d1f'];
 
 // wstawia części (lokalne) do świata: obrót Y, przesunięcie
@@ -6020,7 +6020,7 @@ class RainFX {
   constructor(scene, st) {
     const q = Q();
     this.kind = 'rain';
-    this.n = q.pipeline ? (q.supreme ? 22000 : 14000) : settings.quality === 'medium' ? 7000 : 4600;
+    this.n = q.pipeline ? (q.supreme ? 17000 : 14000) : settings.quality === 'medium' ? 7000 : 4600;
     this.mesh = rainStreakMesh(this.n);
     this.splash = new Splashes(q.pipeline ? 520 : 200);
     this.mesh.add(this.splash.mesh);
@@ -6087,6 +6087,15 @@ class RainFX {
           fx.smoke.spawn(cx, cy + 0.15, cz, car.vel[0] * 0.55 + (Math.random() - 0.5) * 3, 1.5 + Math.random() * 3, car.vel[2] * 0.55 + (Math.random() - 0.5) * 3, 0.6, 0.07, 0.11, 1, m, m * 0.88, m * 0.72, 0.3, 9.8);
         }
       }
+      // przejazd przez kałużę: fala wody na bok i w górę
+      if (sp > 6 && !grass && Math.random() < dt * sp * 0.035) {
+        const sd = Math.sign(wh.x) || 1, R = car.R;
+        for (let k = 0; k < 12 * hi + 3; k++) {
+          const o = 2.5 + Math.random() * 4, m = 0.42 + Math.random() * 0.15;
+          fx.smoke.spawn(cx, cy + 0.1, cz, car.vel[0] * 0.45 + R[0] * sd * o, 1.8 + Math.random() * 3.5, car.vel[2] * 0.45 + R[2] * sd * o, 0.55 + Math.random() * 0.3, 0.06, 0.12, 0.9, m, m * 0.95, m * 0.85, 0.4, 9.8);
+        }
+        for (let k = 0; k < 3; k++) fx.smoke.spawn(cx, cy + 0.3, cz, car.vel[0] * 0.4 + R[0] * sd * 2.5, 1 + Math.random(), car.vel[2] * 0.4 + R[2] * sd * 2.5, 0.9, 0.6, 3.2, 0.26, 0.7, 0.72, 0.75, 1.6, -0.1);
+      }
       fx.skids.track(i, sp > 3 || slip > 2.5, cx, cy, cz, 0.22, grass ? '#2c3320' : '#241c14');
     }
     // mgiełka za autem przy prędkości
@@ -6097,7 +6106,7 @@ class RainFX {
         this.acc[4] -= 1;
         qRot(car.q, (Math.random() - 0.5) * 1.6, -0.2, 2.3, v);
         const g = 0.66 + Math.random() * 0.1;
-        fx.smoke.spawn(car.pos[0] + v[0], car.pos[1] + v[1] + 0.2, car.pos[2] + v[2], car.vel[0] * 0.6, 0.5, car.vel[2] * 0.6, 1.1 + Math.random() * 0.6, 1.2, 4.2, 0.1, g, g * 1.02, g * 1.07, 1.1, -0.05);
+        fx.smoke.spawn(car.pos[0] + v[0], car.pos[1] + v[1] + 0.2, car.pos[2] + v[2], car.vel[0] * 0.6, 0.5, car.vel[2] * 0.6, 1.1 + Math.random() * 0.6, 1.2, 4.2, Q().litDust ? 0.1 : 0.065, g, g * 1.02, g * 1.07, 1.1, -0.05);
       }
     } else this.acc[4] = 0;
     if (Q().pipeline || Math.random() < 0.5) this.body(car, dt);
@@ -6227,6 +6236,10 @@ function updateRain(dt) {
   RAIN.shield.value = hood ? 1 : 0;
   RAIN.speed.value = car ? car.speed : 0;
   RAIN.aspect.value = camera.aspect;
+  // porywy wiatru: kierunek i siła ulewy powoli falują
+  const tc = RAIN.clock.value;
+  RAIN.wind.value.set(1.4 + Math.sin(tc * 0.31) * 1.3 + Math.sin(tc * 1.7) * 0.3, 0.6 + Math.sin(tc * 0.23 + 1) * 0.9);
+  RAIN.k.value = 0.92 + Math.sin(tc * 0.17) * 0.1 + Math.sin(tc * 0.53) * 0.05;
   // reflektory w ulewie (w dzień też) i tylne światło przeciwmgielne
   if (game.model) {
     for (const sp of game.model.spots) sp.intensity = 55;
@@ -7595,7 +7608,7 @@ function updateEnv(st) {
       envRT = new THREE.CubeRenderTarget(256, { type: THREE.HalfFloatType });
       cubeCam = new THREE.CubeCamera(1, 4000, envRT);
     }
-    const hide = [game.world && game.world.group, game.model && game.model.group, game.fx && game.fx.smoke.mesh, game.fx && game.fx.glow.mesh, game.fx && game.fx.weather && game.fx.weather.mesh].filter(Boolean);
+    const hide = [game.world && game.world.group, game.model && game.model.group, game.fx && game.fx.smoke.mesh, game.fx && game.fx.glow.mesh, game.fx && game.fx.weather && game.fx.weather.kind === 'rain' && game.fx.weather.mesh].filter(Boolean);
     hide.forEach(o => o.visible = false);
     const i = st.startS;
     cubeCam.position.set(st.x[i], st.y[i] + 4, st.z[i]);
@@ -7622,7 +7635,7 @@ function carModelFor(idx) {
   let m = carModels.get(key);
   if (!m) { m = new CarModel(CARS[idx], look); m.cacheKey = key; carModels.set(key, m); }
   m.uDirtCol.value.copy(col(look.dust));
-  if (envRT) for (const mm of m.materials) if (mm.isMeshStandardMaterial || mm.isMeshPhysicalMaterial || mm.isMeshStandardNodeMaterial || mm.isMeshPhysicalNodeMaterial) { mm.envMap = envRT.texture; mm.envMapIntensity = look.time === 'night' ? 0.15 : 0.9; }
+  if (envRT) for (const mm of m.materials) if (mm.isMeshStandardMaterial || mm.isMeshPhysicalMaterial || mm.isMeshStandardNodeMaterial || mm.isMeshPhysicalNodeMaterial) { mm.envMap = envRT.texture; mm.envMapIntensity = look.time === 'night' ? 0.15 : look.weather === 'rain' ? 1.35 : 0.9; }
   return m;
 }
 function setupCar(idx) {
@@ -8410,7 +8423,7 @@ function updatePost(dt, car, st) {
   POST.aspect.value = camera.aspect;
   // słońce na ekranie + zasłonięcie terenem (promień w stronę słońca)
   let vis = 0, rays = 0;
-  if (st.def.look.time !== 'night' && sunDir.y > -0.02) {
+  if (st.def.look.time !== 'night' && !st.def.look.cloudDark && sunDir.y > -0.02) {
     _sunP.copy(camera.position).addScaledVector(sunDir, camera.far * 0.5).project(camera); // w zasięgu kamery, inaczej z > 1
     const edge = Math.max(Math.abs(_sunP.x), Math.abs(_sunP.y));
     if (_sunP.z < 1 && edge < 1.8) {
