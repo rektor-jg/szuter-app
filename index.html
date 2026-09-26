@@ -2296,7 +2296,7 @@ const EN = {
   'wybór ·': 'select ·', 'dalej · pad:': 'next · pad:', 'dalej ·': 'next ·', 'odcinek ·': 'stage ·', 'losuj ·': 'shuffle ·', 'wstecz': 'back', 'auto ·': 'car ·', 'start ·': 'start ·', 'opcja ·': 'option ·', 'zmiana ·': 'change ·',
   // karty odcinków
   'Długość': 'Length', 'Nawierzchnia': 'Surface', 'Pora': 'Time of day', 'Pogoda': 'Weather', 'Zakręty': 'Corners', 'Nawroty': 'Hairpins',
-  'Hopy i garby': 'Jumps & crests', 'Przewyższenie': 'Elevation', 'Lider': 'Leader', 'Rekord': 'Record', 'Losowy odcinek': 'Random stage', 'LOS': 'RND',
+  'Hopy i garby': 'Jumps & crests', 'Przewyższenie': 'Elevation', 'Lider': 'Leader', 'Rekord': 'Record', 'Losowy odcinek': 'Random stage', 'Losowy': 'Random', 'LOS': 'RND',
   'dzień': 'day', 'zmierzch': 'dusk', 'noc': 'night', 'sucho': 'dry', 'mgła': 'mist', 'śnieżyca': 'snowfall', 'szuter': 'gravel', 'asfalt': 'tarmac', 'śnieg': 'snow',
   'Finlandia': 'Finland', 'Grecja': 'Greece', 'Szwecja': 'Sweden', 'Korsyka': 'Corsica', 'Walia': 'Wales', 'Brazylia': 'Brazil', 'Kenia': 'Kenya', 'czerwony pył': 'red dust', 'sawanna': 'savanna',
   'hopy': 'jumps', 'kamienisty szuter': 'rocky gravel', 'upał': 'heat', 'bandy': 'snow banks', 'serpentyny': 'hairpins', 'błoto': 'mud',
@@ -5541,8 +5541,9 @@ const Menu = {
     const p = this.prev[this.previewKey(d, seed)];
     const rnd = i === STAGES.length;
     if (rnd) {
-      c.querySelector('h3').textContent = this.rnd ? `${def.country} · #${this.rnd.seed.toString(36).toUpperCase()}` : 'Losowy odcinek';
-      c.querySelector('.cs-head b').textContent = this.rnd ? def.code : 'LOS';
+      // losowa trasa w stylu wylosowanego kraju — wyraźnie „losowa”, żeby nie wyglądała jak drugi taki sam odcinek
+      c.querySelector('h3').textContent = this.rnd ? `Losowy · ${def.country} · #${this.rnd.seed.toString(36).toUpperCase()}` : 'Losowy odcinek';
+      c.querySelector('.cs-head b').textContent = 'LOS';
     }
     const map = c.querySelector('.cs-map'), prof = c.querySelector('.cs-prof');
     if (p && !c.hidden && this.screen === 'stage') {
