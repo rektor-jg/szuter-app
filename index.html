@@ -11,11 +11,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="stylesheet" href="fonts/fonts.css">
 <title>Szuter Rally</title>
 <meta name="description" content="Rajdowa gra w przeglądarce: odcinki specjalne, pilot czytający notatki, WebGPU.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:ital,wdth,wght@0,50..125,300..900;1,50..125,300..900&family=Martian+Mono:wdth,wght@75..112.5,400..700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 :root{
   --ink:#0e1310; --ink-2:#161d19; --ink-3:#222c26; --paper:#ece5d4; --paper-2:#dcd1b9;
@@ -158,10 +156,14 @@ body.touch .keys-touch{display:inline}
 .slide input[type=range]{width:110px}
 .note-p{margin:0;padding:12px 14px;font:400 13.5px/1.45 var(--display);color:var(--paper-ink);max-width:62ch}
 .note-p b{font-weight:700}
+.note-p.credits{font-size:12px;color:var(--paper-muted)}
+.note-p.credits+.note-p.credits{padding-top:0}
+.credits a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .badge{position:absolute;right:calc(var(--sar,env(safe-area-inset-right,0px)) + 22px);top:calc(var(--sat,env(safe-area-inset-top,0px)) + 18px);font:600 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
   padding:6px 8px;border:1px solid rgba(236,229,212,.45);border-radius:2px;color:var(--paper);background:rgba(10,13,11,.45);pointer-events:none}
 .mini-load{position:absolute;right:calc(var(--sar,env(safe-area-inset-right,0px)) + 22px);bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 86px);padding:7px 10px;border-radius:2px;
   background:var(--paper);color:var(--paper-ink);font:600 11px/1 var(--mono);letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.mini-load.err{bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 124px);max-width:min(420px,calc(100vw - 44px));line-height:1.4;background:var(--red);color:#fff}
 
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:6;
@@ -204,6 +206,8 @@ body.touch #perf{bottom:auto;top:calc(var(--sat,env(safe-area-inset-top,0px)) + 
 #toast{position:absolute;left:50%;top:calc(var(--sat,env(safe-area-inset-top,0px)) + 132px);transform:translateX(-50%);font:800 italic 22px/1.1 var(--display);font-stretch:72%;
   text-transform:uppercase;letter-spacing:.03em;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);text-align:center;white-space:nowrap}
 #toast.warn{color:var(--red)}
+#sndHint{position:fixed;left:50%;bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 44px);transform:translateX(-50%);z-index:12;pointer-events:none;
+  padding:7px 11px;border-radius:2px;background:rgba(10,13,11,.72);border:1px solid rgba(236,229,212,.35);color:var(--paper);font:600 11px/1.3 var(--mono);letter-spacing:.04em;white-space:nowrap}
 .rp{position:absolute;left:50%;bottom:calc(var(--sab,env(safe-area-inset-bottom,0px)) + 18px);transform:translateX(-50%);display:flex;gap:10px;align-items:center;pointer-events:auto;
   font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
 .rp b{color:var(--red);font-weight:700}
@@ -370,6 +374,9 @@ table.cls tr.me td:last-child{color:var(--signal)}
 .acts button+button{border-left:1.5px solid var(--paper-ink)}
 .acts button.primary{background:var(--signal);color:var(--signal-ink)}
 .acts button:hover:not(.primary){background:var(--paper-2)}
+.acts button small{display:block;margin-top:4px;font:600 10px/1.2 var(--mono);text-transform:none;letter-spacing:.02em;font-style:normal;color:var(--red)}
+#confirm{z-index:11}
+#confirm .card{width:min(420px,100%)}
 #loading .card{width:min(420px,100%);padding:18px 18px 16px}
 #loading h3{margin:0 0 4px;font:900 italic 30px/1 var(--display);font-stretch:66%;text-transform:uppercase}
 #loading p{margin:0 0 12px;font:500 12px/1.4 var(--mono);color:var(--paper-muted)}
@@ -452,12 +459,14 @@ table.cls tr.me td:last-child{color:var(--signal)}
         <div class="opt"><label>Licznik klatek<small>FPS, rozdzielczość i obciążenie w rogu ekranu</small></label><div class="seg" id="optPerf"><button data-v="1">WŁ</button><button data-v="0">WYŁ</button></div></div>
         <div class="opt"><label for="optVol">Głośność</label><input type="range" id="optVol" min="0" max="1" step="0.05"></div>
       </div>
-      <p class="note-p" style="font-size:12px;color:var(--paper-muted)">Szuter Rally · three.js (MIT) · fonty Saira i Martian Mono (SIL OFL 1.1) · model Orkana RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · gra nie zbiera żadnych danych.</p>
+      <p class="note-p credits">Szuter Rally · three.js (MIT) · fonty Saira, Martian Mono i IBM Plex Mono (SIL OFL 1.1) · gra nie zbiera żadnych danych.</p>
+      <p class="note-p credits" id="creditOrkan">Model Orkana RS: <a href="https://sketchfab.com/3d-models/2016-ford-focus-rs-27e25fcead154e62a1dd8e92ccedb691" target="_blank" rel="noopener">„2016 Ford Focus RS”</a> — Ddiaz Design, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a> · zmodyfikowano: uproszczona siatka</p>
     </div></div>
     <footer class="scr-foot"><span class="keys"><kbd>↑</kbd> <kbd>↓</kbd> opcja · <kbd>◂</kbd> <kbd>▸</kbd> zmiana · <kbd>Esc</kbd> wstecz</span></footer>
   </section>
   <div class="badge" id="backendBadge">—</div>
   <div class="mini-load" id="miniLoad" hidden>Wytyczam trasę…</div>
+  <div class="mini-load err" id="menuNote" hidden role="status"></div>
 </div>
 
 <div id="hud" hidden>
@@ -502,6 +511,8 @@ table.cls tr.me td:last-child{color:var(--signal)}
   </div>
 </div>
 
+<div id="sndHint" hidden role="status">Kliknij albo stuknij, żeby włączyć dźwięk</div>
+
 <div class="overlay" id="rotate" hidden>
   <div class="card"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="30" y="12" width="40" height="72" rx="7" fill="none" stroke="currentColor" stroke-width="6"/><path d="M18 70 A 36 36 0 0 0 58 92" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M50 84 L60 93 L49 99" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
   <h3>Obróć telefon</h3><p>Odcinek jedzie się poziomo. Gra ruszy sama, gdy obrócisz ekran.</p></div>
@@ -514,6 +525,16 @@ table.cls tr.me td:last-child{color:var(--signal)}
       <button class="primary" id="pResume" type="button">Wróć</button>
       <button id="pRestart" type="button">Od nowa</button>
       <button id="pMenu" type="button">Menu</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirm" hidden>
+  <div class="card">
+    <header><h3 id="cfTitle">Porzucić rajd?</h3><span id="cfSub"></span></header>
+    <div class="acts">
+      <button id="cfYes" type="button">Tak</button>
+      <button class="primary" id="cfNo" type="button">Nie</button>
     </div>
   </div>
 </div>
@@ -533,10 +554,10 @@ table.cls tr.me td:last-child{color:var(--signal)}
 
 <script type="importmap">
 { "imports": {
-  "three": "./vendor/three.webgpu.min.js",
-  "three/webgpu": "./vendor/three.webgpu.min.js",
-  "three/tsl": "./vendor/three.tsl.min.js",
-  "three/addons/": "./vendor/addons/"
+  "three": "./vendor/88ec09cb/three.webgpu.min.js",
+  "three/webgpu": "./vendor/88ec09cb/three.webgpu.min.js",
+  "three/tsl": "./vendor/88ec09cb/three.tsl.min.js",
+  "three/addons/": "./vendor/88ec09cb/addons/"
 } }
 </script>
 <script type="module">
@@ -833,7 +854,7 @@ const STAGES = [
 // ------------------------------------------------------------
 const CARS = [
   {
-    id: 'kaze', name: 'Kaze WRC', drive: '4wd', front: 0.42, mass: 1230, torque: 410, redline: 7600, idle: 950,
+    id: 'kaze', name: 'Kaze R4', drive: '4wd', front: 0.42, mass: 1230, torque: 410, redline: 7600, idle: 950,
     gears: [3.2, 2.25, 1.74, 1.41, 1.16, 0.97], final: 4.7, brake: 15500, bias: 0.6, hb: 6200, steer: 0.6, steerHigh: 0.16, grip: 1.0,
     color: '#1d4fc7', color2: '#141518', rim: '#e2b53b', num: 5, body: 'impreza',
     stats: { grip: 0.9, handling: 0.84 }, color3: '#f2c11d',
@@ -2465,7 +2486,11 @@ class Car {
     // --- wejście i skrzynia
     let thr = inp.throttle, brk = inp.brake;
     const hb = inp.handbrake > 0.5;
-    if (this.gear >= 1 && speedF < 0.8 && inp.brake > 0.5 && inp.throttle < 0.1) {
+    // hold: auto trzymane w miejscu (garaż, start) — jak z wciśniętym sprzęgłem: silnik kręci się na luzie,
+    // koła stoją, bez wrzucania wstecznego (hamulec bez gazu przy postoju to tu nie „cofanie”)
+    const held = !!inp.hold;
+    if (held) { this.revTimer = 0; if (this.gear < 1) this.gear = 1; }
+    else if (this.gear >= 1 && speedF < 0.8 && inp.brake > 0.5 && inp.throttle < 0.1) {
       this.revTimer += dt; if (this.revTimer > 0.35) { this.gear = -1; this.revTimer = 0; }
     } else if (this.gear >= 1) this.revTimer = 0;
     if (this.gear === -1) {
@@ -2494,7 +2519,7 @@ class Car {
     // --- silnik
     const ratio = this.gear === -1 ? -3.4 : cfg.gears[this.gear - 1];
     let driven = 0;
-    for (const wh of this.wheels) if (wh.contact && this.share(wh, hb) > 0) driven++;
+    if (!held) for (const wh of this.wheels) if (wh.contact && this.share(wh, hb) > 0) driven++;
     const wheelRpm = Math.abs(speedF / WR * ratio * cfg.final) * 30 / Math.PI;
     let rpmT;
     if (driven === 0) rpmT = cfg.idle + thr * (cfg.redline * 1.02 - cfg.idle);
@@ -2512,7 +2537,7 @@ class Car {
       T = cfg.torque * torqueFactor(this.rpm / cfg.redline) * thr * (1 - 0.25 * this.damage);
       if (this.rpm >= cfg.redline) { T = 0; this.limiter = true; }
     } else T = -cfg.torque * 0.16 * (this.rpm / cfg.redline) * smoothstep(0.5, 3, vAbs);
-    const driveTotal = T * ratio * cfg.final * 0.88 / WR;
+    const driveTotal = held ? 0 : T * ratio * cfg.final * 0.88 / WR;
     if (this.auto && this.shiftT <= 0 && this.gear >= 1 && driven > 0) {
       if (this.rpm > cfg.redline * 0.95 && this.gear < cfg.gears.length && (thr > 0.1 || this.rpm > cfg.redline)) { this.gear++; this.shiftT = 0.15; this.events.shift = 1; }
       else if (this.rpm < cfg.redline * 0.5 && this.gear > 1) { this.gear--; this.shiftT = 0.08; this.events.shift = -1; }
@@ -2770,7 +2795,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('szuter.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('szuter.' + k, JSON.stringify(v)); } catch { /* prywatne okno */ } },
 };
-const IS_TOUCH = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 1;
+// dotykowy = główny wskaźnik to palec (telefon, tablet). Laptop z ekranem dotykowym ma też maxTouchPoints > 1,
+// ale głównym wskaźnikiem jest gładzik/mysz — to komputer (pełna grafika, klawiatura). iPad udaje Maca
+// (Macintosh + punkty dotyku) i zostaje dotykowy także z gładzikiem; aplikacja natywna zawsze dotykowa.
+const IS_TOUCH = !!(typeof window !== 'undefined' && window.SZUTER_NATIVE)
+  || (typeof matchMedia !== 'undefined' ? matchMedia('(pointer: coarse)').matches : navigator.maxTouchPoints > 1)
+  || (/Macintosh/.test(navigator.userAgent || '') && navigator.maxTouchPoints > 1);
 const settings = Object.assign(
   { lang: 'pl', gearbox: 'auto', assist: true, quality: IS_TOUCH ? 'low' : 'high', volume: 0.8, cam: 0, stage: 0, car: 0, touchSteer: 'stick', perf: false, arcade: 0.7, aa: 'fsr', retro: false, saver: false, racingLine: true },
   store.get('settings', {}),
@@ -3015,6 +3045,9 @@ if (!['fsr', 'fxaa', 'off'].includes(settings.aa)) settings.aa = 'fsr';
 // budżet telefonu (≤200 poleceń rysowania, ≤1,5 mln trójkątów): wysoka i supreme tylko na komputerze
 if (IS_TOUCH && (settings.quality === 'high' || settings.quality === 'supreme')) settings.quality = 'medium';
 if (settings.ui !== 'pl' && settings.ui !== 'en') settings.ui = (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en';
+// pilot idzie za językiem interfejsu, dopóki nikt sam nie wybrał mu języka (domyślne 'pl' mówiło po polsku na angielskim telefonie);
+// świadomy wybór (w tym 'off') zostaje — zaznacza go langSet
+if (!settings.langSet && settings.lang === 'pl') settings.lang = settings.ui;
 const EN = {
   'menu główne': 'main menu', 'czas': 'time',
   'Strzałkami wybierasz, Enter zatwierdza, Esc wraca.': 'Use the arrow keys to choose, Enter to confirm, Esc to go back.',
@@ -3066,21 +3099,26 @@ const EN = {
   'Gaz': 'Gas', 'Hamulec': 'Brake', 'Ręczny': 'Handbrake', 'Pedały': 'Pedals', 'W lewo': 'Left', 'W prawo': 'Right', 'Powrót na trasę': 'Back on track',
   'Obróć telefon': 'Rotate your phone', 'Odcinek jedzie się poziomo. Gra ruszy sama, gdy obrócisz ekran.': 'Stages are driven in landscape. The game resumes when you rotate the screen.',
   '● Powtórka': '● Replay', 'Wyjdź': 'Exit', 'Powtórka': 'Replay', 'Powtórka OS': 'Stage replay', 'Jeszcze raz': 'Retry', 'Inny odcinek': 'Another stage',
+  'Kliknij albo stuknij, żeby włączyć dźwięk': 'Click or tap to turn on the sound', 'Porzucić rajd?': 'Abandon the rally?', 'Tak': 'Yes', 'Nie': 'No',
+  'Wyniki z tego rajdu przepadną': 'Results from this rally will be lost', 'Nie udało się wygenerować trasy': 'Could not generate the route',
   'Ty': 'You', 'Zły kierunek': 'Wrong way', 'Pierwszy przejazd: rekord zapisany': 'First run: record saved', 'Dźwięk wyłączony': 'Sound off', 'Dźwięk włączony': 'Sound on',
   'Kibice stawiają auto na koła': 'Spectators put you back on your wheels', 'Kąpiel w jeziorze': 'Took a swim',
   'za autem': 'chase', 'daleko': 'far', 'maska': 'hood', 'zderzak': 'bumper', 'Klasyfikacja końcowa': 'Final standings',
   'MIĘDZYCZAS': 'SPLIT', 'strefa stop': 'stop zone', 'START': 'START', 'META': 'FINISH', 'OS': 'SS',
   // ładowanie
   'Uruchamiam silnik…': 'Starting the engine…', 'Wytyczam trasę…': 'Plotting the route…', 'Buduję świat…': 'Building the world…', 'Kompiluję shadery…': 'Compiling shaders…',
-  'Przygotowuję grafikę…': 'Preparing graphics…', 'Wczytuję auta…': 'Loading cars…', 'WebGL 2 · tryb zgodności': 'WebGL 2 · compatibility mode', 'Nie ruszymy': "Can't start",
+  'Przygotowuję grafikę…': 'Preparing graphics…', 'Wczytuję auta…': 'Loading cars…',
+  'Grafika przestała odpowiadać · uruchamiam ponownie…': 'Graphics stopped responding · restarting…', 'WebGL 2 · tryb zgodności': 'WebGL 2 · compatibility mode', 'Nie ruszymy': "Can't start",
   'Ta przeglądarka nie obsługuje ani WebGPU, ani WebGL 2. Spróbuj w aktualnym Chrome, Edge, Safari lub Firefoksie.': "This browser supports neither WebGPU nor WebGL 2. Try an up-to-date Chrome, Edge, Safari or Firefox.",
-  'Szuter Rally · three.js (MIT) · fonty Saira i Martian Mono (SIL OFL 1.1) · model Orkana RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · gra nie zbiera żadnych danych.':
-    'Hairpin Rally · three.js (MIT) · Saira and Martian Mono fonts (SIL OFL 1.1) · Orkan RS model: “2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 · the game collects no data.',
+  'Szuter Rally · three.js (MIT) · fonty Saira, Martian Mono i IBM Plex Mono (SIL OFL 1.1) · gra nie zbiera żadnych danych.':
+    'Hairpin Rally · three.js (MIT) · Saira, Martian Mono and IBM Plex Mono fonts (SIL OFL 1.1) · the game collects no data.',
+  // przypisanie modelu Orkana: tekst pocięty linkami (źródło na Sketchfab, licencja), każdy kawałek osobno
+  'Model Orkana RS:': 'Orkan RS model:', '„2016 Ford Focus RS”': '“2016 Ford Focus RS”', 'zmodyfikowano: uproszczona siatka': 'modified: simplified mesh',
 };
 // teksty złożone: wzorce (liczby, nazwy) przepisywane regułą
 const EN_RULES = [
   [/^([\d,.]+) km do mety$/, (m) => `${m[1].replace(',', '.')} km to finish`],
-  [/^kara \+(\d+) s$/, (m) => `penalty +${m[1]} s`],
+  [/^kara \+(\d+) s$/, (m) => `penalty +${m[1]} s`], [/^kary \+(\d+) s$/, (m) => `penalties +${m[1]} s`],
   [/^Kamera: (.+)$/, (m) => `Camera: ${EN[m[1]] || m[1]}`],
   [/^(\d+) OS$/, (m) => `${m[1]} SS`], [/^OS (\d+)\/(\d+)$/, (m) => `SS ${m[1]}/${m[2]}`], [/^OS (\d+) ▸$/, (m) => `SS ${m[1]} ▸`], [/^OS (\d+)$/, (m) => `SS ${m[1]}`],
   [/^Rekord · (.+)$/, (m) => `Record · ${m[1]}`], [/^losowy #(\w+)$/, (m) => `random #${m[1]}`], [/^(\d+) KM$/, (m) => `${m[1]} hp`], [/^(\d+) biegów$/, (m) => `${m[1]} gears`],
@@ -3090,7 +3128,7 @@ const EN_RULES = [
   [/^Bliżej symulacji \((\d+)%\): lekka pomoc w poślizgu$/, (m) => `Closer to sim (${m[1]}%): light help in slides`],
   [/^Arcade (\d+)%: auto słucha kierownicy, pobocze wybacza$/, (m) => `Arcade ${m[1]}%: the car follows the wheel, verges forgive`],
   [/^Pełny arcade \((\d+)%\): przyczepność jak na szynach, prawie bez uszkodzeń$/, (m) => `Full arcade (${m[1]}%): grip like on rails, almost no damage`],
-  [/^Nie udało się zbudować odcinka: (.*)$/, (m) => `Could not build the stage: ${m[1]}`],
+  [/^Nie udało się zbudować odcinka: (.*)$/, (m) => `Could not build the stage: ${m[1].replace(/^Nie udało się wygenerować trasy/, 'could not generate the route')}`],
 ];
 function trText(s) {
   if (settings.ui !== 'en' || !s) return s;
@@ -4897,7 +4935,7 @@ const LP = {
     hw: [[0, 0.64], [0.05, 0.75], [0.15, 0.83], [0.35, 0.87], [0.74, 0.885], [1.3, 0.86], [2.5, 0.855], [3.23, 0.885], [3.7, 0.86], [3.9, 0.8], [3.97, 0.68]],
     win: [1.2, 3.28], pillars: [[2.55, 2.64]], wind: [1.1, 1.93], rear: [3.2, 3.84],
     head: [0.73, 0.87], tail: [0.93, 1.06], grille: [0.34, 0.66], wing: 'hatch' },
-  // Kaze WRC: sedan (rysunek: Impreza WRC 2002) — wysokie skrzydło na klapie bagażnika
+  // Kaze R4: sedan (rysunek: rajdowa Impreza z 2002) — wysokie skrzydło na klapie bagażnika
   impreza: { L: 4.405, axles: [0.95, 3.475], stations: 34, doors: 4,
     top: [[0, 0.46], [0.13, 0.69], [0.26, 0.76], [0.5, 0.82], [0.76, 0.9], [1.13, 0.9], [1.26, 0.94], [1.51, 1.09], [1.76, 1.23], [2.02, 1.4], [2.14, 1.42], [2.52, 1.39], [2.89, 1.38], [3.15, 1.35], [3.4, 1.25], [3.65, 1.12], [3.9, 0.99], [4.2, 1.0], [4.33, 0.96], [4.405, 0.62]],
     bot: [[0, 0.33], [0.13, 0.16], [1.0, 0.15], [3.0, 0.15], [3.96, 0.2], [4.3, 0.25], [4.405, 0.33]],
@@ -5070,7 +5108,9 @@ function lpWheelKit(cfg) {
 // ---------- modele z plików (glTF): wczytane raz przy starcie, dopasowane do fizyki ----------
 const CAR_GLTF = {};
 // Orkan RS: „2016 Ford Focus RS” — Ddiaz Design, CC BY-NC-SA 4.0 (assets/orkan/license.txt)
+// Aplikacja natywna (sklep) nie ma tego modelu (licencja niekomercyjna) — od razu bryła proceduralna, bez prób wczytania.
 async function loadCarModels() {
+  if (typeof window !== 'undefined' && window.SZUTER_NATIVE) return;
   try {
     // telefon: wersja uproszczona (~21 tys. trójkątów zamiast 90 tys.), komputer: pełny model
     const gl = await new GLTFLoader().loadAsync(IS_TOUCH ? 'assets/orkan/lite.glb' : 'assets/orkan/scene.gltf');
@@ -5691,6 +5731,8 @@ class Particles {
     this.life = new Float32Array(max); this.maxLife = new Float32Array(max);
     this.s0 = new Float32Array(max); this.s1 = new Float32Array(max); this.a0 = new Float32Array(max);
     this.rot = new Float32Array(max); this.rv = new Float32Array(max); this.drag = new Float32Array(max); this.grav = new Float32Array(max);
+    this.arr3 = [this.p, this.v, this.c]; // do kill(): bez nowych tablic przy każdej zgasłej cząstce
+    this.arr1 = [this.life, this.maxLife, this.s0, this.s1, this.a0, this.rot, this.rv, this.drag, this.grav];
     const geo = new THREE.PlaneGeometry(1, 1);
     this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(max), 1);
     this.alpha.setUsage(THREE.DynamicDrawUsage);
@@ -5719,8 +5761,8 @@ class Particles {
   }
   kill(i) {
     const j = --this.n; if (i === j) return;
-    for (const arr of [this.p, this.v, this.c]) { arr[i * 3] = arr[j * 3]; arr[i * 3 + 1] = arr[j * 3 + 1]; arr[i * 3 + 2] = arr[j * 3 + 2]; }
-    for (const arr of [this.life, this.maxLife, this.s0, this.s1, this.a0, this.rot, this.rv, this.drag, this.grav]) arr[i] = arr[j];
+    for (const arr of this.arr3) { arr[i * 3] = arr[j * 3]; arr[i * 3 + 1] = arr[j * 3 + 1]; arr[i * 3 + 2] = arr[j * 3 + 2]; }
+    for (const arr of this.arr1) arr[i] = arr[j];
   }
   clear() { this.n = 0; this.mesh.count = 0; }
   update(dt, camQuat) {
@@ -5828,9 +5870,15 @@ class Skids {
     this.mesh.setColorAt(k, this.c.set(color));
     this.count++;
     this.mesh.count = Math.min(this.count, this.max);
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.mesh.instanceColor.needsUpdate = true;
+    this.upload(this.mesh.instanceMatrix, k, 16);
+    this.upload(this.mesh.instanceColor, k, 3);
     this.last[i] = [x, y, z];
+  }
+  // na GPU idzie tylko dopisany odcinek śladu (kolejne z tej samej klatki łączą się w jeden zakres), nie cały bufor
+  upload(attr, k, size) {
+    const r = attr.updateRanges, l = r[r.length - 1];
+    if (l && l.start + l.count === k * size) l.count += size; else attr.addUpdateRange(k * size, size);
+    attr.needsUpdate = true;
   }
 }
 
@@ -5990,15 +6038,23 @@ const POST = {
   contrast: T.uniform(1.06),
 };
 
+// Węzły łańcucha z własnymi render targetami (przebiegi sceny, convertToTexture, bloom, SSAO, FSR). RenderPipeline.dispose()
+// zwalnia tylko materiał quada, więc przy przebudowie łańcucha (odcinek z deszczem/śniegiem/promieniami ↔ zwykły, jakość, AA)
+// ich tekstury zostawałyby w pamięci GPU (kilkadziesiąt MB na każde przejście). Każdy taki węzeł przechodzi przez postRT(),
+// a disposePostRT() przed przebudową zwalnia wszystkie naraz.
+const POST_RT = [];
+const postRT = (n) => { POST_RT.push(n); return n; };
+function disposePostRT() { for (const n of POST_RT.splice(0)) { try { n.dispose(); } catch (e) { console.warn('post dispose', e); } } }
+
 // promienie słońca (las deszczowy): niebo prześwitujące przez korony w pobliżu słońca, rozmyte promieniście od słońca —
 // oba przebiegi w ćwiartce rozdzielczości, więc tanie także na telefonie
 const RAYS = { on: false, far: T.uniform(1000), k: T.uniform(0) };
 function sunRays(pass) {
   const sky = T.step(RAYS.far.mul(0.8), pass.getViewZNode().negate());
   const near = T.exp(T.length(T.screenUV.sub(POST.sunUV).mul(T.vec2(POST.aspect, 1.0))).mul(-2.4));
-  const src = T.convertToTexture(T.vec4(ATM.sunCol.mul(sky.mul(near)), 1.0));
+  const src = postRT(T.convertToTexture(T.vec4(ATM.sunCol.mul(sky.mul(near)), 1.0)));
   src.setResolutionScale(0.25);
-  const rays = T.convertToTexture(radialBlur(src, { center: POST.sunUV, weight: 0.9, decay: 0.965, count: T.int(28), exposure: 2.6 }));
+  const rays = postRT(T.convertToTexture(radialBlur(src, { center: POST.sunUV, weight: 0.9, decay: 0.965, count: T.int(28), exposure: 2.6 })));
   rays.setResolutionScale(0.25);
   // 4 próbki po przekątnych wygładzają szum rozmycia (inaczej po powiększeniu widać kratkę na liściach)
   const o = T.vec2(0.75, 0.75).div(T.vec2(T.textureSize(rays))), p = T.vec2(o.x, o.y.negate()), u = T.uv();
@@ -6012,12 +6068,12 @@ function vignette(rgb, k = 0.38) {
 }
 
 function makeHighChain(scene, camera, q, scale = 1) {
-  const scenePass = T.pass(scene, camera);
+  const scenePass = postRT(T.pass(scene, camera));
   scenePass.setResolutionScale(scale);
   let color = scenePass.getTextureNode('output');
   if (RAYS.on) color = T.vec4(color.rgb.add(sunRays(scenePass)), 1.0);
   let out = color, bloomNode = null;
-  if (q.bloom) { bloomNode = bloom(color, 0.25, 0.4, 1.0); out = color.add(bloomNode); }
+  if (q.bloom) { bloomNode = postRT(bloom(color, 0.25, 0.4, 1.0)); out = color.add(bloomNode); }
   return { output: T.vec4(vignette(out.rgb), 1.0), bloomNode, colorTransform: true };
 }
 
@@ -6037,7 +6093,7 @@ function sunFlare() {
 
 function makeSupremeChain(scene, camera, scale = 1) {
   // przebieg wstępny: normalne + prędkości (SSAO i rozmycie ruchu)
-  const prePass = T.pass(scene, camera);
+  const prePass = postRT(T.pass(scene, camera));
   prePass.name = 'Pre-Pass';
   prePass.setResolutionScale(scale);
   prePass.transparent = false;
@@ -6047,13 +6103,13 @@ function makeSupremeChain(scene, camera, scale = 1) {
   const preDepth = prePass.getTextureNode('depth');
   const preVel = prePass.getTextureNode('velocity');
   // SSAO przyciemnia światło otoczenia w zakamarkach (pod drzewami, wokół kół, w rowach)
-  const aoPass = ssao(preDepth, preNormal, camera);
+  const aoPass = postRT(ssao(preDepth, preNormal, camera));
   aoPass.radius.value = 1.4; aoPass.intensity.value = 1.15; aoPass.samples.value = 16;
-  const scenePass = T.pass(scene, camera);
+  const scenePass = postRT(T.pass(scene, camera));
   scenePass.setResolutionScale(scale);
   scenePass.contextNode = T.builtinAOContext(aoPass.getTextureNode().sample(T.screenUV).r);
   const color = scenePass.getTextureNode('output');
-  const bloomNode = bloom(color, 0.3, 0.45, 0.98);
+  const bloomNode = postRT(bloom(color, 0.3, 0.45, 0.98));
   const blurred = motionBlur(color, preVel.mul(POST.blur));
   let c = blurred.rgb.add(bloomNode.rgb).add(sunFlare());
   if (RAYS.on) c = c.add(sunRays(scenePass));
@@ -6062,7 +6118,8 @@ function makeSupremeChain(scene, camera, scale = 1) {
   c = T.mix(T.vec3(lum, lum, lum), c, POST.sat);
   c = T.max(c.sub(0.18).mul(POST.contrast).add(0.18), T.vec3(0, 0, 0));
   const toned = T.renderOutput(T.vec4(c, 1.0), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
-  const ca = chromaticAberration(toned, POST.ca, T.vec2(0.5, 0.5), 1.1);
+  // chromaticAberration() i fxaa() same robią convertToTexture z nie-tekstury — robimy to jawnie, żeby render target był na liście
+  const ca = chromaticAberration(postRT(T.convertToTexture(toned)), POST.ca, T.vec2(0.5, 0.5), 1.1);
   const grain = film(ca, POST.grain);
   return { output: T.vec4(vignette(grain.rgb, 0.45), 1.0), bloomNode, colorTransform: false, aoPass };
 }
@@ -6463,7 +6520,8 @@ class Sound {
     // iOS: graj także przy wyciszonym telefonie (przełącznik „cisza")
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* */ }
     const ctx = this.ctx = new AC();
-    this.master = ctx.createGain(); this.master.gain.value = settings.volume;
+    ctx.onstatechange = () => { if (this.onState) this.onState(ctx.state); };
+    this.master = ctx.createGain(); this.master.gain.value = this.muted ? 0 : settings.volume;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.15;
     this.master.connect(comp).connect(ctx.destination);
     const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
@@ -6504,6 +6562,11 @@ class Sound {
   }
   setVolume(v) { if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : v, this.ctx.currentTime, 0.05); }
   toggleMute() { this.muted = !this.muted; this.setVolume(settings.volume); return this.muted; }
+  // karta w tle: cały kontekst stoi (nic nie buczy — np. w powtórce albo po mecie), po powrocie rusza dalej
+  suspend(on) {
+    if (!this.ctx) return;
+    try { (on ? this.ctx.suspend() : this.ctx.resume()).catch(() => {}); } catch { /* */ }
+  }
   silence() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
@@ -6624,7 +6687,7 @@ class CoDriver {
       this.load();
       try { speechSynthesis.addEventListener('voiceschanged', () => this.load()); } catch { /* starsze Safari */ }
     }
-    this.notes = []; this.callIdx = 0;
+    this.notes = []; this.callIdx = 0; this.muted = false;
   }
   load() { try { this.voices = speechSynthesis.getVoices() || []; } catch { this.voices = []; } }
   voice(lang) { return this.voices.find(v => (v.lang || '').toLowerCase().startsWith(lang)); }
@@ -6637,8 +6700,10 @@ class CoDriver {
   // iOS wpuszcza syntezę mowy dopiero po pierwszym użyciu w geście użytkownika
   prime() { const l = this.lang(); if (l) this.say(l === 'pl' ? 'Gotowi' : 'Ready', l); }
   stop() { if (this.ok) try { speechSynthesis.cancel(); } catch { /* */ } }
+  // wyciszenie (M) dotyczy też pilota — bieżąca wypowiedź urwana
+  mute(on) { this.muted = on; if (on) this.stop(); }
   say(text, lang) {
-    if (!this.ok || !lang) return;
+    if (!this.ok || !lang || this.muted) return;
     try {
       if (speechSynthesis.pending || speechSynthesis.speaking) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -6716,12 +6781,12 @@ class TouchPad {
       move(e);
     });
     zone.addEventListener('pointermove', (e) => { if (e.pointerId === this.stickId) { e.preventDefault(); move(e); } });
-    const end = (e) => {
-      if (e.pointerId !== this.stickId) return;
+    this.release = () => {
       this.stickId = null; this.steer = 0;
       base.style.left = ''; base.style.top = ''; knob.style.transform = '';
       zone.classList.remove('on');
     };
+    const end = (e) => { if (e.pointerId === this.stickId) this.release(); };
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) zone.addEventListener(ev, end);
     // pedały: kciuk może przesuwać się między gazem a hamulcem bez odrywania
     const pz = $('tPedals'), ids = ['tGas', 'tBrake', 'tHb', 'tUp', 'tDown'];
@@ -6754,7 +6819,7 @@ class TouchPad {
   }
   get active() { return this.stickId !== null; }
   take(k) { if (this.edges.has(k)) { this.edges.delete(k); return true; } return false; }
-  reset() { this.pedals.clear(); this.sync(); this.edges.clear(); }
+  reset() { this.pedals.clear(); this.sync(); this.edges.clear(); this.release(); } // także suwak kierownicy (inaczej „aktywny” bez palca)
 }
 
 // ---------- przechył telefonu jako kierownica ----------
@@ -6821,17 +6886,20 @@ class Input {
     const block = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
     const menuKeys = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter', 'NumpadEnter', 'Backspace']);
     this.rep = {};
+    // klawisze wciśnięte już w menu — tylko one mają autopowtarzanie (gaz trzymany z jazdy nie kręci fokusem w pauzie i wynikach)
+    this.menuHeld = new Set();
     addEventListener('keydown', (e) => {
       const inMenu = game.state === 'menu' || game.state === 'results' || game.state === 'paused';
       if (e.target && e.target.tagName === 'INPUT' && !inMenu) return;
       // w menu nawigacją zajmuje się gra (bez natywnego klikania przycisków spacją/Enterem)
       if (inMenu && menuKeys.has(e.code)) { e.preventDefault(); if (e.repeat && (e.code === 'Enter' || e.code === 'Space')) return; }
-      if (!e.repeat || (inMenu && e.code.startsWith('Arrow'))) this.edges.add(e.code);
+      if (inMenu && !e.repeat) this.menuHeld.add(e.code);
+      if (!e.repeat || (inMenu && e.code.startsWith('Arrow') && this.menuHeld.has(e.code))) this.edges.add(e.code);
       this.keys.add(e.code);
       if (block.has(e.code) && !inMenu) e.preventDefault();
     });
-    addEventListener('keyup', (e) => this.keys.delete(e.code));
-    addEventListener('blur', () => { this.keys.clear(); for (const k in this.touch) this.touch[k] = false; });
+    addEventListener('keyup', (e) => { this.keys.delete(e.code); this.menuHeld.delete(e.code); });
+    addEventListener('blur', () => { this.keys.clear(); this.menuHeld.clear(); for (const k in this.touch) this.touch[k] = false; });
     const bind = (id, key) => {
       const b = $(id);
       const on = (e) => { e.preventDefault(); this.touch[key] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch { /* */ } };
@@ -6871,6 +6939,7 @@ class Input {
       if (pad.take('down')) out.shiftDown = true;
     }
     let gp = null;
+    this.padPress = false;
     try { for (const g of navigator.getGamepads ? navigator.getGamepads() : []) if (g && g.connected) { gp = g; break; } } catch { /* */ }
     this.gp = gp;
     if (gp) {
@@ -6889,12 +6958,16 @@ class Input {
       out.cam ||= ed(3); out.reset ||= ed(8); out.pause ||= ed(9); out.confirm ||= ed(9);
       // menu: krzyżak lub gałka z autopowtarzaniem, A dalej, B wstecz, X/Y losuj
       const now = performance.now(), ay = gp.axes[1] || 0;
+      const inMenu = game.state === 'menu' || game.state === 'results' || game.state === 'paused';
       const dirs = { up: btn(12) > 0.5 || ay < -0.6, down: btn(13) > 0.5 || ay > 0.6, left: btn(14) > 0.5 || ax < -0.6, right: btn(15) > 0.5 || ax > 0.6 };
       for (const k in dirs) {
         if (!dirs[k]) { this.rep[k] = 0; continue; }
+        // kierunek trzymany od jazdy (skręt krzyżakiem / gałką) rusza menu dopiero po puszczeniu
+        if (!inMenu) { this.rep[k] = Infinity; continue; }
         if (!this.rep[k]) { nav[k] = true; this.rep[k] = now + 380; } else if (now >= this.rep[k]) { nav[k] = true; this.rep[k] = now + 150; }
       }
       nav.ok ||= ed(0) || ed(9); nav.back ||= ed(1); nav.alt ||= ed(2) || ed(3);
+      this.padPress = gp.buttons.some((b, i) => ed(i)); // świeżo wciśnięty dowolny przycisk (odblokowanie dźwięku)
       this.gpPrev = gp.buttons.map((b, i) => btn(i));
     }
     this.edges.clear();
@@ -7135,11 +7208,15 @@ const UI = {
     const seg = (id, key, conv, apply) => {
       const box = $(id);
       const sync = () => box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(conv(b.dataset.v) === settings[key])));
-      box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { settings[key] = conv(b.dataset.v); saveSettings(); sync(); apply(); }));
+      box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        const v = conv(b.dataset.v);
+        if (v === settings[key]) return; // klik w aktywną opcję niczego nie zmienia (np. grafika nie buduje odcinka od nowa)
+        settings[key] = v; saveSettings(); sync(); apply();
+      }));
       sync();
     };
     const id = (v) => v, nop = () => {};
-    seg('optLang', 'lang', id, nop);
+    seg('optLang', 'lang', id, () => { settings.langSet = true; saveSettings(); });
     // język interfejsu: pilot przechodzi na ten sam język (chyba że wyłączony), wszystko na ekranie tłumaczy się od razu
     seg('optUi', 'ui', id, () => {
       if (settings.lang !== 'off') settings.lang = settings.ui; saveSettings();
@@ -7198,6 +7275,9 @@ const UI = {
     $('pResume').addEventListener('click', () => this.h.resume());
     $('pRestart').addEventListener('click', () => this.h.restart());
     $('pMenu').addEventListener('click', () => this.h.menu());
+    const answer = (yes) => { const q = this.cf; this.confirm(null); if (q) (yes ? q.yes : q.no)?.(); };
+    $('cfYes').addEventListener('click', () => answer(true));
+    $('cfNo').addEventListener('click', () => answer(false));
     $('rpExit').addEventListener('click', () => this.h.exitReplay());
     $('rpSlow').addEventListener('click', () => this.h.replaySpeed(0.5));
     $('rpPlay').addEventListener('click', () => this.h.replaySpeed(1));
@@ -7257,7 +7337,22 @@ const UI = {
     box.replaceChildren(text + ' ', el('span', { class: delta > 0 ? 'up' : 'dn' }, fmtTime(delta, true)));
   },
   penalty(total) { $('hPen').textContent = total > 0 ? `kara +${total.toFixed(0)} s` : ''; },
-  pause(on, info) { $('pause').hidden = !on; if (info) $('pauseInfo').textContent = info; if (on) $('pResume').focus({ preventScroll: true }); },
+  pause(on, info, restartPen = 0) {
+    $('pause').hidden = !on; if (info) $('pauseInfo').textContent = info;
+    if (!on) return;
+    // rajd: „Od nowa” kosztuje karę — widać to już przy wyborze
+    $('pRestart').replaceChildren('Od nowa', ...(restartPen ? [el('small', {}, `kara +${restartPen} s`)] : []));
+    $('pResume').focus({ preventScroll: true });
+  },
+  // własne okno „Tak / Nie” zamiast confirm() przeglądarki: mysz i dotyk klikają, klawiatura i pad przez overlayNav
+  cf: null,
+  confirm(q) {
+    this.cf = q || null;
+    $('confirm').hidden = !q;
+    if (!q) return;
+    $('cfTitle').textContent = q.title; $('cfSub').textContent = q.sub || '';
+    $('cfNo').focus({ preventScroll: true }); // bezpieczniej domyślnie „Nie”
+  },
   results(r) {
     $('results').hidden = !r;
     if (!r) return;
@@ -7292,7 +7387,7 @@ const Menu = {
     const track = $('stageTrack');
     for (let i = 0; i <= STAGES.length; i++) {
       const c = this.makeCard(i);
-      c.addEventListener('click', () => { if (this.card !== i) { this.setCard(i); this.blip('move'); } });
+      c.addEventListener('click', () => { if (this.cardDragged) return; if (this.card !== i) { this.setCard(i); this.blip('move'); } });
       track.append(c); this.cards.push(c);
       $('stageDots').append(el('i'));
     }
@@ -7303,8 +7398,13 @@ const Menu = {
     car.addEventListener('pointerup', (e) => {
       if (sx == null) return;
       const dx = e.clientX - sx; sx = null;
-      if (Math.abs(dx) > 50) { this.setCard(this.card + (dx < 0 ? 1 : -1)); this.blip('move'); }
+      if (Math.abs(dx) > 50) {
+        this.setCard(this.card + (dx < 0 ? 1 : -1)); this.blip('move');
+        // po przeciągnięciu myszą przychodzi jeszcze klik w kartę, na której zaczęto — bez tego karuzela odbijała z powrotem
+        this.cardDragged = true; setTimeout(() => { this.cardDragged = false; }, 0);
+      }
     });
+    car.addEventListener('pointercancel', () => { sx = null; });
     // garaż
     $('carPrev').addEventListener('click', () => this.setCar(this.carIdx - 1));
     $('carNext').addEventListener('click', () => this.setCar(this.carIdx + 1));
@@ -7329,6 +7429,22 @@ const Menu = {
   },
 
   blip(k) { this.h.blip(k); },
+  // wybór ustawiony z zewnątrz („Kontynuuj”): auto w garażu i karta odcinka (losowy — z tym samym seedem)
+  syncSel(sel) {
+    this.carIdx = sel.car;
+    if (sel.seed != null) {
+      const r = this.rnd = { def: sel.stage, seed: sel.seed };
+      setTimeout(() => { this.ensurePreview(r.def, r.seed); this.drawCards(); }, 0);
+    }
+    this.card = sel.seed != null ? STAGES.length : sel.stage;
+    this.drawCards();
+  },
+  // krótki komunikat na ekranie menu (np. nieudana budowa odcinka)
+  note(text, ms = 6000) {
+    const n = $('menuNote'); if (!n) return;
+    n.textContent = text; n.hidden = false;
+    clearTimeout(this.noteT); this.noteT = setTimeout(() => { n.hidden = true; }, ms);
+  },
   // po zmianie języka: przebuduj teksty tworzone w kodzie (tytuł, karty, rajd, garaż)
   relabel() { this.buildTitle(); this.drawCards(); if (this.screen === 'garage') this.renderGarage(); this.show(this.screen); },
 
@@ -7587,13 +7703,17 @@ const Menu = {
     if (!quiet || this.h.selection().stage !== d || this.h.selection().seed !== seed) this.h.previewStage(d, seed);
   },
   reroll(silent = false) {
-    this.rnd = { def: (Math.random() * STAGES.length) | 0, seed: (Math.random() * 1e9) >>> 0 };
+    const roll = () => ({ def: (Math.random() * STAGES.length) | 0, seed: (Math.random() * 1e9) >>> 0 });
+    const rnd = this.rnd = roll();
     const i = STAGES.length;
     this.fillCard(this.cards[i], i);
     setTimeout(() => {
-      this.ensurePreview(this.rnd.def, this.rnd.seed);
+      if (this.rnd !== rnd) return; // w międzyczasie kolejne losowanie
+      // generator potrafi się poddać (np. Anglia, seed 760224) — taka trasa nie może trafić do gracza: losujemy dalej
+      for (let k = 0; k < 20 && !this.ensurePreview(this.rnd.def, this.rnd.seed); k++) this.rnd = roll();
       this.fillCard(this.cards[i], i);
-      if (!silent && this.card === i) this.h.previewStage(this.rnd.def, this.rnd.seed);
+      // podgląd 3D dopiero ze sprawdzonej trasy (wcześniejsze wywołanie mogło wskazać zepsutą)
+      if ((!silent || this.rnd !== rnd) && this.card === i) this.h.previewStage(this.rnd.def, this.rnd.seed);
     }, 20);
     if (!silent && this.card === i) this.h.previewStage(this.rnd.def, this.rnd.seed);
   },
@@ -7609,8 +7729,9 @@ const Menu = {
   renderGarage() {
     const c = CARS[this.carIdx], pmax = Math.max(...CARS.map(peakPowerKW));
     const meter = (lbl, v) => el('div', {}, el('span', {}, lbl), el('span', {}, ...Array.from({ length: 10 }, (_, k) => el('em', { class: k < Math.round(v * 10) ? 'on' : '' }))));
-    const rows = STAGES.map((def) => {
-      const b = bests[`${def.id}:${def.seed}:${c.id}`];
+    const rows = STAGES.map((def, i) => {
+      // rekord leży pod seedem zbudowanej trasy (st.seed), a ten bywa inny niż def.seed — generator bierze kolejną próbę
+      const p = this.ensurePreview(i, null), b = p ? bests[`${def.id}:${p.seed}:${c.id}`] : null;
       return el('tr', {}, el('td', {}, `${def.code} · ${def.name}`), el('td', {}, b ? fmtTime(b) : '—'));
     });
     const drive = { '4wd': 'napęd 4×4', rwd: 'napęd na tył', fwd: 'napęd na przód' }[c.drive];
@@ -7662,6 +7783,9 @@ const pixelRatio = () => Math.min(devicePixelRatio || 1, settings.saver ? (IS_TO
 const PORTRAIT = typeof matchMedia !== 'undefined' ? matchMedia('(orientation: portrait)') : null;
 let wakeLock = null;
 async function keepAwake(on) {
+  // aplikacja (Capacitor): własna wtyczka KeepAwake (iOS isIdleTimerDisabled, Android FLAG_KEEP_SCREEN_ON)
+  const KA = window.SZUTER_NATIVE && window.Capacitor?.Plugins?.KeepAwake;
+  if (KA) { try { await KA.set({ on: !!on }); } catch { /* */ } return; }
   try {
     if (on && !wakeLock && navigator.wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); }
     else if (!on && wakeLock) { const w = wakeLock; wakeLock = null; await w.release(); }
@@ -7677,6 +7801,7 @@ function bayer4(p) {
 }
 function setupPipeline() {
   if (pipeline) pipeline.dispose?.();
+  disposePostRT(); // render targety starego łańcucha (pipeline.dispose() ich nie rusza)
   pipeline = null; bloomNode = null;
   const q = Q(), retro = !!settings.retro, fsr = !retro && settings.aa === 'fsr', scale = fsr ? FSR_SCALE : 1;
   RAYS.on = !!(game.stage && game.stage.def.look.rays);
@@ -7684,7 +7809,7 @@ function setupPipeline() {
   pipeline = new THREE.RenderPipeline(renderer);
   let chain;
   if (!q.pipeline || retro) {
-    const sp = T.pass(scene, camera);
+    const sp = postRT(T.pass(scene, camera));
     if (fsr || retro) sp.setResolutionScale(retro ? RETRO_SCALE : FSR_SCALE);
     let c = sp.getTextureNode('output');
     if (RAIN.on) c = rainLens(c); // krople na obiektywie / szybie — bez dodatkowego przebiegu
@@ -7693,23 +7818,23 @@ function setupPipeline() {
   } else {
     try { chain = q.supreme ? makeSupremeChain(scene, camera, scale) : makeHighChain(scene, camera, q, scale); }
     catch (e) { console.warn('post', e); chain = makeHighChain(scene, camera, QUALITY.high, scale); }
-    if (RAIN.on) { const tx = T.convertToTexture(chain.output); tx.setResolutionScale(scale); chain.output = rainLens(tx); }
+    if (RAIN.on) { const tx = postRT(T.convertToTexture(chain.output)); tx.setResolutionScale(scale); chain.output = rainLens(tx); }
   }
   const toned = chain.colorTransform ? T.renderOutput(chain.output) : chain.output;
   if (retro) {
     // PS1: obraz w ~⅓ rozdzielczości powiększany bez wygładzania, 15-bitowy kolor (32 poziomy na kanał) z ditheringiem
-    const lo = T.convertToTexture(toned); lo.setResolutionScale(RETRO_SCALE);
+    const lo = postRT(T.convertToTexture(toned)); lo.setResolutionScale(RETRO_SCALE);
     lo.renderTarget.texture.magFilter = THREE.NearestFilter; lo.renderTarget.texture.minFilter = THREE.NearestFilter;
     const px = T.floor(T.screenCoordinate.xy.mul(RETRO_SCALE));
     pipeline.outputNode = T.vec4(T.floor(lo.rgb.mul(31).add(bayer4(px))).div(31), 1.0);
   } else if (fsr) {
     // FSR 1: scena i FXAA w 75% rozdzielczości, potem skalowanie z zachowaniem krawędzi (EASU) i wyostrzenie (RCAS)
-    const lo = T.convertToTexture(toned); lo.setResolutionScale(FSR_SCALE);
-    const aa = T.convertToTexture(fxaa(lo)); aa.setResolutionScale(FSR_SCALE);
-    pipeline.outputNode = fsr1(aa, 0.25);
+    const lo = postRT(T.convertToTexture(toned)); lo.setResolutionScale(FSR_SCALE);
+    const aa = postRT(T.convertToTexture(fxaa(lo))); aa.setResolutionScale(FSR_SCALE);
+    pipeline.outputNode = postRT(fsr1(aa, 0.25));
   } else if (settings.aa === 'fxaa') {
     // FXAA na obrazie po mapowaniu tonów, w sRGB — wygładza drobne krawędzie (pnie, słupki, liście)
-    pipeline.outputNode = fxaa(toned);
+    pipeline.outputNode = fxaa(postRT(T.convertToTexture(toned))); // fxaa() z nie-tekstury robi ukryty convertToTexture
   } else pipeline.outputNode = toned;
   pipeline.outputColorTransform = false;
   bloomNode = chain.bloomNode || null;
@@ -7721,7 +7846,12 @@ const _camFwd = new THREE.Vector3();
 function makeSun() {
   const q = Q();
   if (sun) { scene.remove(sun, sun.target); sun.dispose?.(); }
-  if (csm) { csm.dispose?.(); csm = null; }
+  if (csm) {
+    // csm.dispose() zdejmuje tylko światła kaskad — mapy cieni kaskad (render targety ich węzłów cienia) zwalniamy sami
+    const sn = csm._shadowNodes;
+    if (sn && sn.length) for (const n of sn) n.dispose?.(); else for (const l of csm.lights || []) l.shadow?.dispose?.();
+    csm.dispose?.(); csm = null;
+  }
   sun = new THREE.DirectionalLight('#ffffff', 3);
   sun.castShadow = true;
   // cień nie jest czarny: część światła nieba zostaje (0 = brak cienia, 1 = pełna czerń)
@@ -7882,72 +8012,107 @@ async function loadStage(sel, force = false, quiet = false, background = false) 
   const key = `${def.id}:${seed}:${settings.quality}`;
   if (!force && key === game.stageKey && game.stage) return true;
   const token = ++game.loadToken;
+  game.loadQuiet = quiet;
   const show = (on, title, msg) => { if (quiet) { $('miniLoad').hidden = !on; if (msg) $('miniLoad').textContent = msg; } else UI.loading(on, title, msg); };
-  show(true, `${def.country} · ${def.name}`, 'Wytyczam trasę…');
-  await nextFrame();
-  let t = performance.now();
-  const st = await buildStage(def, seed, (m) => show(true, null, m + '…'));
-  mark('stage ' + def.id, t);
-  if (token !== game.loadToken) return false;
-  show(true, null, 'Buduję świat…');
-  await nextFrame();
-  if (token !== game.loadToken) return false;
-  const oldWorld = game.world;
-  if (oldWorld) oldWorld.group.visible = false;
-  game.stage = st;
-  t = performance.now();
-  game.world = new World(st, stageLabels(st));
-  mark('world', t);
-  scene.add(game.world.group);
-  if ((RAYS.on !== !!st.def.look.rays || RAIN.on !== (st.def.look.weather === 'rain' || st.def.look.weather === 'snow')) && pipeline) setupPipeline();
-  t = performance.now();
-  applyLook(def);
-  setupFog(def);
-  mark('look+fog', t); t = performance.now();
-  if (!game.fx || game.fxRebuild) {
-    if (game.fx) game.fx.dispose();
-    game.fx = new FX(scene, st); game.fxRebuild = false;
-  } else game.fx.setStage(st);
-  mark('fx', t); t = performance.now();
-  updateEnv(st);
-  mark('env', t); t = performance.now();
-  setupCar(game.sel.car);
-  mark('car', t);
-  game.stageKey = key;
-  placeCar(st.startS + 4);
-  if (background) {
-    // pierwszy start: menu od razu, shadery kompilują się w tle (iOS: kilkanaście sekund, bez pamięci między uruchomieniami)
-    game.gfxReady = false;
-    game.gfxPromise = (async () => {
-      game.fx.prewarm(true); prewarmCars(true);
-      const t0 = performance.now();
-      try { await warmup(); } catch (e) { console.warn(e); }
-      mark('warmup', t0);
-      game.fx.prewarm(false); prewarmCars(false);
-      game.gfxReady = true;
-      $('miniLoad').hidden = true;
-      $('view').classList.add('ready');
-    })();
+  // przerwane nowszym ładowaniem: ono pokaże i schowa swój wskaźnik, ale jeśli jest innego rodzaju
+  // (pełny ekran zamiast małego w menu albo odwrotnie), nasz musimy schować sami — inaczej zostaje na zawsze
+  const aborted = () => { if (game.loadQuiet !== quiet) show(false); return false; };
+  const prev = { stage: game.stage, world: game.world, key: game.stageKey };
+  let oldGone = false;
+  try {
+    show(true, `${def.country} · ${def.name}`, 'Wytyczam trasę…');
+    await nextFrame();
+    let t = performance.now();
+    const st = await buildStage(def, seed, (m) => show(true, null, m + '…'));
+    mark('stage ' + def.id, t);
+    if (token !== game.loadToken) return aborted();
+    show(true, null, 'Buduję świat…');
+    await nextFrame();
+    if (token !== game.loadToken) return aborted();
+    const oldWorld = game.world;
+    if (oldWorld) oldWorld.group.visible = false;
+    game.stage = st;
+    t = performance.now();
+    game.world = new World(st, stageLabels(st));
+    mark('world', t);
+    scene.add(game.world.group);
+    if ((RAYS.on !== !!st.def.look.rays || RAIN.on !== (st.def.look.weather === 'rain' || st.def.look.weather === 'snow')) && pipeline) setupPipeline();
+    t = performance.now();
+    applyLook(def);
+    setupFog(def);
+    mark('look+fog', t); t = performance.now();
+    if (!game.fx || game.fxRebuild) {
+      if (game.fx) game.fx.dispose();
+      game.fx = new FX(scene, st); game.fxRebuild = false;
+    } else game.fx.setStage(st);
+    mark('fx', t); t = performance.now();
+    updateEnv(st);
+    mark('env', t); t = performance.now();
+    setupCar(game.sel.car);
+    mark('car', t);
+    game.stageKey = key;
+    placeCar(st.startS + 4);
+    if (background) {
+      // pierwszy start: menu od razu, shadery kompilują się w tle (iOS: kilkanaście sekund, bez pamięci między uruchomieniami)
+      game.gfxReady = false;
+      game.gfxPromise = (async () => {
+        game.fx.prewarm(true); prewarmCars(true);
+        const t0 = performance.now();
+        try { await warmup(); } catch (e) { console.warn(e); }
+        mark('warmup', t0);
+        game.fx.prewarm(false); prewarmCars(false);
+        game.gfxReady = true;
+        $('miniLoad').hidden = true;
+        $('view').classList.add('ready');
+      })();
+      UI.setStageHud(st, `${def.code} · ${def.name}`);
+      show(false);
+      $('miniLoad').textContent = 'Przygotowuję grafikę…'; $('miniLoad').hidden = false;
+      return true;
+    }
+    show(true, null, 'Kompiluję shadery…');
+    await nextFrame();
+    game.fx.prewarm(true); prewarmCars(true);
+    t = performance.now();
+    try { await warmup(); } catch (e) { console.warn(e); }
+    mark('warmup', t);
+    game.fx.prewarm(false); prewarmCars(false);
+    t = performance.now();
+    if (oldWorld) { scene.remove(oldWorld.group); oldWorld.dispose(); }
+    oldGone = true;
+    mark('dispose', t);
+    if (token !== game.loadToken) return aborted(); // w międzyczasie ruszyło nowsze ładowanie — ono dokończy HUD i wskaźnik
     UI.setStageHud(st, `${def.code} · ${def.name}`);
     show(false);
-    $('miniLoad').textContent = 'Przygotowuję grafikę…'; $('miniLoad').hidden = false;
+    if (game.state === 'menu' && Menu.screen === 'garage') parkCar();
     return true;
+  } catch (e) {
+    // wyjątek przy budowie (np. generator trasy się poddał) — bez tego zostawał wieczny ekran „Wytyczam trasę…”
+    if (background) throw e; // pierwszy start: boot pokazuje błąd na pełnym ekranie
+    console.error(e);
+    if (token !== game.loadToken) return aborted();
+    if (prev.stage && game.stage !== prev.stage && !oldGone) {
+      // nowy odcinek wszedł już do sceny w połowie — wracamy do poprzedniego, żeby tło menu dalej działało
+      try {
+        if (game.world && game.world !== prev.world) { scene.remove(game.world.group); game.world.dispose(); }
+        game.stage = prev.stage; game.world = prev.world; prev.world.group.visible = true;
+        const L = prev.stage.def.look;
+        if ((RAYS.on !== !!L.rays || RAIN.on !== (L.weather === 'rain' || L.weather === 'snow')) && pipeline) setupPipeline();
+        applyLook(prev.stage.def); setupFog(prev.stage.def);
+        if (game.fx) game.fx.setStage(prev.stage);
+        updateEnv(prev.stage);
+        placeCar(prev.stage.startS + 4);
+        game.stageKey = prev.key;
+      } catch (e2) { console.warn(e2); game.stageKey = ''; }
+    }
+    show(false);
+    Menu.note('Nie udało się zbudować odcinka: ' + (e && e.message ? e.message : e));
+    if (!quiet) {
+      if (game.state !== 'menu') enterMenu('title');
+      else if (Menu.screen === 'garage') Menu.show(Menu.mode === 'rally' ? 'rally' : 'stage');
+    }
+    return false;
   }
-  show(true, null, 'Kompiluję shadery…');
-  await nextFrame();
-  game.fx.prewarm(true); prewarmCars(true);
-  t = performance.now();
-  try { await warmup(); } catch (e) { console.warn(e); }
-  mark('warmup', t);
-  game.fx.prewarm(false); prewarmCars(false);
-  t = performance.now();
-  if (oldWorld) { scene.remove(oldWorld.group); oldWorld.dispose(); }
-  mark('dispose', t);
-  if (token !== game.loadToken) return false; // w międzyczasie ruszyło nowsze ładowanie — ono dokończy HUD i wskaźnik
-  UI.setStageHud(st, `${def.code} · ${def.name}`);
-  show(false);
-  if (game.state === 'menu' && Menu.screen === 'garage') parkCar();
-  return true;
 }
 
 // Kompilacja shaderów za ekranem ładowania. Wszystko bez odrzucania poza kadrem — inaczej obiekty,
@@ -7991,7 +8156,7 @@ function demoCar() {
 function enterMenu(screen = 'title') {
   game.state = 'menu';
   game.rally = null;
-  UI.showMenu(true); UI.showHud(false); UI.pause(false); UI.results(null); UI.replayBar(false); UI.banner('');
+  UI.showMenu(true); UI.showHud(false); UI.pause(false); UI.confirm(null); UI.results(null); UI.replayBar(false); UI.banner('');
   sound.silence(); codriver.stop();
   keepAwake(false); $('rotate').hidden = true; game.rotPaused = false;
   if (input && input.pad) input.pad.reset();
@@ -8006,7 +8171,7 @@ async function startGo(mode) {
   sound.init();
   codriver.prime();
   if (mode === 'rally') {
-    game.rally = { idx: 0, totals: {}, times: [] };
+    game.rally = { idx: 0, totals: {}, times: [], pen: 0 };
     game.sel.seed = null; game.sel.stage = 0;
     const ok = await loadStage(game.sel);
     if (!ok) return;
@@ -8023,20 +8188,23 @@ function beginIntro() {
   const st = game.stage;
   game.state = 'intro'; game.introT = 0; game.beeps = 0;
   // każdy start odcinka w pełnej rozdzielczości — obniży się tylko przy trwałym obciążeniu
+  // (po „Telefon się grzeje” też, o ile minęła minuta — telefon zdążył ostygnąć w menu i wynikach)
+  if (game.autoCap && performance.now() - (game.autoCapT || 0) > 60000) game.autoCap = 0;
   if (!game.autoCap) { perf.scale = pixelRatio(); renderer.setPixelRatio(perf.scale); perf.ema = 1 / 60; perf.lastDown = 0; perf.good = 0; }
-  game.time = 0; game.penalty = 0; game.splitDone = [false, false]; game.finishTime = null; game.finishT = 0;
+  // rajd: kara za „Od nowa” zostaje w czasie tego OS
+  game.time = 0; game.penalty = game.rally ? game.rally.pen || 0 : 0; game.splitDone = [false, false]; game.finishTime = null; game.finishT = 0; game.shiftQ = 0;
   game.car.damage = 0; game.model.uDirt.value = 0;
   game.car.auto = settings.gearbox === 'auto'; game.car.assist = settings.assist; game.car.arcade = settings.arcade;
   placeCar(st.startS - 3.2);
   game.hold = [game.car.pos[0], game.car.pos[2]];
   game.fx.clear();
   game.world.setStartLamps(0);
-  UI.showMenu(false); UI.showHud(true); UI.results(null); UI.pause(false); UI.replayBar(false);
+  UI.showMenu(false); UI.showHud(true); UI.results(null); UI.pause(false); UI.confirm(null); UI.replayBar(false);
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   keepAwake(true);
   if (input.pad) input.pad.reset();
   if (!game.rally) { settings.last = { stage: game.sel.stage, seed: game.sel.seed, car: game.sel.car }; saveSettings(); }
-  UI.split(null); UI.penalty(0); UI.setNotes(null, null, null, 'pl'); UI.notesKey = '';
+  UI.split(null); UI.penalty(game.penalty); UI.setNotes(null, null, null, 'pl'); UI.notesKey = '';
   const def = st.def;
   const osNo = game.rally ? `OS ${game.rally.idx + 1}/${STAGES.length} · ` : '';
   UI.banner(def.name, `${osNo}${def.country} · ${def.surfaceLabel} · ${(def.length / 1000).toFixed(1).replace('.', ',')} km`);
@@ -8052,8 +8220,8 @@ function introUpdate(dt, inp) {
   const st = game.stage, car = game.car;
   game.introT += dt;
   const t = game.introT;
-  // auto trzymane na starcie, silnik reaguje na gaz
-  simulate(dt, () => ({ steer: 0, throttle: inp.throttle, brake: 1, handbrake: 1 }), () => {
+  // auto trzymane na starcie (hold: bez wstecznego i kręcenia kołami), silnik reaguje na gaz
+  simulate(dt, () => ({ steer: 0, throttle: inp.throttle, brake: 1, handbrake: 1, hold: true }), () => {
     // marszałek trzyma auto: tylko pion i obroty zostają z fizyki
     car.pos[0] = game.hold[0]; car.pos[2] = game.hold[1];
     car.vel[0] = 0; car.vel[2] = 0; car.w[1] = 0;
@@ -8208,7 +8376,9 @@ function showResults() {
   const note = [];
   if (game.isPB) note.push([game.prevBest != null ? `Rekord odcinka (poprzedni ${fmtTime(game.prevBest)})` : 'Pierwszy przejazd: rekord zapisany', 'pb']);
   else note.push([`Rekord: ${fmtTime(game.prevBest)} (${fmtTime(total - game.prevBest, true)})`]);
-  if (game.penalty > 0) note.push([` · kary +${game.penalty} s`]);
+  const restartPen = game.rally ? game.rally.pen || 0 : 0, otherPen = game.penalty - restartPen;
+  if (restartPen > 0) note.push([` · Od nowa · kara +${restartPen} s`]);
+  if (otherPen > 0) note.push([` · kary +${otherPen} s`]);
   note.push([` · ${me.pos}. miejsce`]);
   const actions = [];
   let title = 'Meta', sub = `${st.def.country} · ${st.def.name} · ${cfg.name}`;
@@ -8226,15 +8396,34 @@ function showResults() {
         actions: [{ label: 'Powtórka OS', fn: startReplay }, { label: 'Menu', fn: () => enterMenu('title'), primary: true }] });
       return;
     }
-    actions.push({ label: `OS ${R.idx + 2} ▸`, primary: true, fn: async () => { R.idx++; game.sel.stage = R.idx; game.sel.seed = null; game.resultsSaved = false; const ok = await loadStage(game.sel); if (ok) beginIntro(); } });
+    actions.push({ label: `OS ${R.idx + 2} ▸`, primary: true, fn: nextRallyStage });
     actions.push({ label: 'Powtórka', fn: startReplay });
-    actions.push({ label: 'Menu', fn: () => enterMenu('title') });
+    actions.push({ label: 'Menu', fn: () => abandonRally(() => $('resActs').lastElementChild.focus({ preventScroll: true })) });
   } else {
     actions.push({ label: 'Jeszcze raz', primary: true, fn: () => { game.resultsSaved = false; beginIntro(); } });
     actions.push({ label: 'Powtórka', fn: startReplay });
     actions.push({ label: 'Inny odcinek', fn: () => enterMenu('stage') });
   }
   UI.results({ title, sub, time: total, note, rows, actions });
+}
+
+// rajd: „Od nowa” w pauzie dolicza karę do czasu OS, a wyjście do menu porzuca rajd — najpierw pytamy (własne okno Tak/Nie)
+const RESTART_PEN = 10;
+function abandonRally(onNo) {
+  UI.confirm({ title: 'Porzucić rajd?', sub: 'Wyniki z tego rajdu przepadną', yes: () => enterMenu('title'), no: onNo });
+}
+
+// rajd: następny OS. Wyniki chowamy przed ładowaniem — drugie wciśnięcie Enter/A (albo „Menu”) w trakcie
+// ładowania nie może przeskoczyć odcinka ani wrócić do menu, gdy odcinek zaraz wystartuje
+async function nextRallyStage() {
+  const R = game.rally;
+  if (!R || game.busy || game.state !== 'results' || R.idx >= STAGES.length - 1) return;
+  game.busy = true;
+  UI.results(null);
+  R.idx++; R.pen = 0; game.sel.stage = R.idx; game.sel.seed = null; game.resultsSaved = false;
+  let ok = false;
+  try { ok = await loadStage(game.sel); } finally { game.busy = false; }
+  if (ok && game.rally === R && game.state === 'results') beginIntro();
 }
 
 // ---------- symulacja ----------
@@ -8487,18 +8676,21 @@ function camFor(dt) {
 // ---------- klatka ----------
 let last = performance.now();
 // limit klatek: menu i garaż nie potrzebują 60 kl./s, pauza i wyniki jeszcze mniej; tryb oszczędzania baterii
-// ogranicza też jazdę do 30 kl./s (połowa pracy GPU i CPU)
+// ogranicza też jazdę do 30 kl./s (połowa pracy GPU i CPU); telefon w jeździe najwyżej 60 kl./s — ekran 120 Hz
+// nie liczy każdej klatki dwa razy (i nie grzeje się), a dynamiczna rozdzielczość celuje w 60, nie w 120
 function frameCap() {
   const s = game.state;
   if (s === 'paused' || s === 'results') return 15;
   if (s === 'menu' || s === 'boot') return IS_TOUCH || settings.saver ? 30 : 0;
-  return settings.saver || game.autoCap ? 30 : 0;
+  return settings.saver || game.autoCap ? 30 : IS_TOUCH ? 60 : 0;
 }
 let lastDraw = 0;
 function frame() {
   const now = performance.now();
   const cap = frameCap();
-  if (cap && now - lastDraw < 1000 / cap - 3 && !warmReq) return;
+  // zapas 6 ms: przy limicie 60 ekran 90 Hz rysuje każdą klatkę (a nie co drugą = 45), 120 Hz co drugą;
+  // limity 30 i 15 wypadają tak samo przy 60, 90 i 120 Hz
+  if (cap && now - lastDraw < 1000 / cap - 6 && !warmReq) return;
   lastDraw = now;
   if (PROF.on && now - last > 70) PROF.long.push([Math.round(now), Math.round(now - last), game.state === 'menu' ? Menu.screen : game.state, PROF.prevFrame]);
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
@@ -8509,7 +8701,7 @@ function frame() {
   switch (game.state) {
     case 'menu': {
       if (Menu.screen === 'garage') {
-        simulate(dt, () => ({ steer: 0, throttle: 0, brake: 1, handbrake: 1 }), () => { car.pos[0] = game.hold[0]; car.pos[2] = game.hold[1]; car.vel[0] = 0; car.vel[2] = 0; car.w[1] = 0; });
+        simulate(dt, () => ({ steer: 0, throttle: 0, brake: 1, handbrake: 1, hold: true }), () => { car.pos[0] = game.hold[0]; car.pos[2] = game.hold[1]; car.vel[0] = 0; car.vel[2] = 0; car.w[1] = 0; });
         game.lastInp = { throttle: 0, brake: 0 };
       } else {
         const b = {};
@@ -8519,11 +8711,15 @@ function frame() {
       break;
     }
     case 'intro': introUpdate(dt, inp); game.lastInp = inp; break;
-    case 'race':
-      simulate(dt, game.botDrive ? (() => { const b = {}; botInput(car, st, 0.95, b); return b; }) : () => inp, raceRules);
+    case 'race': {
+      // zmiana biegu czeka na krok fizyki: przy ≥120 kl./s część klatek nie ma żadnego kroku i zdarzenie by przepadło
+      game.shiftQ = clamp((game.shiftQ || 0) + (inp.shiftUp ? 1 : 0) - (inp.shiftDown ? 1 : 0), -2, 2);
+      const drive = () => { inp.shiftUp = game.shiftQ > 0; inp.shiftDown = game.shiftQ < 0; game.shiftQ -= Math.sign(game.shiftQ); return inp; };
+      simulate(dt, game.botDrive ? (() => { const b = {}; botInput(car, st, 0.95, b); return b; }) : drive, raceRules);
       game.lastInp = inp;
       if (game.bannerT > 0) { game.bannerT -= dt; if (game.bannerT <= 0) UI.banner(''); }
       break;
+    }
     case 'finish': {
       const b = {};
       simulate(dt, () => { botInput(car, st, 0.5, b); b.throttle = 0; b.brake = car.speed > 2 ? 0.55 : 0; b.handbrake = car.speed < 2 ? 1 : 0; return b; }, finishRules);
@@ -8661,11 +8857,16 @@ function adaptResolution(dt, now) {
   perf.t += dt;
   if (perf.t < 1.2 || window.SZUTER_NOADAPT) return;
   perf.t = 0;
-  // przy limicie klatek (menu na telefonie, oszczędzanie, 30 kl./s z gorąca) czas klatki mierzy limit, nie obciążenie
-  if (frameCap()) return;
+  // „Telefon się grzeje”: po 90 s na 30 kl./s zdejmujemy ten limit — rozdzielczość może wrócić do góry;
+  // jeśli telefon dalej nie wyrabia, limit wróci sam (już bez komunikatu)
+  if (game.autoCap && now - (game.autoCapT || 0) > 90000 && (game.state === 'race' || game.state === 'intro')) { game.autoCap = 0; perf.hot = 0; perf.good = 0; perf.lastDown = now; perf.ema = 1 / 60; }
+  // przy limicie klatek (menu na telefonie, oszczędzanie, 30 kl./s z gorąca) czas klatki mierzy limit, nie obciążenie;
+  // limit 60 w jeździe na telefonie nie przeszkadza — progi niżej (48 i 56 kl./s) leżą pod nim
+  const fc = frameCap();
+  if (fc && fc < 60) return;
   const cap = pixelRatio(), min = Q().minScale;
   if (IS_TOUCH && !game.autoCap && !settings.saver && game.state === 'race' && perf.scale <= min + 0.01 && perf.ema > 1 / 50) {
-    if (++perf.hot >= 4) { game.autoCap = 30; UI.toast('Telefon się grzeje · 30 kl./s', false, 2.5); }
+    if (++perf.hot >= 4) { game.autoCap = 30; game.autoCapT = now; if (!game.autoCapN++) UI.toast('Telefon się grzeje · 30 kl./s', false, 2.5); }
   } else perf.hot = 0;
   if (perf.ema > 1 / 48 && perf.scale > min) {
     perf.scale = Math.max(min, +(perf.scale - 0.15).toFixed(2)); renderer.setPixelRatio(perf.scale);
@@ -8677,11 +8878,25 @@ function adaptResolution(dt, now) {
   } else perf.good = 0;
 }
 
+// gra samym padem: przeglądarki nie liczą przycisku pada jako gestu, więc dźwięk potrafi zostać zablokowany.
+// Próbujemy go odblokować, a gdy się nie da — dyskretna podpowiedź, że wystarczy kliknąć albo stuknąć
+function padWake() {
+  sound.init();
+  const c = sound.ctx;
+  if (!c || c.state === 'running' || document.hidden) return;
+  c.resume().catch(() => {});
+  clearTimeout(padWake.t);
+  padWake.t = setTimeout(() => { if (sound.ctx && sound.ctx.state !== 'running' && !document.hidden) $('sndHint').hidden = false; }, 400);
+}
 function handleKeys(inp) {
   const s = game.state;
-  if (inp.mute) { const m = sound.toggleMute(); UI.toast(m ? 'Dźwięk wyłączony' : 'Dźwięk włączony', false, 1.2); }
+  if (input.padPress) padWake();
+  if (inp.mute) { const m = sound.toggleMute(); codriver.mute(m); UI.toast(m ? 'Dźwięk wyłączony' : 'Dźwięk włączony', false, 1.2); }
   if (s === 'menu') { if (!$('loading').hidden || ($('splash') && !$('splash').classList.contains('out'))) return; Menu.handle(inp.nav); return; }
-  if (s === 'results' || s === 'paused') { overlayNav(s === 'paused' ? $('pause') : $('results'), inp); return; }
+  if (s === 'results' || s === 'paused') {
+    if (game.busy || !$('loading').hidden) return;
+    overlayNav(!$('confirm').hidden ? $('confirm') : s === 'paused' ? $('pause') : $('results'), inp); return;
+  }
   if ((s === 'race' || s === 'intro') && inp.pause) { pauseGame(); return; }
   if (s === 'replay' && inp.pause) { exitReplay(); return; }
   if (inp.cam && (s === 'race' || s === 'intro' || s === 'finish')) cycleCam();
@@ -8690,6 +8905,7 @@ function handleKeys(inp) {
 // wyniki i pauza: strzałki/pad przesuwają fokus po przyciskach, Enter/A wybiera, Esc/B = wróć (pauza)
 function overlayNav(box, inp) {
   const nav = inp.nav || {};
+  if (box.id === 'confirm' && (nav.back || inp.pause)) { sound.ui('back'); $('cfNo').click(); return; }
   if (box.id === 'pause' && (nav.back || inp.pause)) { resumeGame(); return; }
   if (box.hidden) return;
   const bs = [...box.querySelectorAll('.acts button')];
@@ -8721,12 +8937,12 @@ function pauseGame() {
   if (game.state !== 'race' && game.state !== 'intro') return;
   game.paused = game.state; game.state = 'paused';
   sound.silence(); codriver.stop();
-  UI.pause(true, `${game.stage.def.country} · ${fmtTime(game.time)}`);
+  UI.pause(true, `${game.stage.def.country} · ${fmtTime(game.time)}`, game.rally ? RESTART_PEN : 0);
 }
 function resumeGame() {
   if (game.state !== 'paused') return;
   game.state = game.paused || 'race';
-  UI.pause(false);
+  UI.pause(false); UI.confirm(null);
   last = performance.now();
   keepAwake(true);
   if (input.pad) input.pad.reset();
@@ -8752,6 +8968,9 @@ const handlers = {
   continueLast: () => {
     const l = settings.last; if (!l) return;
     game.sel.stage = l.stage; game.sel.seed = l.seed; game.sel.car = l.car;
+    // garaż i karty mają pokazywać to samo auto i odcinek, którym ruszamy
+    settings.car = l.car; settings.stage = l.stage; saveSettings();
+    Menu.syncSel(game.sel);
     startGo('stage');
   },
   screenChanged: (name) => {
@@ -8781,9 +9000,14 @@ const handlers = {
   },
   pause: () => pauseGame(),
   resume: () => resumeGame(),
-  restart: () => { UI.pause(false); game.resultsSaved = false; beginIntro(); },
-  menu: () => enterMenu('title'),
-  cam: () => cycleCam(),
+  restart: () => {
+    UI.pause(false); game.resultsSaved = false;
+    if (game.rally && game.state === 'paused') game.rally.pen = (game.rally.pen || 0) + RESTART_PEN;
+    beginIntro();
+    if (game.rally && game.rally.pen) UI.toast(`Od nowa · kara +${game.rally.pen} s`, true, 2.5);
+  },
+  menu: () => { if (game.rally && game.state === 'paused') abandonRally(() => $('pMenu').focus({ preventScroll: true })); else enterMenu('title'); },
+  cam: () => { if (game.state === 'race' || game.state === 'intro' || game.state === 'finish') cycleCam(); }, // jak klawisz C: tylko w jeździe
   reset: () => { if (game.state === 'race') recoverCar('Powrót na trasę · +5 s'); },
   exitReplay: () => exitReplay(),
   replaySpeed: (v) => { if (game.rp) game.rp.speed = v; },
@@ -8806,6 +9030,16 @@ function fatal(msg) {
   document.querySelector('#loading .bar')?.remove();
 }
 
+// po utracie GPU nic się już nie narysuje: krótki komunikat i przeładowanie (ustawienia i rekordy są w localStorage)
+let gpuLostT = 0;
+function gpuLost() {
+  if (gpuLostT) return;
+  try { renderer.setAnimationLoop(null); } catch { /* */ }
+  $('splash')?.remove();
+  UI.loading(true, 'Szuter', 'Grafika przestała odpowiadać · uruchamiam ponownie…');
+  gpuLostT = setTimeout(() => window.location.reload(), 500);
+}
+
 function hideSplash() {
   const sp = $('splash'); if (!sp || sp.classList.contains('out')) return;
   sp.classList.add('out');
@@ -8820,6 +9054,8 @@ async function boot() {
   try {
     // bez MSAA (drogie na telefonie) — wygładzanie robi FXAA na końcu łańcucha
     renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' });
+    // utrata GPU (reset sterownika, iOS zabiera pamięć aplikacji w tle): bez tego obraz zamarza na stałe
+    renderer.onDeviceLost = (info) => { console.warn('GPU lost', info && info.message); gpuLost(); };
     await renderer.init();
   } catch (e) {
     console.error(e);
@@ -8876,11 +9112,15 @@ async function boot() {
   addEventListener('orientationchange', () => { for (const t of [80, 300, 800]) setTimeout(onResize, t); });
   onResize();
   // dźwięk (także kliknięcia menu) po pierwszym geście — tak wymagają przeglądarki
-  const wake = () => { sound.init(); if (sound.ctx && sound.ctx.state !== 'running') sound.ctx.resume().catch(() => {}); };
+  const wake = () => { sound.init(); if (sound.ctx && sound.ctx.state !== 'running' && !document.hidden) sound.ctx.resume().catch(() => {}); };
+  sound.onState = (st) => { if (st === 'running') $('sndHint').hidden = true; };
   // iOS: bez przybliżania szczypnięciem i podwójnym stuknięciem
   for (const ev of ['gesturestart', 'gesturechange', 'dblclick']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
-  addEventListener('pointerdown', wake); addEventListener('keydown', wake);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+  // pointerup/click/touchend: część przeglądarek (iOS) uznaje za gest dopiero puszczenie palca
+  for (const ev of ['pointerdown', 'pointerup', 'click', 'touchend', 'keydown']) addEventListener(ev, wake);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { pauseGame(); codriver.stop(); sound.suspend(true); } else sound.suspend(false);
+  });
   last = performance.now();
   looping = true;
   renderer.setAnimationLoop(frame);
