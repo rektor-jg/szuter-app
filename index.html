@@ -8548,7 +8548,8 @@ function frame() {
   const running = game.state === 'race' || game.state === 'finish' || game.state === 'menu' || game.state === 'replay' || game.state === 'intro';
   const night = st.def.look.time === 'night';
   if (running) {
-    game.fx.wheels(car, dt, night);
+    // na starcie auto trzyma marszałek — koła buksują w miejscu, ale bez dymu i śladów (było mnóstwo dymu i przycięcia)
+    if (game.state !== 'intro') game.fx.wheels(car, dt, night);
     // strzały z wydechu
     if (game.state !== 'replay') {
       const thr = game.lastInp.throttle || 0;
